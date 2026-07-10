@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: getsalons-api
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    workingDir: backend
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: APP_URL
+        value: https://your-app.vercel.app
+      - key: CORS_ORIGIN
+        value: https://your-app.vercel.app
+      - key: NODE_ENV
+        value: production

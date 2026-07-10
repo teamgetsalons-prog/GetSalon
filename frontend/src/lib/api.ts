@@ -1,0 +1,24 @@
+import type { ApiResponse } from "@getsalons/shared/types";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
+export async function api<T = unknown>(
+  path: string,
+  options?: RequestInit & { json?: unknown }
+): Promise<ApiResponse<T>> {
+  const { json, ...init } = options ?? {};
+  try {
+    const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+    const res = await fetch(url, {
+      ...init,
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...init.headers },
+      body: json !== undefined ? JSON.stringify(json) : init.body,
+    });
+    const data = (await res.json().catch(() => null)) as ApiResponse<T> | null;
+    if (!data) return { success: false, message: `Request failed (${res.status}).` };
+    return data;
+  } catch {
+    return { success: false, message: "Network error." };
+  }
+}
