@@ -1,5 +1,6 @@
-import { Schema, model, models, type Model, type Types } from "mongoose";
-import type { UserRole } from "../../../shared/src/types.js";
+import mongoose, { type Model, type Types } from "mongoose";
+const { Schema, model, models } = mongoose;
+import type { UserRole } from "../../../shared/dist/types.js";
 
 export interface IUser {
   _id: Types.ObjectId;

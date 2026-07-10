@@ -1,4 +1,5 @@
-import { Types } from "mongoose";
+import mongoose from "mongoose";
+const { Types } = mongoose;
 import { connectDB } from "../db.js";
 import {
   Appointment,
@@ -8,12 +9,12 @@ import {
   type IReview,
 } from "../models/index.js";
 import { ApiError } from "../middleware/error-handler.js";
-import { roundRating } from "../../../shared/src/utils.js";
+import { roundRating } from "../../../shared/dist/utils.js";
 import type {
   CreateReviewInput,
   ReviewActionInput,
-} from "../../../shared/src/validations/review.js";
-import type { UserRole } from "../../../shared/src/types.js";
+} from "../../../shared/dist/validations/review.js";
+import type { UserRole } from "../../../shared/dist/types.js";
 import { notify } from "./notification.service.js";
 
 /** Recompute the denormalized rating on a salon (and optionally staff) */

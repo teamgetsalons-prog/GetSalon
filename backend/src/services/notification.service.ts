@@ -1,5 +1,5 @@
 import { Notification } from "../models/index.js";
-import type { NotificationType } from "../../../shared/src/types.js";
+import type { NotificationType } from "../../../shared/dist/types.js";
 import { sendEmail } from "./email.js";
 import { sendWhatsApp } from "./whatsapp.js";
 

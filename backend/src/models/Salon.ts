@@ -1,4 +1,5 @@
-import { Schema, model, models, type Model, type Types } from "mongoose";
+import mongoose, { type Model, type Types } from "mongoose";
+const { Schema, model, models } = mongoose;
 import type {
   FaqItem,
   GalleryImage,
@@ -6,7 +7,7 @@ import type {
   GeoPoint,
   OpeningHour,
   SalonStatus,
-} from "../../../shared/src/types.js";
+} from "../../../shared/dist/types.js";
 
 export interface ISalon {
   _id: Types.ObjectId;

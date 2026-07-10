@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { Staff } from "../models/index.js";
-import { staffSchema } from "../../../shared/src/validations/service.js";
+import { staffSchema } from "../../../shared/dist/validations/service.js";
 import { getActorSalon } from "../services/salon.service.js";
 
 const router = Router();

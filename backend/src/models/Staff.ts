@@ -1,5 +1,6 @@
-import { Schema, model, models, type Model, type Types } from "mongoose";
-import type { OpeningHour } from "../../../shared/src/types.js";
+import mongoose, { type Model, type Types } from "mongoose";
+const { Schema, model, models } = mongoose;
+import type { OpeningHour } from "../../../shared/dist/types.js";
 
 export interface IStaffLeave {
   date: string; // YYYY-MM-DD

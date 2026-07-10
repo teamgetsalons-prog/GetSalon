@@ -1,4 +1,5 @@
-import { Schema, model, models, type Model, type Types } from "mongoose";
+import mongoose, { type Model, type Types } from "mongoose";
+const { Schema, model, models } = mongoose;
 
 export interface IAdvertisement {
   _id: Types.ObjectId;

@@ -1,5 +1,6 @@
-import { Schema, model, models, type Model, type Types } from "mongoose";
-import type { NotificationType } from "../../../shared/src/types.js";
+import mongoose, { type Model, type Types } from "mongoose";
+const { Schema, model, models } = mongoose;
+import type { NotificationType } from "../../../shared/dist/types.js";
 
 export interface INotification {
   _id: Types.ObjectId;

@@ -3,9 +3,9 @@ import type { Request, Response } from "express";
 import { authenticate } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { Appointment, Salon } from "../models/index.js";
-import { createBookingSchema, updateBookingSchema, availabilityQuerySchema } from "../../../shared/src/validations/booking.js";
+import { createBookingSchema, updateBookingSchema, availabilityQuerySchema } from "../../../shared/dist/validations/booking.js";
 import { createBooking, updateBooking, getAvailability } from "../services/booking.service.js";
-import { toDateKey } from "../../../shared/src/utils.js";
+import { toDateKey } from "../../../shared/dist/utils.js";
 
 const router = Router();
 

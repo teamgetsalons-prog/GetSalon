@@ -1,8 +1,9 @@
-import { Types } from "mongoose";
+import mongoose from "mongoose";
+const { Types } = mongoose;
 import { connectDB } from "../db.js";
 import { Comment, Salon } from "../models/index.js";
 import { ApiError } from "../middleware/error-handler.js";
-import { roundRating } from "../../../shared/src/utils.js";
+import { roundRating } from "../../../shared/dist/utils.js";
 import { notify } from "./notification.service.js";
 
 export interface CreateCommentInput {

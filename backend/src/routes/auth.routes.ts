@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { User } from "../models/index.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { authenticate, signToken } from "../middleware/auth.js";
-import { registerSchema, loginSchema } from "../../../shared/src/validations/auth.js";
+import { registerSchema, loginSchema } from "../../../shared/dist/validations/auth.js";
 import type { Request, Response } from "express";
 
 const router = Router();

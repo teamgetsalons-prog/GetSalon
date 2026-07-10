@@ -14,13 +14,13 @@ import {
   type ISalon,
 } from "../models/index.js";
 import { ApiError } from "../middleware/error-handler.js";
-import { slugify } from "../../../shared/src/utils.js";
+import { slugify } from "../../../shared/dist/utils.js";
 import type {
   CreateSalonInput,
   SearchSalonsInput,
   UpdateSalonInput,
-} from "../../../shared/src/validations/salon.js";
-import type { SalonCardData } from "../../../shared/src/types.js";
+} from "../../../shared/dist/validations/salon.js";
+import type { SalonCardData } from "../../../shared/dist/types.js";
 import { notify } from "./notification.service.js";
 
 /** Serialize a salon document to the lean card shape the frontend uses */

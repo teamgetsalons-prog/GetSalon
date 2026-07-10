@@ -16,7 +16,7 @@ import {
   MAX_BOOKING_DAYS_AHEAD,
   MIN_BOOKING_LEAD_MINUTES,
   SLOT_INTERVAL,
-} from "../../../shared/src/constants.js";
+} from "../../../shared/dist/constants.js";
 import {
   formatDateKey,
   formatTime12h,
@@ -25,13 +25,13 @@ import {
   minutesToTime,
   timeToMinutes,
   toDateKey,
-} from "../../../shared/src/utils.js";
-import type { OpeningHour, TimeSlot, UserRole } from "../../../shared/src/types.js";
+} from "../../../shared/dist/utils.js";
+import type { OpeningHour, TimeSlot, UserRole } from "../../../shared/dist/types.js";
 import type {
   AvailabilityQueryInput as AvailabilityQuery,
   CreateBookingInput,
   UpdateBookingInput,
-} from "../../../shared/src/validations/booking.js";
+} from "../../../shared/dist/validations/booking.js";
 import { bookingEmailHtml } from "./email.js";
 import { notify } from "./notification.service.js";
 import { isActiveSubscription } from "./subscription.service.js";

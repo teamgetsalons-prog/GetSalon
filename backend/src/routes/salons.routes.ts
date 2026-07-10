@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import { authenticate, optionalAuth, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { Salon } from "../models/index.js";
-import { createSalonSchema, searchSalonsSchema, updateSalonSchema } from "../../../shared/src/validations/salon.js";
+import { createSalonSchema, searchSalonsSchema, updateSalonSchema } from "../../../shared/dist/validations/salon.js";
 import { createSalon, getHomePageData, getSalonPageData, searchSalons, updateSalon, moderateSalon } from "../services/salon.service.js";
 import { deleteImage } from "../services/upload.service.js";
 

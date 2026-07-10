@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { Category, City, Area } from "../models/index.js";
-import { slugify } from "../../../shared/src/utils.js";
+import { slugify } from "../../../shared/dist/utils.js";
 
 const router = Router();
 

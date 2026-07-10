@@ -1,4 +1,5 @@
-import { Schema, model, models, type Model, type Types } from "mongoose";
+import mongoose, { type Model, type Types } from "mongoose";
+const { Schema, model, models } = mongoose;
 
 export type SubscriptionPlanType = "trial" | "basic" | "premium";
 export type SubscriptionStatus = "active" | "expired" | "cancelled" | "suspended";
