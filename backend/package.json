@@ -6,6 +6,7 @@
   "scripts": {
     "predev": "npm install --prefix ../shared && npm run build --prefix ../shared",
     "dev": "tsx watch src/index.ts",
+    "postinstall": "npm install --prefix ../shared",
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit"
