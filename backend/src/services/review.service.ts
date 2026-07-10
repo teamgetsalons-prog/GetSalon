@@ -8,12 +8,12 @@ import {
   type IReview,
 } from "../models/index.js";
 import { ApiError } from "../middleware/error-handler.js";
-import { roundRating } from "@/lib/utils";
+import { roundRating } from "../../../shared/src/utils.js";
 import type {
   CreateReviewInput,
   ReviewActionInput,
-} from "@/lib/validations/review";
-import type { UserRole } from "@/types";
+} from "../../../shared/src/validations/review.js";
+import type { UserRole } from "../../../shared/src/types.js";
 import { notify } from "./notification.service.js";
 
 /** Recompute the denormalized rating on a salon (and optionally staff) */

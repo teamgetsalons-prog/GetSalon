@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { SITE } from "@/lib/constants";
+import { SITE } from "../../../shared/src/constants.js";
 
 /**
  * Email delivery via Nodemailer SMTP.

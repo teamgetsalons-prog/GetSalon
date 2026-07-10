@@ -19,7 +19,7 @@ export const registerSchema = z
       .string()
       .regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number")
       .optional(),
-    role: z.enum(["OWNER", "STAFF", "CUSTOMER"]).default("CUSTOMER"),
+    role: z.enum(["customer", "owner", "staff"]).default("customer"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -47,6 +47,7 @@ export const updateProfileSchema = z.object({
     .optional()
     .or(z.literal("")),
   avatar: z.string().url("Invalid URL").optional().or(z.literal("")),
+  city: z.string().optional(),
   currentPassword: z.string().optional(),
   newPassword: z
     .string()

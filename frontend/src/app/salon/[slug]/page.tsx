@@ -15,10 +15,7 @@ import {
   Phone,
   ShieldCheck,
 } from "lucide-react";
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
+import { getSalonPageData, getServerSession } from "@/lib/server-api";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd, salonJsonLd } from "@/lib/seo";
 import { DAYS } from "@getsalons/shared/constants";
 import { formatPKR, formatTime12h, truncate } from "@getsalons/shared/utils";
@@ -62,29 +59,13 @@ const genderLabel = {
 export default async function SalonPage({ params }: Params) {
   const { slug } = await params;
 
-  let data: Awaited<ReturnType<typeof getSalonPageData>> = null;
-  try {
-    data = await getSalonPageData(slug);
-  } catch {
-    data = null;
-  }
+  const data = await getSalonPageData(slug);
   if (!data) notFound();
 
   const { salon, services, staff, reviews } = data;
 
-  // Is this salon in the visitor's favourites?
   let favorited = false;
-  const session = await auth();
-  if (session?.user?.id) {
-    try {
-      await connectDB();
-      const u = await User.findById(session.user.id).select("favorites");
-      favorited =
-        u?.favorites.some((f) => f.toString() === salon._id.toString()) ?? false;
-    } catch {
-      favorited = false;
-    }
-  }
+  const session = await getServerSession();
 
   const todayHours = salon.openingHours.find(
     (h) => h.day === new Date().getDay()
@@ -166,7 +147,7 @@ export default async function SalonPage({ params }: Params) {
                 </Badge>
               )}
               <Badge variant="neutral" className="border-white/20 bg-black/40 text-white">
-                {genderLabel[salon.genderServed]}
+                {genderLabel[salon.genderServed as keyof typeof genderLabel]}
               </Badge>
               {salon.homeService && (
                 <Badge variant="neutral" className="border-white/20 bg-black/40 text-white">
@@ -347,7 +328,7 @@ export default async function SalonPage({ params }: Params) {
             salonId={salon._id.toString()}
             salonName={salon.name}
             rating={salon.rating}
-            currentUserId={session?.user?.id}
+            currentUserId={session?.id}
           />
 
           {/* FAQs */}

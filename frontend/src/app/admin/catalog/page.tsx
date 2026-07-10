@@ -100,7 +100,7 @@ export default function AdminCatalogPage() {
           onSubmit={addCity}
           className="mb-4 space-y-3 rounded-2xl border border-line bg-card p-5"
         >
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label required>City name</Label>
               <Input
@@ -164,7 +164,7 @@ export default function AdminCatalogPage() {
           onSubmit={addCategory}
           className="mb-4 space-y-3 rounded-2xl border border-line bg-card p-5"
         >
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label required>Category name</Label>
               <Input

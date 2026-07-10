@@ -1,5 +1,5 @@
 import { Schema, model, models, type Model, type Types } from "mongoose";
-import type { NotificationType } from "@/types";
+import type { NotificationType } from "../../../shared/src/types.js";
 
 export interface INotification {
   _id: Types.ObjectId;

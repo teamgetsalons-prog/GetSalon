@@ -16,6 +16,7 @@ import { cn } from "@getsalons/shared/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, Spinner } from "@/components/ui/misc";
+import { formatPKR } from "@getsalons/shared/utils";
 
 interface SubscriptionRow {
   _id: string;
@@ -277,7 +278,7 @@ export default function AdminSubscriptionsPage() {
           hint="No subscriptions match your filters."
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-line bg-card">
+        <div className="overflow-x-auto rounded-2xl border border-line bg-card">
           <table className="w-full">
             <thead>
               <tr className="border-b border-line bg-bg-soft/50">

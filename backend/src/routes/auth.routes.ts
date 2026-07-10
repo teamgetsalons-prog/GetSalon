@@ -20,7 +20,7 @@ router.post("/register", async (req: Request, res: Response) => {
     email: input.email,
     phone: input.phone,
     passwordHash,
-    role: input.role === "OWNER" ? "owner" : input.role === "STAFF" ? "staff" : "customer",
+    role: input.role,
   });
 
   return ok(res, { id: user._id.toString(), email: user.email, role: user.role }, undefined, 201);
@@ -40,7 +40,7 @@ router.post("/login", async (req: Request, res: Response) => {
   const token = signToken({
     id: user._id.toString(),
     role: user.role,
-    salonId: user.salonId?.toString(),
+    salonId: user.salon?.toString(),
     name: user.name,
     email: user.email,
   });
@@ -67,7 +67,7 @@ router.post("/logout", (_req: Request, res: Response) => {
 });
 
 router.get("/session", authenticate, async (req: Request, res: Response) => {
-  const user = await User.findById(req.user!.id).select("name email phone avatar role city salonId");
+  const user = await User.findById(req.user!.id).select("name email phone avatar role city");
   if (!user) return fail(res, "User not found.", 404);
   return ok(res, user.toJSON());
 });

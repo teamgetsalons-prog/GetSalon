@@ -23,7 +23,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
 
 router.post("/earn", authenticate, async (req: Request, res: Response) => {
   const input = earnSchema.parse(req.body);
-  const result = await earnPoints(req.user!.id, input.appointmentId, input.points);
+  const result = await earnPoints(req.user!.id, input.points, input.appointmentId, "");
   return ok(res, result);
 });
 

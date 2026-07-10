@@ -14,13 +14,13 @@ import {
   type ISalon,
 } from "../models/index.js";
 import { ApiError } from "../middleware/error-handler.js";
-import { slugify } from "@/lib/utils";
+import { slugify } from "../../../shared/src/utils.js";
 import type {
   CreateSalonInput,
   SearchSalonsInput,
   UpdateSalonInput,
-} from "@/lib/validations/salon";
-import type { SalonCardData } from "@/types";
+} from "../../../shared/src/validations/salon.js";
+import type { SalonCardData } from "../../../shared/src/types.js";
 import { notify } from "./notification.service.js";
 
 /** Serialize a salon document to the lean card shape the frontend uses */
@@ -139,13 +139,13 @@ export async function searchSalons(input: SearchSalonsInput): Promise<{
     newest: { createdAt: -1 },
   };
 
-  const page = input.page;
-  const limit = input.limit;
+  const page = input.page ?? 1;
+  const limit = input.limit ?? 12;
 
   const [docs, total] = await Promise.all([
     Salon.find(filter)
       .populate("categories", "name")
-      .sort(sortMap[input.sort] ?? sortMap.recommended)
+      .sort(sortMap[input.sort ?? "recommended"])
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
@@ -166,7 +166,7 @@ export async function searchSalons(input: SearchSalonsInput): Promise<{
 export async function getSalonPageData(slug: string) {
   await connectDB();
 
-  const salon = await Salon.findOne({ slug, status: "approved" })
+  const salon = await Salon.findOne({ slug, status: { $in: ["approved", "featured"] } })
     .populate("categories", "name slug")
     .populate("city", "name slug")
     .populate("area", "name slug")
@@ -362,7 +362,7 @@ export async function updateSalon(
     }
   }
 
-  const direct: (keyof UpdateSalonInput & keyof ISalon)[] = [
+  const direct: (keyof UpdateSalonInput)[] = [
     "name",
     "description",
     "about",
@@ -393,7 +393,7 @@ export async function updateSalon(
     );
   }
   if (input.latitude !== undefined && input.longitude !== undefined) {
-    salon.location = {
+    (salon as any).location = {
       type: "Point",
       coordinates: [input.longitude, input.latitude],
     };

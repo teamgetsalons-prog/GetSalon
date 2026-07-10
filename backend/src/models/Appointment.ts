@@ -1,5 +1,5 @@
 import { Schema, model, models, type Model, type Types } from "mongoose";
-import type { BookingStatus } from "@/types";
+import type { BookingStatus } from "../../../shared/src/types.js";
 
 export interface IAppointment {
   _id: Types.ObjectId;

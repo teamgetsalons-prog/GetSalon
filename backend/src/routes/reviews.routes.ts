@@ -40,16 +40,16 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
 });
 
 router.patch("/:id", authenticate, async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const input = reviewActionSchema.parse(req.body);
 
-  const review = await reviewAction(id, req.user!, input);
+  const review = await reviewAction(id, req.user! as any, input);
 
   return ok(res, {
     id: review._id.toString(),
-    helpfulCount: review.helpfulVotes.length,
+    helpfulCount: (review as any).helpfulVotes?.length ?? 0,
     status: review.status,
-    reply: review.reply,
+    reply: (review as any).reply ?? null,
   });
 });
 

@@ -75,7 +75,7 @@ export default async function TopSalonsPage({
     .lean();
 
   const salonsData: SalonCardData[] = salons.map((s) =>
-    toSalonCard(s as unknown as ISalon & { categories: { name?: string }[] })
+    toSalonCard(s as any)
   );
 
   // Get all cities for filter
@@ -191,7 +191,7 @@ export default async function TopSalonsPage({
                 <Link href={`/salon/${salon.slug}`}>
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <img
-                      src={salon.coverImage}
+                      src={salon.coverImage ?? ""}
                       alt={salon.name}
                       className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                     />

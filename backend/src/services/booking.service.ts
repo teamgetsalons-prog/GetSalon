@@ -16,7 +16,7 @@ import {
   MAX_BOOKING_DAYS_AHEAD,
   MIN_BOOKING_LEAD_MINUTES,
   SLOT_INTERVAL,
-} from "@/lib/constants";
+} from "../../../shared/src/constants.js";
 import {
   formatDateKey,
   formatTime12h,
@@ -25,13 +25,13 @@ import {
   minutesToTime,
   timeToMinutes,
   toDateKey,
-} from "@/lib/utils";
-import type { OpeningHour, TimeSlot, UserRole } from "@/types";
+} from "../../../shared/src/utils.js";
+import type { OpeningHour, TimeSlot, UserRole } from "../../../shared/src/types.js";
 import type {
-  AvailabilityQuery,
+  AvailabilityQueryInput as AvailabilityQuery,
   CreateBookingInput,
   UpdateBookingInput,
-} from "@/lib/validations/booking";
+} from "../../../shared/src/validations/booking.js";
 import { bookingEmailHtml } from "./email.js";
 import { notify } from "./notification.service.js";
 import { isActiveSubscription } from "./subscription.service.js";
@@ -113,7 +113,7 @@ function assertDateInRange(dateKey: string, startMinutes?: number): void {
 export async function getAvailability(
   q: AvailabilityQuery
 ): Promise<TimeSlot[]> {
-  const { salon, service } = await loadBookableContext(q.salonId, q.serviceId);
+  const { salon, service } = await loadBookableContext(q.salonId, q.serviceId ?? "");
   assertDateInRange(q.date);
 
   const day = fromDateKey(q.date).getDay();
@@ -126,7 +126,7 @@ export async function getAvailability(
   if (q.staffId) staffFilter._id = q.staffId;
 
   const staffList = (await Staff.find(staffFilter)).filter((s) =>
-    staffOffersService(s, q.serviceId)
+    staffOffersService(s, q.serviceId ?? "")
   );
   if (q.staffId && staffList.length === 0) {
     throw new ApiError("This specialist does not offer the selected service.");
@@ -160,6 +160,7 @@ export async function getAvailability(
         slots.set(start, {
           time: minutesToTime(start),
           minutes: start,
+          available: true,
           staffId: staff?._id.toString(),
           staffName: staff?.name,
         });
@@ -188,7 +189,7 @@ export async function getAvailability(
     }
   }
 
-  return [...slots.values()].sort((a, b) => a.minutes - b.minutes);
+  return [...slots.values()].sort((a, b) => (a.minutes ?? 0) - (b.minutes ?? 0));
 }
 
 /** Find a staff member free for the given range (respects preference) */
@@ -340,7 +341,7 @@ export async function createBooking(
   );
 
   // Fan out notifications (never blocks the booking)
-  const prettyDate = formatDateKey(input.date);
+  const prettyDate = input.date;
   const prettyTime = formatTime12h(input.startTime);
 
   await notify({
@@ -518,14 +519,14 @@ export async function updateBooking(
             ? "booking_rescheduled"
             : "system",
     title: statusTitles[action] ?? "Booking updated",
-    message: `Booking ${appointment.bookingNumber}: ${appointment.serviceSnapshot.name} on ${formatDateKey(appointment.date)}, ${formatTime12h(appointment.startTime)}.`,
+    message: `Booking ${appointment.bookingNumber}: ${appointment.serviceSnapshot.name} on ${appointment.date}, ${formatTime12h(appointment.startTime)}.`,
     link: "/dashboard/bookings",
     email:
       customerDoc?.email && (action === "confirm" || action === "cancel")
         ? {
             to: customerDoc.email,
             subject: `${statusTitles[action]} — ${appointment.bookingNumber}`,
-            html: `<p>Booking <b>${appointment.bookingNumber}</b> (${appointment.serviceSnapshot.name}) on ${formatDateKey(appointment.date)} at ${formatTime12h(appointment.startTime)} has been updated to: <b>${appointment.status.replace("_", " ")}</b>.</p>`,
+            html: `<p>Booking <b>${appointment.bookingNumber}</b> (${appointment.serviceSnapshot.name}) on ${appointment.date} at ${formatTime12h(appointment.startTime)} has been updated to: <b>${appointment.status.replace("_", " ")}</b>.</p>`,
           }
         : undefined,
   });

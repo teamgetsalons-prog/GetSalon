@@ -1,5 +1,5 @@
 import { Schema, model, models, type Model, type Types } from "mongoose";
-import type { UserRole } from "@/types";
+import type { UserRole } from "../../../shared/src/types.js";
 
 export interface IUser {
   _id: Types.ObjectId;

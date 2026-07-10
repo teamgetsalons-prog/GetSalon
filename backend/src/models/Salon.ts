@@ -6,7 +6,7 @@ import type {
   GeoPoint,
   OpeningHour,
   SalonStatus,
-} from "@/types";
+} from "../../../shared/src/types.js";
 
 export interface ISalon {
   _id: Types.ObjectId;

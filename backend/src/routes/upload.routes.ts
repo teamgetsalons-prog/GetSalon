@@ -17,7 +17,7 @@ router.post("/", authenticate, upload.single("file"), async (req: Request, res: 
 
   const file = req.file;
   const result = await uploadImage(
-    new File([file.buffer], file.originalname, { type: file.mimetype }),
+    new File([file.buffer as unknown as BlobPart], file.originalname, { type: file.mimetype }),
     safeFolder
   );
 
@@ -25,7 +25,7 @@ router.post("/", authenticate, upload.single("file"), async (req: Request, res: 
 });
 
 router.delete("/:publicId", authenticate, async (req: Request, res: Response) => {
-  const { publicId } = req.params;
+  const publicId = req.params.publicId as string;
   await deleteImage(decodeURIComponent(publicId));
   return ok(res, { deleted: true });
 });

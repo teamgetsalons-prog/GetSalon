@@ -36,7 +36,7 @@ export default async function SalonOverviewPage() {
         status: { $in: ["pending", "confirmed"] },
       }),
       Appointment.countDocuments({ salon: salon._id, status: "pending" }),
-      Appointment.aggregate<{ _id: null; total: number }>([
+      (Appointment.aggregate as any)([
         {
           $match: {
             salon: salon._id,
@@ -88,7 +88,7 @@ export default async function SalonOverviewPage() {
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard label="Today's bookings" value={stats.today} icon="calendar" />
         <StatCard
           label="Pending requests"

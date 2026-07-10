@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { connectDB } from "../db.js";
 import { Comment, Salon } from "../models/index.js";
 import { ApiError } from "../middleware/error-handler.js";
-import { roundRating } from "@/lib/utils";
+import { roundRating } from "../../../shared/src/utils.js";
 import { notify } from "./notification.service.js";
 
 export interface CreateCommentInput {

@@ -20,7 +20,7 @@ export function SalonCard({ salon }: { salon: SalonCardData }) {
     >
       <div className="relative aspect-[16/10] overflow-hidden">
         <Image
-          src={salon.coverImage}
+          src={salon.coverImage ?? ""}
           alt={salon.name}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"

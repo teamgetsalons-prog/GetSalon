@@ -86,7 +86,7 @@ router.patch("/:id", authenticate, async (req: Request, res: Response) => {
   const { id } = req.params;
   const input = updateBookingSchema.parse(req.body);
 
-  const appointment = await updateBooking(id, req.user!, input);
+  const appointment = await updateBooking(id as string, req.user! as any, input);
   return ok(res, {
     id: appointment._id.toString(),
     status: appointment.status,

@@ -185,7 +185,7 @@ export function SortSelect({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       aria-label="Sort results"
-      className="h-9 cursor-pointer rounded-xl border border-line bg-card px-3 text-sm text-fg outline-none focus:border-gold-500"
+      className="h-9 cursor-pointer rounded-xl border border-line bg-card px-3 text-sm text-fg outline-none focus:border-gold-500 [color-scheme:light_dark]"
     >
       {SORT_OPTIONS.map((o) => (
         <option key={o.value} value={o.value}>

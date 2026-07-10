@@ -38,7 +38,7 @@ export default async function CustomerOverviewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard label="Upcoming" value={stats.upcoming} icon="calendar" />
         <StatCard label="Visits completed" value={stats.completed} icon="star" />
         <StatCard label="Favourites" value={stats.favorites} icon="heart" />

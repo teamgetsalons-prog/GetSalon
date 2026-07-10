@@ -47,13 +47,13 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
 });
 
 router.post("/:id/helpful", authenticate, async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const result = await voteHelpful(id, req.user!.id);
   return ok(res, result);
 });
 
 router.delete("/:id", authenticate, async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   await deleteComment(id, req.user!.id, req.user!.role || "customer");
   return ok(res, null);
 });

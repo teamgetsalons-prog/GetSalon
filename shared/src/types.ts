@@ -1,38 +1,45 @@
-export type UserRole = "OWNER" | "STAFF" | "CUSTOMER";
+export type UserRole = "customer" | "owner" | "staff" | "admin";
 
-export type SalonStatus = "DRAFT" | "PENDING" | "ACTIVE" | "INACTIVE" | "SUSPENDED";
+export type SalonStatus = "pending" | "approved" | "rejected" | "suspended";
 
-export type GenderServed = "MALE" | "FEMALE" | "UNISEX";
+export type GenderServed = "men" | "women" | "unisex";
 
 export type BookingStatus =
-  | "PENDING"
-  | "CONFIRMED"
-  | "COMPLETED"
-  | "CANCELLED"
-  | "NO_SHOW";
+  | "pending"
+  | "confirmed"
+  | "completed"
+  | "cancelled"
+  | "no_show";
 
-export type SubscriptionPlan = "TRIAL" | "BASIC" | "PRO" | "ENTERPRISE";
+export type SubscriptionPlan = "free" | "premium" | "business";
 
 export type NotificationType =
-  | "BOOKING_CONFIRMED"
-  | "BOOKING_CANCELLED"
-  | "BOOKING_REMINDER"
-  | "REVIEW_RECEIVED"
-  | "SUBSCRIPTION_EXPIRING"
-  | "PAYMENT_RECEIVED"
-  | "SYSTEM";
+  | "booking_created"
+  | "booking_confirmed"
+  | "booking_cancelled"
+  | "booking_rescheduled"
+  | "review_received"
+  | "review_reply"
+  | "salon_approved"
+  | "salon_rejected"
+  | "subscription_expiry"
+  | "subscription_expiring"
+  | "trial_expiry_warning"
+  | "system";
 
 export interface OpeningHour {
-  day: string;
+  day: number;
   open: string;
   close: string;
-  closed: boolean;
+  isClosed: boolean;
 }
 
 export interface GalleryImage {
   url: string;
-  alt: string;
-  order: number;
+  alt?: string;
+  order?: number;
+  publicId?: string;
+  caption?: string;
 }
 
 export interface FaqItem {
@@ -46,25 +53,30 @@ export interface GeoPoint {
 }
 
 export interface TimeSlot {
-  start: string;
-  end: string;
-  available: boolean;
+  start?: string;
+  end?: string;
+  available?: boolean;
   staffId?: string;
+  staffName?: string;
+  minutes?: number;
+  time?: string;
 }
 
 export interface SalonCardData {
-  id: string;
+  _id: string;
   name: string;
   slug: string;
-  tagline: string | null;
   coverImage: string | null;
-  rating: number;
-  reviewCount: number;
-  city: string;
-  neighborhood: string | null;
+  cityName: string;
+  areaName: string | null | undefined;
   genderServed: GenderServed;
+  homeService: boolean;
   isVerified: boolean;
-  featured: boolean;
+  isFeatured: boolean;
+  rating: { average: number; count: number };
+  priceRange: { min: number; max: number };
+  categoryNames: string[];
+  tagline?: string | null;
 }
 
 export interface ServiceData {
@@ -94,92 +106,30 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   message?: string;
+  errors?: Record<string, string[]>;
+  pagination?: {
+    page: number;
+    totalPages: number;
+    total: number;
+  };
 }
 
-export type SubscriptionPlanType = "TRIAL" | "BASIC" | "PRO" | "ENTERPRISE";
+export interface CommentData {
+  _id: string;
+  customer: { _id: string; name: string; avatar?: string };
+  salon: string;
+  rating: number;
+  comment: string;
+  photos: string[];
+  createdAt: string;
+}
 
-export type SubscriptionStatus = "ACTIVE" | "PAST_DUE" | "CANCELED" | "TRIALING" | "PAUSED";
-
-export type PaymentStatus = "PENDING" | "SUCCEEDED" | "FAILED" | "REFUNDED" | "CANCELED";
-
-export interface SubscriptionPlanData {
+export interface User {
   id: string;
   name: string;
-  planType: SubscriptionPlanType;
-  price: number;
-  currency: string;
-  interval: string;
-  maxBookings: number | null;
-  maxStaff: number | null;
-  maxServices: number | null;
-  features: string[];
-  trialDays: number;
-  active: boolean;
-}
-
-export interface SalonSubscriptionData {
-  id: string;
-  salonId: string;
-  planId: string;
-  status: SubscriptionStatus;
-  currentPeriodStart: string;
-  currentPeriodEnd: string;
-  cancelAtPeriodEnd: boolean;
-  trialEndsAt: string | null;
-  payments: {
-    id: string;
-    amount: number;
-    currency: string;
-    status: PaymentStatus;
-    createdAt: string;
-  }[];
-}
-
-export interface LoyaltyAccountData {
-  id: string;
-  salonId: string;
-  customerId: string;
-  points: number;
-  totalEarned: number;
-  totalRedeemed: number;
-  tier: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface LoyaltyTransactionData {
-  id: string;
-  accountId: string;
-  type: "EARN" | "REDEEM" | "EXPIRE" | "ADJUST";
-  points: number;
-  description: string;
-  bookingId: string | null;
-  createdAt: string;
-}
-
-export interface SalonAnalyticsData {
-  salonId: string;
-  totalBookings: number;
-  completedBookings: number;
-  cancelledBookings: number;
-  noShowBookings: number;
-  totalRevenue: number;
-  averageRating: number;
-  totalReviews: number;
-  newCustomers: number;
-  returningCustomers: number;
-  topServices: {
-    serviceId: string;
-    name: string;
-    bookingCount: number;
-    revenue: number;
-  }[];
-  bookingsByDay: {
-    date: string;
-    count: number;
-  }[];
-  revenueByMonth: {
-    month: string;
-    revenue: number;
-  }[];
+  email: string;
+  role: UserRole;
+  avatar?: string;
+  phone?: string;
+  city?: string;
 }

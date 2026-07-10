@@ -434,7 +434,7 @@ function RescheduleModal({
           No free slots this day — try another date.
         </p>
       ) : (
-        <div className="mt-3 grid grid-cols-4 gap-2">
+        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
           {slots.map((s) => (
             <button
               key={s.minutes}

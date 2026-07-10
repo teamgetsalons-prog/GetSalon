@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-// TODO: Replace server import with API call
+import { getSalonPageData } from "@/lib/server-api";
 import { BookingWizard } from "@/components/booking/booking-wizard";
 
 export const dynamic = "force-dynamic";

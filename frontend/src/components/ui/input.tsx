@@ -10,7 +10,8 @@ const baseField =
   "w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-sm text-fg " +
   "placeholder:text-fg-faint transition-colors " +
   "focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/20 " +
-  "disabled:cursor-not-allowed disabled:opacity-60";
+  "disabled:cursor-not-allowed disabled:opacity-60 " +
+  "[color-scheme:light_dark]";
 
 export const Input = forwardRef<
   HTMLInputElement,

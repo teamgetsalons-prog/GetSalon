@@ -1,5 +1,5 @@
 import { Schema, model, models, type Model, type Types } from "mongoose";
-import type { SubscriptionPlan } from "@/types";
+import type { SubscriptionPlan } from "../../../shared/src/types.js";
 
 export interface ISubscription {
   _id: Types.ObjectId;

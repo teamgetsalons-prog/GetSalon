@@ -9,7 +9,7 @@ import {
   Star,
   Store,
 } from "lucide-react";
-// TODO: Replace server import with API call
+import { getHomePageData, type HomePageData } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { FaqAccordion } from "@/components/home/faq-accordion";
 import { AnimatedHero } from "@/components/home/animated-hero";
@@ -24,19 +24,15 @@ import type { SalonCardData } from "@getsalons/shared/types";
 // Data is served fresh per request (falls back gracefully without a DB)
 export const dynamic = "force-dynamic";
 
-async function loadData() {
-  try {
-    return await getHomePageData();
-  } catch {
-    return {
-      featured: [] as SalonCardData[],
-      topRated: [] as SalonCardData[],
-      newest: [] as SalonCardData[],
-      categories: [],
-      cities: [],
-      stats: { salons: 0, customers: 0, bookings: 0, cities: 0 },
-    };
-  }
+async function loadData(): Promise<HomePageData> {
+  return (await getHomePageData()) ?? {
+    featured: [],
+    topRated: [],
+    newest: [],
+    categories: [],
+    cities: [],
+    stats: { salons: 0, customers: 0, bookings: 0, cities: 0 },
+  };
 }
 
 export default async function HomePage() {

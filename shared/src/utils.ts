@@ -34,7 +34,8 @@ export function minutesToTime(minutes: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-export function formatTime12h(time: string): string {
+export function formatTime12h(time: string | undefined | null): string {
+  if (!time) return "";
   const [hours, minutes] = time.split(":").map(Number);
   const period = hours >= 12 ? "PM" : "AM";
   const displayHours = hours % 12 || 12;
@@ -53,7 +54,8 @@ export function fromDateKey(key: string): Date {
   return new Date(y, m - 1, d);
 }
 
-export function formatDateKey(date: Date): string {
+export function formatDateKey(date: Date | string): string {
+  if (typeof date === "string") return date;
   return toDateKey(date);
 }
 
@@ -73,7 +75,6 @@ export function roundRating(rating: number, decimals: number = 1): number {
 }
 
 export function absoluteUrl(path: string): string {
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
+  const base = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
   return `${base.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
 }

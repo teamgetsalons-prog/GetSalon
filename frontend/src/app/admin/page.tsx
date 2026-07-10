@@ -39,7 +39,7 @@ export default async function AdminOverviewPage() {
       Appointment.countDocuments({}),
       Appointment.countDocuments({ date: today }),
       Review.countDocuments({ status: "published" }),
-      Appointment.aggregate<{ _id: null; total: number }>([
+      (Appointment.aggregate as any)([
         { $match: { status: "completed" } },
         { $group: { _id: null, total: { $sum: "$price" } } },
       ]),
@@ -73,7 +73,7 @@ export default async function AdminOverviewPage() {
         </Link>
       )}
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         <StatCard label="Live salons" value={stats.salons} icon="store" />
         <StatCard label="Customers" value={stats.customers} icon="users" />
         <StatCard label="Salon owners" value={stats.owners} icon="users" />
