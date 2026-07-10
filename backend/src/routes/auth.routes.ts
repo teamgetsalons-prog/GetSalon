@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { User } from "../models/index.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { authenticate, signToken } from "../middleware/auth.js";
+import { authLimiter } from "../middleware/rate-limit.js";
 import { registerSchema, loginSchema } from "../../../shared/dist/validations/auth.js";
 import type { Request, Response } from "express";
 
@@ -22,7 +23,7 @@ const authCookieOptions = {
   maxAge: 30 * 24 * 60 * 60 * 1000,
 };
 
-router.post("/register", async (req: Request, res: Response) => {
+router.post("/register", authLimiter, async (req: Request, res: Response) => {
   const input = registerSchema.parse(req.body);
 
   const exists = await User.findOne({ email: input.email });
@@ -40,7 +41,7 @@ router.post("/register", async (req: Request, res: Response) => {
   return ok(res, { id: user._id.toString(), email: user.email, role: user.role }, undefined, 201);
 });
 
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", authLimiter, async (req: Request, res: Response) => {
   const input = loginSchema.parse(req.body);
 
   const user = await User.findOne({ email: input.email }).select("+passwordHash");

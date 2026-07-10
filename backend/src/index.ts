@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./db.js";
 import { corsOptions } from "./middleware/cors.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import { globalLimiter } from "./middleware/rate-limit.js";
 import { authRoutes } from "./routes/auth.routes.js";
 import { adminRoutes } from "./routes/admin.routes.js";
 import { salonRoutes } from "./routes/salons.routes.js";
@@ -27,12 +28,19 @@ import { categoryCityRoutes } from "./routes/categories-cities.routes.js";
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Render (and Cloudflare in front of it) sits between us and the client,
+// so req.ip must come from X-Forwarded-For or every request looks like it's
+// from the proxy - which would make IP-based rate limiting either useless
+// or lock out every visitor at once.
+app.set("trust proxy", 1);
+
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(morgan("combined"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(globalLimiter);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

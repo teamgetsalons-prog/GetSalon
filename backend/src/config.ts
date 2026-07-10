@@ -3,7 +3,7 @@ import { z } from "zod";
 const envSchema = z.object({
   PORT: z.coerce.number().default(3001),
   MONGODB_URI: z.string().min(1),
-  AUTH_SECRET: z.string().min(1),
+  AUTH_SECRET: z.string().min(16, "AUTH_SECRET should be a long random string, not a short/placeholder value"),
   APP_URL: z.string().url().default("http://localhost:3000"),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),

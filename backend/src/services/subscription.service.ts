@@ -236,7 +236,8 @@ export async function getAllSubscriptions(params: {
 
   if (params.search) {
     const { Salon } = await import("../models/index.js");
-    const salons = await Salon.find({ name: new RegExp(params.search, "i") }).select("_id");
+    const rx = new RegExp(params.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    const salons = await Salon.find({ name: rx }).select("_id");
     filter.salon = { $in: salons.map((s) => s._id) };
   }
 
