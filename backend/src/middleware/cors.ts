@@ -9,11 +9,20 @@ function normalize(url: string): string {
   return url.trim().replace(/\/+$/, "");
 }
 
-// CORS_ORIGIN may be a comma-separated list, so multiple frontends
-// (production + a preview deploy, for example) can be allowed at once.
+// The production site is always allowed regardless of env config - the
+// frontend proxies /api/* here and forwards the browser's Origin header,
+// so a mis-set CORS_ORIGIN env var must never be able to take the live
+// site down. CORS_ORIGIN (comma-separated) extends this list for extra
+// origins like preview deployments.
+const PRODUCTION_ORIGINS = [
+  "https://www.getsalons.com",
+  "https://getsalons.com",
+];
+
 function allowedOrigins(): string[] {
   const { CORS_ORIGIN, APP_URL } = getEnv();
   return [
+    ...PRODUCTION_ORIGINS,
     ...CORS_ORIGIN.split(",").map(normalize).filter(Boolean),
     normalize(APP_URL),
     "http://localhost:3000",

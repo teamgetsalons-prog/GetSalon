@@ -1,7 +1,15 @@
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+// Server-to-server: talk to the backend directly. Same resolution as the
+// /api proxy in next.config.ts - hardcoded default, API_PROXY_URL override.
+// (Deliberately not NEXT_PUBLIC_API_URL; a wrong value there has broken
+// production before, and client code no longer uses it at all.)
+const API_BASE =
+  process.env.API_PROXY_URL ??
+  (process.env.NODE_ENV === "production"
+    ? "https://getsalon.onrender.com"
+    : "http://localhost:3001");
 // The backend signs tokens with its AUTH_SECRET — this MUST be set to the
 // exact same value on the frontend (Vercel) as on the backend (Render),
 // or every server-rendered session check below will silently fail.

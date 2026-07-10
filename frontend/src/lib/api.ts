@@ -1,20 +1,18 @@
 import type { ApiResponse } from "@getsalons/shared/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
 export async function api<T = unknown>(
   path: string,
   options?: RequestInit & { json?: unknown }
 ): Promise<ApiResponse<T>> {
   const { json, ...init } = options ?? {};
   try {
-    // Callers pass "/api/..." paths (a leftover convention from an unused
-    // Next.js rewrite) - strip that prefix and hit the backend directly,
-    // same as server-api.ts does for server-rendered requests.
-    const cleanPath = path.replace(/^\/api(?=\/|$)/, "");
-    const url = path.startsWith("http") ? path : `${API_BASE}${cleanPath}`;
+    // "/api/..." paths stay on our own origin - next.config.ts proxies them
+    // to the backend. Calling the backend directly from the browser is NOT
+    // supported: the session cookie would be third-party there, which
+    // Safari/iOS reject outright, and it reintroduces CORS + env-var
+    // coupling that has broken production before.
     const isFormData = init.body instanceof FormData;
-    const res = await fetch(url, {
+    const res = await fetch(path, {
       ...init,
       credentials: "include",
       // Let the browser set Content-Type (with multipart boundary) for FormData bodies.

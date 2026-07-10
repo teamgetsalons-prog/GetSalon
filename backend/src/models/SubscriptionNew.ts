@@ -32,7 +32,6 @@ const SalonSubscriptionSchema = new Schema<ISalonSubscription>(
   { timestamps: true }
 );
 
-SalonSubscriptionSchema.index({ salon: 1 });
 SalonSubscriptionSchema.index({ expiryDate: 1, status: 1 });
 
 export const SalonSubscription: Model<ISalonSubscription> =

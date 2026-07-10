@@ -43,10 +43,22 @@ function AuthShell({
   );
 }
 
+function roleHome(role?: string): string {
+  switch (role) {
+    case "admin":
+      return "/admin";
+    case "owner":
+    case "staff":
+      return "/salon-dashboard";
+    default:
+      return "/dashboard";
+  }
+}
+
 export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") ?? "/dashboard";
+  const callbackUrl = params.get("callbackUrl");
   const [error, setError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
   const { refresh } = useAuth();
@@ -61,7 +73,9 @@ export function LoginForm() {
       return;
     }
     await refresh();
-    router.push(callbackUrl);
+    // An explicit callbackUrl (e.g. from a guarded page) wins; otherwise
+    // land each role on its own panel.
+    router.push(callbackUrl ?? roleHome(res.data?.role));
     router.refresh();
   }
 

@@ -1,6 +1,17 @@
 import path from "path";
 import type { NextConfig } from "next";
 
+// Where /api/* requests get proxied. Deliberately NOT NEXT_PUBLIC_API_URL:
+// that var is baked into client bundles and a wrong value there has broken
+// production twice. The default is hardcoded so the proxy works with zero
+// Vercel config; API_PROXY_URL exists as an escape hatch if the backend URL
+// ever changes.
+const API_ORIGIN =
+  process.env.API_PROXY_URL ??
+  (process.env.NODE_ENV === "production"
+    ? "https://getsalon.onrender.com"
+    : "http://localhost:3001");
+
 const nextConfig: NextConfig = {
   // Monorepo: trace from the repo root so ../shared and hoisted
   // node_modules are included in the deployment bundle.
@@ -26,6 +37,14 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "ui-avatars.com" },
     ],
+  },
+  // Proxy all /api/* calls to the backend through our own domain. The
+  // browser only ever talks to www.getsalons.com, which makes the session
+  // cookie first-party (Safari/iOS block cross-site cookies entirely, so a
+  // direct browser->Render setup cannot support login there) and takes CORS
+  // out of the picture for the client.
+  async rewrites() {
+    return [{ source: "/api/:path*", destination: `${API_ORIGIN}/:path*` }];
   },
   async headers() {
     return [

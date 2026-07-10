@@ -9,17 +9,16 @@ import type { Request, Response } from "express";
 
 const router = Router();
 
-// Frontend (Vercel) and backend (Render) live on different registrable
-// domains, so the auth cookie needs SameSite=None to be sent on
-// cross-site fetch requests - which browsers only allow when paired with
-// Secure. Locally, frontend/backend share "localhost" as their site
-// (only the port differs), so SameSite=None there would be either
-// unnecessary or rejected outright (Secure requires HTTPS).
-const isProd = process.env.NODE_ENV === "production";
+// All browser traffic reaches us through the frontend's /api proxy on the
+// SAME domain the user is visiting, so this cookie is always first-party
+// and SameSite=Lax is both sufficient and safer (CSRF protection, and
+// unlike cross-site SameSite=None it isn't blocked by Safari/iOS).
+// Direct browser->backend calls from another origin are not a supported
+// path - they must go through the frontend proxy.
 const authCookieOptions = {
   httpOnly: true,
-  secure: isProd,
-  sameSite: (isProd ? "none" : "lax") as "none" | "lax",
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
   maxAge: 30 * 24 * 60 * 60 * 1000,
 };
 
