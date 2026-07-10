@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/lib/auth-context";
 import { Check, Heart, Share2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
@@ -14,13 +14,13 @@ export function FavoriteButton({
   salonId: string;
   initialFavorited: boolean;
 }) {
-  const { status } = useSession();
+  const { user } = useAuth();
   const router = useRouter();
   const [favorited, setFavorited] = useState(initialFavorited);
   const [busy, setBusy] = useState(false);
 
   async function toggle() {
-    if (status !== "authenticated") {
+    if (!user) {
       router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
       return;
     }

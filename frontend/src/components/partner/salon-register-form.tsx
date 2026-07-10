@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/lib/auth-context";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2 } from "lucide-react";
@@ -32,7 +32,7 @@ export function SalonRegisterForm({
   categories: Option[];
 }) {
   const router = useRouter();
-  const { update } = useSession();
+  const { refresh } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
@@ -63,7 +63,7 @@ export function SalonRegisterForm({
       return;
     }
     // Refresh JWT so the owner dashboard resolves the new salon
-    await update({ salonId: res.data?.id });
+    await refresh();
     setSubmitted(true);
   }
 

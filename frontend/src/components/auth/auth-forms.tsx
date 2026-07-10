@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { api } from "@/lib/api";
+import { login as authLogin } from "@/lib/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Scissors } from "lucide-react";
@@ -13,7 +14,6 @@ import {
   type LoginInput,
   type RegisterInput,
 } from "@getsalons/shared/validations/auth";
-import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label } from "@/components/ui/input";
 
@@ -53,12 +53,8 @@ export function LoginForm() {
 
   async function onSubmit(values: LoginInput) {
     setError(null);
-    const res = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: false,
-    });
-    if (res?.error) {
+    const res = await authLogin(values.email, values.password);
+    if (!res.success) {
       setError("Invalid email or password. Please try again.");
       return;
     }
@@ -153,12 +149,8 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
       return;
     }
     // Auto-login after successful registration
-    const login = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: false,
-    });
-    if (login?.error) {
+    const loginRes = await authLogin(values.email, values.password);
+    if (!loginRes.success) {
       router.push("/login");
       return;
     }

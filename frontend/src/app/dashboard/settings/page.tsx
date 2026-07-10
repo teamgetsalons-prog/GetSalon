@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -15,7 +15,7 @@ interface Profile {
 }
 
 export default function SettingsPage() {
-  const { update } = useSession();
+  const { refresh } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function SettingsPage() {
     });
     setSaving(false);
     setMessage(res.message ?? (res.success ? "Saved." : "Could not save."));
-    if (res.success) await update({ name: profile.name });
+    if (res.success) await refresh();
   }
 
   if (!profile) return <Spinner />;
