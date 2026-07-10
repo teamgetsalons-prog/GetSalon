@@ -1,6 +1,11 @@
 node_modules/
 .next/
 dist/
+# backend imports shared/dist directly by relative path (not via node_modules
+# resolution), so it must be committed - Render's backend build never
+# installs/builds the shared/ sibling directory.
+!shared/dist/
+!shared/dist/**
 .env
 .env.local
 *.tsbuildinfo
