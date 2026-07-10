@@ -17,7 +17,7 @@ export const registerSchema = z
     confirmPassword: z.string(),
     phone: z
       .string()
-      .regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number")
+      .regex(/^(\+?[1-9]\d{6,14}|0\d{9,10})$/, "Invalid phone number")
       .optional(),
     role: z.enum(["customer", "owner", "staff"]).default("customer"),
   })
@@ -43,7 +43,7 @@ export const updateProfileSchema = z.object({
     .optional(),
   phone: z
     .string()
-    .regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number")
+    .regex(/^(\+?[1-9]\d{6,14}|0\d{9,10})$/, "Invalid phone number")
     .optional()
     .or(z.literal("")),
   avatar: z.string().url("Invalid URL").optional().or(z.literal("")),

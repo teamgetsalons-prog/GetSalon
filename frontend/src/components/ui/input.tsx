@@ -11,7 +11,7 @@ const baseField =
   "placeholder:text-fg-faint transition-colors " +
   "focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-500/20 " +
   "disabled:cursor-not-allowed disabled:opacity-60 " +
-  "[color-scheme:light_dark]";
+  "[color-scheme:light] dark:[color-scheme:dark]";
 
 export const Input = forwardRef<
   HTMLInputElement,

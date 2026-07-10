@@ -223,6 +223,18 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
           <FieldError message={form.formState.errors.password?.message} />
         </div>
 
+        <div>
+          <Label htmlFor="confirmPassword" required>Confirm password</Label>
+          <Input
+            id="confirmPassword"
+            type={showPw ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder="Re-enter your password"
+            {...form.register("confirmPassword")}
+          />
+          <FieldError message={form.formState.errors.confirmPassword?.message} />
+        </div>
+
         {error && (
           <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-500">
             {error}

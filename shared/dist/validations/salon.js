@@ -19,7 +19,7 @@ export const createSalonSchema = z.object({
         .max(100, "Name must be at most 100 characters"),
     description: z.string().max(2000, "Description must be at most 2000 characters").optional(),
     about: z.string().max(3000).optional(),
-    phone: z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number"),
+    phone: z.string().regex(/^(\+?[1-9]\d{6,14}|0\d{9,10})$/, "Invalid phone number"),
     email: z.string().email("Invalid email address").optional(),
     website: z.string().url("Invalid URL").optional().or(z.literal("")),
     address: z.string().min(5, "Address is required").max(300),
