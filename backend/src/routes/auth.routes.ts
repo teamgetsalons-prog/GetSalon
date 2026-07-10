@@ -8,6 +8,20 @@ import type { Request, Response } from "express";
 
 const router = Router();
 
+// Frontend (Vercel) and backend (Render) live on different registrable
+// domains, so the auth cookie needs SameSite=None to be sent on
+// cross-site fetch requests - which browsers only allow when paired with
+// Secure. Locally, frontend/backend share "localhost" as their site
+// (only the port differs), so SameSite=None there would be either
+// unnecessary or rejected outright (Secure requires HTTPS).
+const isProd = process.env.NODE_ENV === "production";
+const authCookieOptions = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: (isProd ? "none" : "lax") as "none" | "lax",
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+};
+
 router.post("/register", async (req: Request, res: Response) => {
   const input = registerSchema.parse(req.body);
 
@@ -45,12 +59,7 @@ router.post("/login", async (req: Request, res: Response) => {
     email: user.email,
   });
 
-  res.cookie("getsalons_token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
+  res.cookie("getsalons_token", token, authCookieOptions);
 
   return ok(res, {
     id: user._id.toString(),
@@ -62,7 +71,7 @@ router.post("/login", async (req: Request, res: Response) => {
 });
 
 router.post("/logout", (_req: Request, res: Response) => {
-  res.clearCookie("getsalons_token");
+  res.clearCookie("getsalons_token", authCookieOptions);
   return ok(res, { message: "Logged out." });
 });
 
