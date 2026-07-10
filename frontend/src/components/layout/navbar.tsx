@@ -261,7 +261,7 @@ export function Navbar() {
                 aria-expanded={menuOpen}
                 aria-label="Account menu"
               >
-                <Avatar src={user.image} name={user.name ?? "U"} size={30} />
+                <Avatar src={user.avatar} name={user.name ?? "U"} size={30} />
                 <span className="hidden max-w-24 truncate text-sm font-medium sm:block">
                   {user.name?.split(" ")[0]}
                 </span>

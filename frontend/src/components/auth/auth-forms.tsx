@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { login as authLogin } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Scissors } from "lucide-react";
@@ -48,6 +49,7 @@ export function LoginForm() {
   const callbackUrl = params.get("callbackUrl") ?? "/dashboard";
   const [error, setError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
+  const { refresh } = useAuth();
 
   const form = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
 
@@ -58,6 +60,7 @@ export function LoginForm() {
       setError("Invalid email or password. Please try again.");
       return;
     }
+    await refresh();
     router.push(callbackUrl);
     router.refresh();
   }
@@ -132,6 +135,7 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
+  const { refresh } = useAuth();
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -154,6 +158,7 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
       router.push("/login");
       return;
     }
+    await refresh();
     router.push(asOwner ? "/partner/register" : "/dashboard");
     router.refresh();
   }

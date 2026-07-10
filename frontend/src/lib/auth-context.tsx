@@ -15,7 +15,7 @@ interface User {
   name: string;
   email: string;
   role: string;
-  image?: string;
+  avatar?: string;
 }
 
 interface AuthContextValue {
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const res = await getSession();
-      setUser(res.data?.user ?? null);
+      setUser(res.data ?? null);
     } catch {
       setUser(null);
     } finally {

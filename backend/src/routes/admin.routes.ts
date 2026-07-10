@@ -138,6 +138,29 @@ router.get("/users", async (req: Request, res: Response) => {
   });
 });
 
+router.patch("/users", async (req: Request, res: Response) => {
+  const { userId, isActive } = req.body;
+  if (!userId || typeof isActive !== "boolean") {
+    return fail(res, "userId and isActive are required.", 400);
+  }
+
+  const user = await User.findById(userId);
+  if (!user) return fail(res, "User not found.", 404);
+
+  user.isActive = isActive;
+  await user.save();
+
+  await AuditLog.create({
+    actor: req.user!.id,
+    actorRole: "admin",
+    action: isActive ? "user.activate" : "user.deactivate",
+    entity: "User",
+    entityId: userId,
+  });
+
+  return ok(res, { id: user._id.toString(), isActive: user.isActive });
+});
+
 router.get("/subscriptions", async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;

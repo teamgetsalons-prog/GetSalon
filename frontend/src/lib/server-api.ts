@@ -2,10 +2,10 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-// The backend signs tokens with its AUTH_SECRET — set the same value here.
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || process.env.AUTH_SECRET || "fallback-secret"
-);
+// The backend signs tokens with its AUTH_SECRET — this MUST be set to the
+// exact same value on the frontend (Vercel) as on the backend (Render),
+// or every server-rendered session check below will silently fail.
+const JWT_SECRET = new TextEncoder().encode(process.env.AUTH_SECRET ?? "");
 
 export async function serverFetch<T = unknown>(
   path: string,

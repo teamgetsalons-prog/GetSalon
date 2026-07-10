@@ -10,10 +10,10 @@ interface SessionUser {
 }
 
 export async function login(email: string, password: string) {
-  return api<{ user: SessionUser; token: string }>("/api/auth/login", {
-    method: "POST",
-    json: { email, password },
-  });
+  return api<{ id: string; name: string; email: string; role: string; avatar?: string }>(
+    "/api/auth/login",
+    { method: "POST", json: { email, password } }
+  );
 }
 
 export async function register(data: {
@@ -22,7 +22,7 @@ export async function register(data: {
   password: string;
   role?: string;
 }) {
-  return api<{ user: SessionUser; token: string }>("/api/auth/register", {
+  return api<{ id: string; email: string; role: string }>("/api/auth/register", {
     method: "POST",
     json: data,
   });
@@ -33,5 +33,5 @@ export async function logout() {
 }
 
 export async function getSession() {
-  return api<{ user: SessionUser }>("/api/auth/session");
+  return api<SessionUser>("/api/auth/session");
 }

@@ -32,8 +32,8 @@ export function CommentCard({
 
   async function voteHelpful() {
     const res = await api<{ helpfulCount: number; voted: boolean }>(
-      `/api/comments/${comment._id}`,
-      { method: "PATCH", json: { action: "helpful" } }
+      `/api/comments/${comment._id}/helpful`,
+      { method: "POST" }
     );
     if (res.success && res.data) {
       setHelpful(res.data.helpfulCount);

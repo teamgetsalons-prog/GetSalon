@@ -9,10 +9,14 @@ export async function api<T = unknown>(
   const { json, ...init } = options ?? {};
   try {
     const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+    const isFormData = init.body instanceof FormData;
     const res = await fetch(url, {
       ...init,
       credentials: "include",
-      headers: { "Content-Type": "application/json", ...init.headers },
+      // Let the browser set Content-Type (with multipart boundary) for FormData bodies.
+      headers: isFormData
+        ? init.headers
+        : { "Content-Type": "application/json", ...init.headers },
       body: json !== undefined ? JSON.stringify(json) : init.body,
     });
     const data = (await res.json().catch(() => null)) as ApiResponse<T> | null;

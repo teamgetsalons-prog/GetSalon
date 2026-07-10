@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createReviewSchema = z.object({
-  salonId: z.string(),
+  salonId: z.string().optional(),
   appointmentId: z.string(),
   rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
   title: z.string().max(100, "Title must be at most 100 characters").optional(),
@@ -15,7 +15,7 @@ export const createReviewSchema = z.object({
 export type CreateReviewInput = z.infer<typeof createReviewSchema>;
 
 export const reviewActionSchema = z.object({
-  reviewId: z.string(),
+  reviewId: z.string().optional(),
   action: z.enum(["reply", "helpful", "report", "hide", "publish"]),
   reply: z.string().max(1000).optional(),
   reportReason: z.string().max(500).optional(),
