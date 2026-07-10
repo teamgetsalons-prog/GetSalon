@@ -6,6 +6,19 @@ const nextConfig: NextConfig = {
   // node_modules are included in the deployment bundle.
   outputFileTracingRoot: path.join(__dirname, ".."),
   transpilePackages: ["@getsalons/shared"],
+  // Files under ../shared resolve bare imports (clsx, zod, tailwind-merge)
+  // by walking up from THEIR directory, which misses frontend/node_modules.
+  // Add explicit fallbacks so resolution works no matter where npm installed
+  // (frontend/node_modules on a standalone install, ../node_modules when
+  // hoisted by workspaces).
+  webpack: (config) => {
+    config.resolve.modules = [
+      ...(config.resolve.modules ?? ["node_modules"]),
+      path.resolve(__dirname, "node_modules"),
+      path.resolve(__dirname, "../node_modules"),
+    ];
+    return config;
+  },
   eslint: { ignoreDuringBuilds: true },
   images: {
     remotePatterns: [

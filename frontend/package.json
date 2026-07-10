@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.18.1",
     "jose": "^6.0.11",
@@ -19,6 +20,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.58.1",
+    "tailwind-merge": "^3.2.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {
