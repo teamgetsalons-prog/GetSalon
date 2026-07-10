@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "fallback-secret");
+// Must match the backend's AUTH_SECRET exactly, or every token fails
+// verification here and every visitor gets treated as logged out.
+const JWT_SECRET = new TextEncoder().encode(process.env.AUTH_SECRET ?? "");
 
 function roleHome(role?: string): string {
   switch (role) {
