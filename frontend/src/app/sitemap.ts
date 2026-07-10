@@ -1,11 +1,10 @@
 import type { MetadataRoute } from "next";
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
 import { SITE } from "@getsalons/shared/constants";
+import { getCategoriesApi, getCitiesApi, searchSalonsApi } from "@/lib/server-api";
 
 /**
- * Dynamic sitemap: static pages + every approved salon, city listing,
- * category listing and published blog post.
+ * Dynamic sitemap: static pages + approved salons, city landing pages,
+ * category listings and service landing pages (all fetched from the API).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
@@ -16,32 +15,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE.url}/blog`, changeFrequency: "weekly", priority: 0.7 },
   ];
 
+  const serviceSlugs = [
+    "hair",
+    "makeup",
+    "facial",
+    "nails",
+    "bridal",
+    "massage",
+    "skin-care",
+    "waxing",
+  ];
+
   try {
-    await connectDB();
-
-    const [salons, cities, categories, posts] = await Promise.all([
-      Salon.find({ status: "approved" }).select("slug updatedAt"),
-      City.find({ isActive: true }).select("slug"),
-      Category.find({ isActive: true }).select("slug"),
-      BlogPost.find({ isPublished: true }).select("slug updatedAt"),
+    const [salons, cities, categories] = await Promise.all([
+      searchSalonsApi({ limit: 50, sort: "newest" }),
+      getCitiesApi(),
+      getCategoriesApi(),
     ]);
-
-    const serviceSlugs = [
-      "hair",
-      "makeup",
-      "facial",
-      "nails",
-      "bridal",
-      "massage",
-      "skin-care",
-      "waxing",
-    ];
 
     return [
       ...staticPages,
-      ...salons.map((s) => ({
+      ...salons.salons.map((s) => ({
         url: `${SITE.url}/salon/${s.slug}`,
-        lastModified: s.updatedAt,
         changeFrequency: "weekly" as const,
         priority: 0.8,
       })),
@@ -62,13 +57,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: `${SITE.url}/services/${s}`,
         changeFrequency: "daily" as const,
         priority: 0.7,
-      })),
-      // Blog posts
-      ...posts.map((p) => ({
-        url: `${SITE.url}/blog/${p.slug}`,
-        lastModified: p.updatedAt,
-        changeFrequency: "monthly" as const,
-        priority: 0.5,
       })),
     ];
   } catch {

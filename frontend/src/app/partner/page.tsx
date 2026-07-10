@@ -9,8 +9,41 @@ import {
   Users,
 } from "lucide-react";
 import { buildMetadata } from "@/lib/seo";
-// TODO: Replace server import with API call
 import { formatPKR } from "@getsalons/shared/utils";
+
+// Displayed plan limits — keep in sync with backend PLAN_FEATURES
+const PLAN_FEATURES = {
+  free: {
+    price: 0,
+    maxStaff: 3,
+    maxGalleryImages: 10,
+    maxServices: 15,
+    featuredListing: false,
+    prioritySearch: false,
+    analytics: false,
+    whatsappIntegration: false,
+  },
+  premium: {
+    price: 2500,
+    maxStaff: 10,
+    maxGalleryImages: 40,
+    maxServices: 60,
+    featuredListing: true,
+    prioritySearch: true,
+    analytics: true,
+    whatsappIntegration: false,
+  },
+  business: {
+    price: 6000,
+    maxStaff: 100,
+    maxGalleryImages: 200,
+    maxServices: 500,
+    featuredListing: true,
+    prioritySearch: true,
+    analytics: true,
+    whatsappIntegration: true,
+  },
+} as const;
 
 export const metadata: Metadata = buildMetadata({
   title: "List Your Salon — Grow Your Beauty Business",

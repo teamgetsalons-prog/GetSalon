@@ -1,7 +1,5 @@
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
+import { redirect } from "next/navigation";
+import { getServerSession, serverFetch } from "@/lib/server-api";
 import {
   ReviewsManager,
   type SalonReviewRow,
@@ -10,44 +8,35 @@ import { NoSalonYet } from "@/components/dashboard/no-salon";
 
 export const dynamic = "force-dynamic";
 
+interface ReviewApiRow {
+  _id: string;
+  rating: number;
+  comment: string;
+  customer?: { name?: string; avatar?: string };
+  staff?: { name?: string };
+  reply?: { text?: string };
+  createdAt: string;
+}
+
 export default async function SalonReviewsPage() {
-  const session = await auth();
-  if (!session?.user) return null;
+  const session = await getServerSession();
+  if (!session) redirect("/login?callbackUrl=/salon-dashboard/reviews");
+  if (!session.salonId) return <NoSalonYet />;
 
-  let salon = null;
-  let rows: SalonReviewRow[] = [];
-  try {
-    await connectDB();
-    salon = await getActorSalon(session.user);
-    if (salon) {
-      const reviews = await Review.find({
-        salon: salon._id,
-        status: "published",
-      })
-        .populate("customer", "name avatar")
-        .populate("staff", "name")
-        .sort({ createdAt: -1 })
-        .limit(100);
+  const res = await serverFetch<ReviewApiRow[]>(
+    `/reviews?salonId=${session.salonId}&limit=50`
+  );
 
-      rows = reviews.map((r) => {
-        const customer = r.customer as unknown as { name?: string; avatar?: string };
-        const staff = r.staff as unknown as { name?: string } | undefined;
-        return {
-          _id: r._id.toString(),
-          rating: r.rating,
-          comment: r.comment,
-          customerName: customer?.name ?? "Customer",
-          customerAvatar: customer?.avatar,
-          staffName: staff?.name,
-          reply: r.reply?.text,
-          createdAt: r.createdAt.toISOString(),
-        };
-      });
-    }
-  } catch {
-    salon = null;
-  }
-  if (!salon) return <NoSalonYet />;
+  const rows: SalonReviewRow[] = (res.data ?? []).map((r) => ({
+    _id: String(r._id),
+    rating: r.rating,
+    comment: r.comment,
+    customerName: r.customer?.name ?? "Customer",
+    customerAvatar: r.customer?.avatar,
+    staffName: r.staff?.name,
+    reply: r.reply?.text,
+    createdAt: r.createdAt,
+  }));
 
   return <ReviewsManager initial={rows} />;
 }

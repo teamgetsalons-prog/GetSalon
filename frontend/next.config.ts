@@ -2,7 +2,10 @@ import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.join(__dirname),
+  // Monorepo: trace from the repo root so ../shared and hoisted
+  // node_modules are included in the deployment bundle.
+  outputFileTracingRoot: path.join(__dirname, ".."),
+  transpilePackages: ["@getsalons/shared"],
   eslint: { ignoreDuringBuilds: true },
   images: {
     remotePatterns: [

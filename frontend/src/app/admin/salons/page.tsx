@@ -68,7 +68,7 @@ export default function AdminSalonsPage() {
     }
     setBusy(row._id);
     const res = await api(`/api/salons/${row._id}/moderate`, {
-      method: "PATCH",
+      method: "POST",
       json: { action, reason },
     });
     setBusy(null);

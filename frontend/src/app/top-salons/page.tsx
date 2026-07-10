@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Trophy, Star, MapPin, TrendingUp, Award } from "lucide-react";
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
+import { getCitiesApi, searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 import type { SalonCardData } from "@getsalons/shared/types";
-// TODO: Replace server import with API call
 
 export const dynamic = "force-dynamic";
 
@@ -49,40 +46,12 @@ export default async function TopSalonsPage({
   const sp = await searchParams;
   const city = firstValue(sp.city);
 
-  await connectDB();
-
-  // Build filter
-  const filter: Record<string, unknown> = {
-    status: "approved",
-    "rating.count": { $gte: 1 },
-  };
-
-  if (city) {
-    const cityDoc = await City.findOne({ slug: city }).select("_id");
-    if (cityDoc) {
-      filter.city = cityDoc._id;
-    }
-  }
-
-  // Get top-rated salons sorted by rating average and count
-  const salons = await Salon.find(filter)
-    .sort({
-      "rating.average": -1,
-      "rating.count": -1,
-    })
-    .limit(50)
-    .populate("categories", "name")
-    .lean();
-
-  const salonsData: SalonCardData[] = salons.map((s) =>
-    toSalonCard(s as any)
-  );
-
-  // Get all cities for filter
-  const cities = await City.find({ isActive: true })
-    .sort({ order: 1 })
-    .select("name slug")
-    .lean();
+  // Top-rated salons (rating ≥ 1 ⇒ at least one review) + city filter list
+  const [result, cities] = await Promise.all([
+    searchSalonsApi({ sort: "rating", rating: 1, limit: 50, city }),
+    getCitiesApi(),
+  ]);
+  const salonsData: SalonCardData[] = result.salons;
 
   // Get top 3 for hero display
   const topThree = salonsData.slice(0, 3);

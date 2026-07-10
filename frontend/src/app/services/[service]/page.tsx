@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Scissors, Star, Clock, CheckCircle } from "lucide-react";
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-import { searchSalonsSchema } from "@getsalons/shared/validations/salon";
+import { searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
@@ -69,17 +66,10 @@ export default async function ServiceSalonsPage({ params }: Params) {
     serviceDescriptions[service]?.title ||
     service.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-  const input = searchSalonsSchema.parse({ category: service });
-
-  let result = { salons: [], total: 0, page: 1, totalPages: 0 } as Awaited<
-    ReturnType<typeof searchSalons>
-  >;
-
-  try {
-    await connectDB();
-    result = await searchSalons(input);
-  } catch {
-    // DB unavailable
+  // The service segment maps to a category slug; fall back to text search
+  let result = await searchSalonsApi({ category: service, limit: 50 });
+  if (result.salons.length === 0) {
+    result = await searchSalonsApi({ q: serviceName, limit: 50 });
   }
 
   const faqs = [

@@ -8,12 +8,15 @@ import type { GalleryImage } from "@getsalons/shared/types";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/misc";
 
+/** Gallery items returned by the API carry their subdocument _id */
+export type GalleryItem = GalleryImage & { _id?: string };
+
 export function GalleryManager({
   salonId,
   initial,
 }: {
   salonId: string;
-  initial: GalleryImage[];
+  initial: GalleryItem[];
 }) {
   const [images, setImages] = useState(initial);
   const [uploading, setUploading] = useState(false);
@@ -43,7 +46,7 @@ export function GalleryManager({
       return;
     }
 
-    const attach = await api<GalleryImage[]>(`/api/salons/${salonId}/gallery`, {
+    const attach = await api<GalleryItem[]>(`/api/salons/${salonId}/gallery`, {
       method: "POST",
       json: { url: upload.data.url, publicId: upload.data.publicId },
     });
@@ -56,12 +59,13 @@ export function GalleryManager({
     }
   }
 
-  async function remove(url: string) {
+  async function remove(imageId: string | undefined) {
+    if (!imageId) return;
     if (!window.confirm("Remove this photo from your gallery?")) return;
-    const res = await api<GalleryImage[]>(`/api/salons/${salonId}/gallery`, {
-      method: "DELETE",
-      json: { url },
-    });
+    const res = await api<GalleryItem[]>(
+      `/api/salons/${salonId}/gallery/${imageId}`,
+      { method: "DELETE" }
+    );
     if (res.success && res.data) setImages(res.data);
   }
 
@@ -104,7 +108,7 @@ export function GalleryManager({
                 sizes="(max-width: 640px) 50vw, 25vw"
               />
               <button
-                onClick={() => remove(img.url)}
+                onClick={() => remove(img._id)}
                 aria-label="Delete photo"
                 className="absolute right-2 top-2 cursor-pointer rounded-lg bg-black/60 p-2 text-white opacity-0 transition-opacity hover:bg-red-600 group-hover:opacity-100"
               >

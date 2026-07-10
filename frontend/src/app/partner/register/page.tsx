@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
+import {
+  getCategoriesApi,
+  getCitiesApi,
+  getServerSession,
+} from "@/lib/server-api";
 import { SalonRegisterForm } from "@/components/partner/salon-register-form";
 
 export const metadata: Metadata = {
@@ -14,30 +16,26 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function PartnerRegisterPage() {
-  const session = await auth();
+  const session = await getServerSession();
 
-  if (!session?.user) {
+  if (!session) {
     redirect("/register?as=owner");
   }
 
-  await connectDB();
-
   // Owners with an existing salon go straight to their dashboard
-  const existing = await Salon.findOne({ owner: session.user.id }).select("_id");
-  if (existing) redirect("/salon-dashboard");
+  if (session.salonId) {
+    redirect("/salon-dashboard");
+  }
 
-  const [cities, areas, categories] = await Promise.all([
-    City.find({ isActive: true }).sort({ order: 1 }).select("name"),
-    Area.find({ isActive: true }).select("name city"),
-    Category.find({ isActive: true }).sort({ order: 1 }).select("name"),
+  const [cities, categories] = await Promise.all([
+    getCitiesApi(true),
+    getCategoriesApi(),
   ]);
 
   const cityOptions = cities.map((c) => ({
-    _id: c._id.toString(),
+    _id: c._id,
     name: c.name,
-    areas: areas
-      .filter((a) => a.city.toString() === c._id.toString())
-      .map((a) => ({ _id: a._id.toString(), name: a.name })),
+    areas: (c.areas ?? []).map((a) => ({ _id: a._id, name: a.name })),
   }));
 
   return (
@@ -57,10 +55,7 @@ export default async function PartnerRegisterPage() {
       <div className="mt-8">
         <SalonRegisterForm
           cities={cityOptions}
-          categories={categories.map((c) => ({
-            _id: c._id.toString(),
-            name: c.name,
-          }))}
+          categories={categories.map((c) => ({ _id: c._id, name: c.name }))}
         />
       </div>
     </div>

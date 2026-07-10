@@ -60,7 +60,7 @@ const navLinks = [
 ];
 
 export function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -251,7 +251,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
 
-          {status === "loading" ? (
+          {loading ? (
             <span className="h-9 w-20 animate-pulse rounded-xl bg-bg-soft" />
           ) : user ? (
             <div className="relative">

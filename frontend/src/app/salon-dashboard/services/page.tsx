@@ -1,7 +1,5 @@
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
+import { redirect } from "next/navigation";
+import { getServerSession, serverFetch } from "@/lib/server-api";
 import {
   ServicesManager,
   type ServiceRow,
@@ -11,20 +9,20 @@ import { NoSalonYet } from "@/components/dashboard/no-salon";
 export const dynamic = "force-dynamic";
 
 export default async function SalonServicesPage() {
-  const session = await auth();
-  if (!session?.user) return null;
+  const session = await getServerSession();
+  if (!session) redirect("/login?callbackUrl=/salon-dashboard/services");
+  if (!session.salonId) return <NoSalonYet />;
 
-  let salon = null;
-  let rows: ServiceRow[] = [];
-  try {
-    await connectDB();
-    salon = await getActorSalon(session.user);
-    if (salon) {
-      const services = await Service.find({ salon: salon._id }).sort({
-        createdAt: -1,
-      });
-      rows = services.map((s) => ({
-        _id: s._id.toString(),
+  const res = await serverFetch<ServiceRow[]>(
+    `/services?salonId=${session.salonId}&all=1`
+  );
+  const rows = res.success && res.data ? res.data : [];
+
+  return (
+    <ServicesManager
+      salonId={session.salonId}
+      initial={rows.map((s) => ({
+        _id: String(s._id),
         name: s.name,
         description: s.description,
         duration: s.duration,
@@ -32,12 +30,7 @@ export default async function SalonServicesPage() {
         discountPrice: s.discountPrice,
         isActive: s.isActive,
         isPopular: s.isPopular,
-      }));
-    }
-  } catch {
-    salon = null;
-  }
-  if (!salon) return <NoSalonYet />;
-
-  return <ServicesManager salonId={salon._id.toString()} initial={rows} />;
+      }))}
+    />
+  );
 }

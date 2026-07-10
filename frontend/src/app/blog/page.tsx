@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
+import { BookOpen } from "lucide-react";
 import { buildMetadata } from "@/lib/seo";
-import { EmptyState } from "@/components/ui/misc";
-
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Beauty Blog — Tips, Trends & City Guides",
@@ -15,36 +10,12 @@ export const metadata: Metadata = buildMetadata({
   path: "/blog",
 });
 
-export default async function BlogPage() {
-  type Row = {
-    _id: string;
-    title: string;
-    slug: string;
-    excerpt: string;
-    coverImage?: string;
-    category: string;
-    publishedAt?: Date;
-  };
-
-  let posts: Row[] = [];
-  try {
-    await connectDB();
-    const docs = await BlogPost.find({ isPublished: true })
-      .sort({ publishedAt: -1 })
-      .limit(30);
-    posts = docs.map((p) => ({
-      _id: p._id.toString(),
-      title: p.title,
-      slug: p.slug,
-      excerpt: p.excerpt,
-      coverImage: p.coverImage,
-      category: p.category,
-      publishedAt: p.publishedAt,
-    }));
-  } catch {
-    posts = [];
-  }
-
+/**
+ * The blog is being migrated to the new backend API.
+ * Until blog endpoints ship, this renders a friendly placeholder
+ * instead of hitting a non-existent data source.
+ */
+export default function BlogPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div className="text-center">
@@ -57,57 +28,22 @@ export default async function BlogPage() {
         </p>
       </div>
 
-      {posts.length === 0 ? (
-        <div className="mt-10">
-          <EmptyState
-            title="Articles coming soon"
-            hint="Run the seed script to load starter articles, or add posts to the BlogPost collection."
-          />
+      <div className="mx-auto mt-12 flex max-w-lg flex-col items-center gap-4 rounded-2xl border border-dashed border-line py-16 text-center">
+        <BookOpen className="h-10 w-10 text-gold" aria-hidden />
+        <div>
+          <p className="font-semibold text-fg">Articles coming soon</p>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-fg-muted">
+            Our beauty editors are polishing the first stories. Meanwhile,
+            discover top-rated salons near you.
+          </p>
         </div>
-      ) : (
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <Link
-              key={post._id}
-              href={`/blog/${post.slug}`}
-              className="group overflow-hidden rounded-2xl border border-line bg-card transition-all hover:-translate-y-0.5 hover:border-gold-500/40 hover:shadow-lg"
-            >
-              <div className="relative aspect-[16/9] overflow-hidden">
-                <Image
-                  src={
-                    post.coverImage ||
-                    "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=75"
-                  }
-                  alt={post.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 640px) 100vw, 33vw"
-                />
-              </div>
-              <div className="p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-gold">
-                  {post.category}
-                </p>
-                <h2 className="mt-1.5 line-clamp-2 font-semibold text-fg group-hover:text-gold">
-                  {post.title}
-                </h2>
-                <p className="mt-2 line-clamp-2 text-sm text-fg-muted">
-                  {post.excerpt}
-                </p>
-                {post.publishedAt && (
-                  <p className="mt-3 text-xs text-fg-faint">
-                    {post.publishedAt.toLocaleDateString("en-PK", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+        <Link
+          href="/salons"
+          className="rounded-xl bg-gold-500 px-5 py-2.5 text-sm font-semibold text-gold-950 hover:bg-gold-400"
+        >
+          Browse salons
+        </Link>
+      </div>
     </div>
   );
 }

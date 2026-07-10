@@ -27,10 +27,10 @@ export function FavoriteButton({
     setBusy(true);
     const prev = favorited;
     setFavorited(!prev);
-    const res = await api<{ favorited: boolean }>("/api/favorites", {
-      method: "POST",
-      json: { salonId },
-    });
+    const res = await api<{ favorited: boolean }>(
+      `/api/favorites/${salonId}`,
+      { method: "POST" }
+    );
     if (!res.success) setFavorited(prev);
     else setFavorited(res.data!.favorited);
     setBusy(false);

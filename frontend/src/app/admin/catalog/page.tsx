@@ -33,7 +33,7 @@ export default function AdminCatalogPage() {
 
   async function load() {
     const [cityRes, catRes] = await Promise.all([
-      api<CityRow[]>("/api/cities?withAreas=1"),
+      api<CityRow[]>("/api/categories/cities?withAreas=1"),
       api<CategoryRow[]>("/api/categories"),
     ]);
     setCities(cityRes.success && cityRes.data ? cityRes.data : []);
@@ -48,7 +48,7 @@ export default function AdminCatalogPage() {
     e.preventDefault();
     setSavingCity(true);
     setMessage(null);
-    const res = await api("/api/cities", {
+    const res = await api("/api/categories/cities", {
       method: "POST",
       json: {
         name: cityDraft.name,

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MapPin, Star, Clock, CheckCircle } from "lucide-react";
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-import { searchSalonsSchema } from "@getsalons/shared/validations/salon";
+import {
+  getCategoriesApi,
+  searchSalonsApi,
+  type SearchSalonsResult,
+} from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
@@ -29,24 +30,14 @@ export default async function CitySalonsPage({ params }: Params) {
   const { city } = await params;
   const cityName = city.charAt(0).toUpperCase() + city.slice(1);
 
-  const input = searchSalonsSchema.parse({ city });
-
-  let result = { salons: [], total: 0, page: 1, totalPages: 0 } as Awaited<
-    ReturnType<typeof searchSalons>
-  >;
-  let categories: { name: string; slug: string }[] = [];
-
-  try {
-    await connectDB();
-    const [res, catDocs] = await Promise.all([
-      searchSalons(input),
-      Category.find({ isActive: true }).sort({ order: 1 }).select("name slug"),
-    ]);
-    result = res;
-    categories = catDocs.map((c) => ({ name: c.name, slug: c.slug }));
-  } catch {
-    // DB unavailable
-  }
+  const [result, catDocs]: [
+    SearchSalonsResult,
+    Awaited<ReturnType<typeof getCategoriesApi>>,
+  ] = await Promise.all([
+    searchSalonsApi({ city, limit: 50 }),
+    getCategoriesApi(),
+  ]);
+  const categories = catDocs.map((c) => ({ name: c.name, slug: c.slug }));
 
   const faqs = [
     {

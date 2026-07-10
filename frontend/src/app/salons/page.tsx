@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
+import {
+  getCategoriesApi,
+  getCitiesApi,
+  searchSalonsApi,
+  type SearchSalonsResult,
+} from "@/lib/server-api";
 import { searchSalonsSchema } from "@getsalons/shared/validations/salon";
 import { SalonCard } from "@/components/salons/salon-card";
 import { DesktopSort, SalonFilters } from "@/components/salons/filters";
@@ -60,25 +63,18 @@ export default async function SalonsPage({
   const parsed = searchSalonsSchema.safeParse(flat);
   const input = parsed.success ? parsed.data : searchSalonsSchema.parse({});
 
-  let result = { salons: [], total: 0, page: 1, totalPages: 0 } as Awaited<
-    ReturnType<typeof searchSalons>
-  >;
-  let cities: { name: string; slug: string }[] = [];
-  let categories: { name: string; slug: string }[] = [];
+  const [result, cityDocs, catDocs]: [
+    SearchSalonsResult,
+    Awaited<ReturnType<typeof getCitiesApi>>,
+    Awaited<ReturnType<typeof getCategoriesApi>>,
+  ] = await Promise.all([
+    searchSalonsApi(input),
+    getCitiesApi(),
+    getCategoriesApi(),
+  ]);
 
-  try {
-    await connectDB();
-    const [res, cityDocs, catDocs] = await Promise.all([
-      searchSalons(input),
-      City.find({ isActive: true }).sort({ order: 1 }).select("name slug"),
-      Category.find({ isActive: true }).sort({ order: 1 }).select("name slug"),
-    ]);
-    result = res;
-    cities = cityDocs.map((c) => ({ name: c.name, slug: c.slug }));
-    categories = catDocs.map((c) => ({ name: c.name, slug: c.slug }));
-  } catch {
-    // DB unavailable — page renders with empty state
-  }
+  const cities = cityDocs.map((c) => ({ name: c.name, slug: c.slug }));
+  const categories = catDocs.map((c) => ({ name: c.name, slug: c.slug }));
 
   const pageUrl = (page: number) => {
     const next = new URLSearchParams(flat);

@@ -1,27 +1,21 @@
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
+import { redirect } from "next/navigation";
+import { getManagedSalon, getServerSession } from "@/lib/server-api";
 import { SalonSettingsForm } from "@/components/dashboard/salon-settings-form";
 import { NoSalonYet } from "@/components/dashboard/no-salon";
+import type { GenderServed } from "@getsalons/shared/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function SalonSettingsPage() {
-  const session = await auth();
-  if (!session?.user) return null;
+  const session = await getServerSession();
+  if (!session) redirect("/login?callbackUrl=/salon-dashboard/settings");
 
-  let salon = null;
-  try {
-    await connectDB();
-    salon = await getActorSalon(session.user);
-  } catch {
-    salon = null;
-  }
+  const salon = await getManagedSalon();
   if (!salon) return <NoSalonYet />;
 
   return (
     <SalonSettingsForm
-      salonId={salon._id.toString()}
+      salonId={salon._id}
       initial={{
         name: salon.name,
         description: salon.description,
@@ -31,7 +25,7 @@ export default async function SalonSettingsPage() {
         whatsapp: salon.whatsapp ?? "",
         email: salon.email ?? "",
         website: salon.website ?? "",
-        genderServed: salon.genderServed,
+        genderServed: salon.genderServed as GenderServed,
         homeService: salon.homeService,
         instagram: salon.socials?.instagram ?? "",
         facebook: salon.socials?.facebook ?? "",

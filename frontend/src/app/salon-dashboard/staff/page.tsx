@@ -1,52 +1,59 @@
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
-// TODO: Replace server import with API call
+import { redirect } from "next/navigation";
+import { getServerSession, serverFetch } from "@/lib/server-api";
 import { StaffManager, type StaffRow } from "@/components/dashboard/staff-manager";
 import { NoSalonYet } from "@/components/dashboard/no-salon";
 
 export const dynamic = "force-dynamic";
 
+interface StaffApiRow {
+  _id: string;
+  name: string;
+  title?: string;
+  bio?: string;
+  avatar?: string;
+  services?: ({ _id: string } | string)[];
+  leaves?: { date: string; reason?: string }[];
+  rating?: { average: number; count: number };
+  isActive: boolean;
+}
+
+interface ServiceApiRow {
+  _id: string;
+  name: string;
+}
+
 export default async function SalonStaffPage() {
-  const session = await auth();
-  if (!session?.user) return null;
+  const session = await getServerSession();
+  if (!session) redirect("/login?callbackUrl=/salon-dashboard/staff");
+  if (!session.salonId) return <NoSalonYet />;
 
-  let salon = null;
-  let staffRows: StaffRow[] = [];
-  let serviceOptions: { _id: string; name: string }[] = [];
+  const [staffRes, servicesRes] = await Promise.all([
+    serverFetch<StaffApiRow[]>(`/staff?salonId=${session.salonId}`),
+    serverFetch<ServiceApiRow[]>(`/services?salonId=${session.salonId}`),
+  ]);
 
-  try {
-    await connectDB();
-    salon = await getActorSalon(session.user);
-    if (salon) {
-      const [staff, services] = await Promise.all([
-        Staff.find({ salon: salon._id, isActive: true }).sort({ createdAt: 1 }),
-        Service.find({ salon: salon._id, isActive: true }).select("name"),
-      ]);
-      staffRows = staff.map((m) => ({
-        _id: m._id.toString(),
-        name: m.name,
-        title: m.title,
-        bio: m.bio,
-        avatar: m.avatar,
-        serviceIds: m.services.map((s) => s.toString()),
-        leaves: m.leaves.map((l) => ({ date: l.date, reason: l.reason })),
-        rating: { average: m.rating.average, count: m.rating.count },
-        isActive: m.isActive,
-      }));
-      serviceOptions = services.map((s) => ({
-        _id: s._id.toString(),
-        name: s.name,
-      }));
-    }
-  } catch {
-    salon = null;
-  }
-  if (!salon) return <NoSalonYet />;
+  const staffRows: StaffRow[] = (staffRes.data ?? []).map((m) => ({
+    _id: String(m._id),
+    name: m.name,
+    title: m.title,
+    bio: m.bio,
+    avatar: m.avatar,
+    serviceIds: (m.services ?? []).map((s) =>
+      typeof s === "string" ? s : String(s._id)
+    ),
+    leaves: (m.leaves ?? []).map((l) => ({ date: l.date, reason: l.reason })),
+    rating: { average: m.rating?.average ?? 0, count: m.rating?.count ?? 0 },
+    isActive: m.isActive,
+  }));
+
+  const serviceOptions = (servicesRes.data ?? []).map((s) => ({
+    _id: String(s._id),
+    name: s.name,
+  }));
 
   return (
     <StaffManager
-      salonId={salon._id.toString()}
+      salonId={session.salonId}
       initial={staffRows}
       services={serviceOptions}
     />
