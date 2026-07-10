@@ -389,7 +389,7 @@ export async function updateSalon(
   }
   if (input.categoryIds?.length) {
     salon.categories = input.categoryIds.map(
-      (id) => id as unknown as (typeof salon.categories)[number]
+      (id: string) => id as unknown as (typeof salon.categories)[number]
     );
   }
   if (input.latitude !== undefined && input.longitude !== undefined) {
