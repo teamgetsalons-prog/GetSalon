@@ -1,26 +1,13 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { User } from "../models/index.js";
+import { User, Salon } from "../models/index.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { authenticate, signToken } from "../middleware/auth.js";
+import { authenticate, signToken, authCookieOptions } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rate-limit.js";
 import { registerSchema, loginSchema } from "../../../shared/dist/validations/auth.js";
 import type { Request, Response } from "express";
 
 const router = Router();
-
-// All browser traffic reaches us through the frontend's /api proxy on the
-// SAME domain the user is visiting, so this cookie is always first-party
-// and SameSite=Lax is both sufficient and safer (CSRF protection, and
-// unlike cross-site SameSite=None it isn't blocked by Safari/iOS).
-// Direct browser->backend calls from another origin are not a supported
-// path - they must go through the frontend proxy.
-const authCookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  maxAge: 30 * 24 * 60 * 60 * 1000,
-};
 
 router.post("/register", authLimiter, async (req: Request, res: Response) => {
   const input = registerSchema.parse(req.body);
@@ -51,10 +38,22 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
 
   if (user.isActive === false) return fail(res, "Account is deactivated.", 403);
 
+  // The token's salonId is what the frontend middleware and the salon
+  // dashboard resolve the owner's salon from. Owners who created their salon
+  // before user.salon was linked at creation time get healed here.
+  let salonId = user.salon?.toString();
+  if (!salonId && user.role === "owner") {
+    const salon = await Salon.findOne({ owner: user._id }).select("_id");
+    if (salon) {
+      salonId = salon._id.toString();
+      await User.updateOne({ _id: user._id }, { salon: salon._id });
+    }
+  }
+
   const token = signToken({
     id: user._id.toString(),
     role: user.role,
-    salonId: user.salon?.toString(),
+    salonId,
     name: user.name,
     email: user.email,
   });

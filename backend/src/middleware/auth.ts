@@ -51,3 +51,16 @@ export function requireRole(...roles: string[]) {
 export function signToken(user: { id: string; role: string; salonId?: string; name?: string; email?: string }): string {
   return jwt.sign(user, getEnv().AUTH_SECRET, { expiresIn: "30d" });
 }
+
+// All browser traffic reaches us through the frontend's /api proxy on the
+// SAME domain the user is visiting, so this cookie is always first-party
+// and SameSite=Lax is both sufficient and safer (CSRF protection, and
+// unlike cross-site SameSite=None it isn't blocked by Safari/iOS).
+// Shared here because any route that re-issues the session (login, salon
+// creation) must use identical attributes or clearCookie stops matching.
+export const authCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+};

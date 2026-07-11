@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { authenticate, optionalAuth, requireRole } from "../middleware/auth.js";
+import { authenticate, optionalAuth, requireRole, signToken, authCookieOptions } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { Salon } from "../models/index.js";
 import { createSalonSchema, searchSalonsSchema, updateSalonSchema } from "../../../shared/dist/validations/salon.js";
@@ -38,7 +38,20 @@ router.get("/public/:slug", async (req: Request, res: Response) => {
 
 router.post("/", authenticate, async (req: Request, res: Response) => {
   const input = createSalonSchema.parse(req.body);
-  const salon = await createSalon(req.user!.id, input);
+  const user = req.user!;
+  const salon = await createSalon(user.id, input);
+
+  // The salon dashboard and middleware resolve the owner's salon from the
+  // JWT's salonId, so re-issue the session immediately - otherwise the
+  // owner would have to log out and back in to see their new salon.
+  const token = signToken({
+    id: user.id,
+    role: "owner",
+    salonId: salon._id.toString(),
+    name: user.name,
+    email: user.email,
+  });
+  res.cookie("getsalons_token", token, authCookieOptions);
 
   return ok(res, { id: salon._id.toString(), slug: salon.slug, status: salon.status }, undefined, 201);
 });

@@ -328,8 +328,9 @@ export async function createSalon(ownerId: string, input: CreateSalonInput) {
       : {}),
   });
 
-  // Owner accounts get their salonId in the JWT on next session update
-  await User.updateOne({ _id: ownerId }, { role: "owner" });
+  // Link the salon to the owner account - login and the salon dashboard
+  // resolve the owner's salon through user.salon / the JWT's salonId.
+  await User.updateOne({ _id: ownerId }, { role: "owner", salon: salon._id });
 
   return salon;
 }

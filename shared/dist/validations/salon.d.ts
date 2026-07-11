@@ -28,7 +28,7 @@ export declare const openingHourSchema: z.ZodEffects<z.ZodObject<{
 export type OpeningHourInput = z.infer<typeof openingHourSchema>;
 export declare const createSalonSchema: z.ZodObject<{
     name: z.ZodString;
-    description: z.ZodOptional<z.ZodString>;
+    description: z.ZodString;
     about: z.ZodOptional<z.ZodString>;
     phone: z.ZodString;
     email: z.ZodOptional<z.ZodString>;
@@ -109,12 +109,12 @@ export declare const createSalonSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     name: string;
     phone: string;
+    description: string;
     address: string;
     cityId: string;
     genderServed: "men" | "women" | "unisex";
     homeService: boolean;
     email?: string | undefined;
-    description?: string | undefined;
     about?: string | undefined;
     website?: string | undefined;
     areaId?: string | undefined;
@@ -147,10 +147,10 @@ export declare const createSalonSchema: z.ZodObject<{
 }, {
     name: string;
     phone: string;
+    description: string;
     address: string;
     cityId: string;
     email?: string | undefined;
-    description?: string | undefined;
     about?: string | undefined;
     website?: string | undefined;
     areaId?: string | undefined;
@@ -186,7 +186,7 @@ export declare const createSalonSchema: z.ZodObject<{
 export type CreateSalonInput = z.infer<typeof createSalonSchema>;
 export declare const updateSalonSchema: z.ZodObject<{
     name: z.ZodOptional<z.ZodString>;
-    description: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+    description: z.ZodOptional<z.ZodString>;
     about: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     phone: z.ZodOptional<z.ZodString>;
     email: z.ZodOptional<z.ZodOptional<z.ZodString>>;
