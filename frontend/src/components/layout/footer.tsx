@@ -19,7 +19,7 @@ const columns = [
     links: [
       { label: "List Your Salon", href: "/partner" },
       { label: "Partner Login", href: "/login" },
-      { label: "Pricing & Plans", href: "/partner#plans" },
+      { label: "Why GetSalons", href: "/partner" },
     ],
   },
   {

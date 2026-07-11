@@ -3,52 +3,16 @@ import Link from "next/link";
 import {
   BarChart3,
   CalendarCheck,
-  Check,
   Megaphone,
   Star,
   Users,
 } from "lucide-react";
 import { buildMetadata } from "@/lib/seo";
-import { formatPKR } from "@getsalons/shared/utils";
-
-// Displayed plan limits — keep in sync with backend PLAN_FEATURES
-const PLAN_FEATURES = {
-  free: {
-    price: 0,
-    maxStaff: 3,
-    maxGalleryImages: 10,
-    maxServices: 15,
-    featuredListing: false,
-    prioritySearch: false,
-    analytics: false,
-    whatsappIntegration: false,
-  },
-  premium: {
-    price: 2500,
-    maxStaff: 10,
-    maxGalleryImages: 40,
-    maxServices: 60,
-    featuredListing: true,
-    prioritySearch: true,
-    analytics: true,
-    whatsappIntegration: false,
-  },
-  business: {
-    price: 6000,
-    maxStaff: 100,
-    maxGalleryImages: 200,
-    maxServices: 500,
-    featuredListing: true,
-    prioritySearch: true,
-    analytics: true,
-    whatsappIntegration: true,
-  },
-} as const;
 
 export const metadata: Metadata = buildMetadata({
   title: "List Your Salon — Grow Your Beauty Business",
   description:
-    "Join GetSalons Pakistan as a partner salon. Get discovered by thousands of customers, accept online bookings 24/7, manage staff and build your reputation. Free to start.",
+    "Join GetSalons Pakistan as a partner salon. Get discovered by thousands of customers, accept online bookings 24/7, manage staff and build your reputation — completely free.",
   path: "/partner",
 });
 
@@ -75,17 +39,10 @@ const perks = [
   },
   {
     icon: Megaphone,
-    title: "Premium visibility",
-    text: "Upgrade for featured placement, priority search ranking and a verified badge.",
+    title: "Stand out in your city",
+    text: "A verified badge, gallery showcase and featured homepage placement for top-rated salons.",
   },
 ];
-
-const planOrder = ["free", "premium", "business"] as const;
-const planLabels = {
-  free: { name: "Starter", note: "Forever free" },
-  premium: { name: "Premium", note: "per month" },
-  business: { name: "Business", note: "per month" },
-};
 
 export default function PartnerPage() {
   return (
@@ -100,7 +57,8 @@ export default function PartnerPage() {
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-fg-muted">
           Join Pakistan&apos;s fastest-growing salon marketplace. Listing is
-          free, setup takes 10 minutes, and your first booking could arrive today.
+          completely free, setup takes 10 minutes, and your first booking
+          could arrive today.
         </p>
         <Link
           href="/partner/register"
@@ -123,61 +81,38 @@ export default function PartnerPage() {
         ))}
       </div>
 
-      {/* Plans */}
-      <div id="plans" className="mt-20">
+      {/* How it works */}
+      <div className="mt-20">
         <h2 className="font-display text-center text-3xl font-bold">
-          Simple, honest pricing
+          Live in three simple steps
         </h2>
-        <p className="mt-2 text-center text-sm text-fg-muted">
-          Start free. Upgrade when you&apos;re ready to grow faster.
-        </p>
-
         <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {planOrder.map((plan) => {
-            const features = PLAN_FEATURES[plan];
-            const isPopular = plan === "premium";
-            return (
-              <div
-                key={plan}
-                className={`relative rounded-3xl border p-7 ${
-                  isPopular
-                    ? "border-gold-500 bg-card shadow-xl shadow-gold-500/10"
-                    : "border-line bg-card"
-                }`}
-              >
-                {isPopular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gold-500 px-3 py-1 text-[11px] font-bold text-gold-950">
-                    MOST POPULAR
-                  </span>
-                )}
-                <h3 className="font-semibold text-fg">{planLabels[plan].name}</h3>
-                <p className="mt-2">
-                  <span className="font-display text-3xl font-bold text-gold">
-                    {features.price === 0 ? "Free" : formatPKR(features.price)}
-                  </span>
-                  <span className="ml-1 text-xs text-fg-faint">
-                    {planLabels[plan].note}
-                  </span>
-                </p>
-                <ul className="mt-5 space-y-2.5 text-sm text-fg-muted">
-                  <PlanItem>Up to {features.maxServices} services</PlanItem>
-                  <PlanItem>Up to {features.maxStaff} staff members</PlanItem>
-                  <PlanItem>{features.maxGalleryImages} gallery photos</PlanItem>
-                  {features.featuredListing && <PlanItem>Featured listing</PlanItem>}
-                  {features.prioritySearch && <PlanItem>Priority search ranking</PlanItem>}
-                  {features.analytics && <PlanItem>Advanced analytics</PlanItem>}
-                  {features.whatsappIntegration && (
-                    <PlanItem>WhatsApp notifications</PlanItem>
-                  )}
-                </ul>
-              </div>
-            );
-          })}
+          {[
+            {
+              step: "1",
+              title: "Create your business account",
+              text: "Sign up with your email and phone number — it takes less than a minute.",
+            },
+            {
+              step: "2",
+              title: "Add your salon profile",
+              text: "Your services, team, photos, working hours and location. Everything customers need to choose you.",
+            },
+            {
+              step: "3",
+              title: "Get approved & take bookings",
+              text: "Our team reviews every listing to keep quality high — you're usually live within 48 hours.",
+            },
+          ].map((s) => (
+            <div key={s.step} className="rounded-3xl border border-line bg-card p-7">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gold-500 font-display text-lg font-bold text-gold-950">
+                {s.step}
+              </span>
+              <h3 className="mt-4 font-semibold text-fg">{s.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-fg-muted">{s.text}</p>
+            </div>
+          ))}
         </div>
-        <p className="mt-6 text-center text-xs text-fg-faint">
-          Online payments (EasyPaisa, JazzCash, cards) are coming soon — for
-          now all plans are activated by our team.
-        </p>
       </div>
 
       {/* CTA */}
@@ -197,14 +132,5 @@ export default function PartnerPage() {
         </Link>
       </div>
     </div>
-  );
-}
-
-function PlanItem({ children }: { children: React.ReactNode }) {
-  return (
-    <li className="flex items-start gap-2">
-      <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
-      {children}
-    </li>
   );
 }

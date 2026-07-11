@@ -103,7 +103,9 @@ export default async function SalonsPage({
         </p>
       </div>
 
-      <div className="flex gap-6">
+      {/* Column on mobile (filter bar stacks above results full-width),
+          row on lg+ (sidebar next to results). */}
+      <div className="flex flex-col gap-6 lg:flex-row">
         <SalonFilters cities={cities} categories={categories} />
 
         <div className="min-w-0 flex-1">

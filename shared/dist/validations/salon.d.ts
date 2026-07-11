@@ -380,8 +380,8 @@ export declare const searchSalonsSchema: z.ZodObject<{
     category: z.ZodOptional<z.ZodString>;
     service: z.ZodOptional<z.ZodString>;
     gender: z.ZodOptional<z.ZodEnum<["men", "women", "unisex"]>>;
-    homeService: z.ZodOptional<z.ZodBoolean>;
-    openNow: z.ZodOptional<z.ZodBoolean>;
+    homeService: z.ZodEffects<z.ZodOptional<z.ZodBoolean>, boolean | undefined, unknown>;
+    openNow: z.ZodEffects<z.ZodOptional<z.ZodBoolean>, boolean | undefined, unknown>;
     rating: z.ZodOptional<z.ZodNumber>;
     minPrice: z.ZodOptional<z.ZodNumber>;
     maxPrice: z.ZodOptional<z.ZodNumber>;
@@ -407,13 +407,13 @@ export declare const searchSalonsSchema: z.ZodObject<{
     rating?: number | undefined;
     sort?: "recommended" | "rating" | "reviews" | "price_low" | "price_high" | "newest" | undefined;
     city?: string | undefined;
-    homeService?: boolean | undefined;
+    homeService?: unknown;
     q?: string | undefined;
     area?: string | undefined;
     category?: string | undefined;
     service?: string | undefined;
     gender?: "men" | "women" | "unisex" | undefined;
-    openNow?: boolean | undefined;
+    openNow?: unknown;
     minPrice?: number | undefined;
     maxPrice?: number | undefined;
     page?: number | undefined;

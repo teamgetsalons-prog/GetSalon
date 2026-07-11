@@ -69,6 +69,10 @@ export const updateSalonSchema = createSalonSchema.partial().extend({
         notes: z.string().optional(),
     }).optional(),
 });
+// This schema parses URL query strings, where every value arrives as a
+// string - numbers and booleans must be coerced or every search that
+// includes pagination or a filter fails validation and returns empty.
+const queryBool = z.preprocess((v) => (v === "true" || v === true ? true : v === "false" || v === false ? false : undefined), z.boolean().optional());
 export const searchSalonsSchema = z.object({
     q: z.string().max(200).optional(),
     city: z.string().max(100).optional(),
@@ -76,14 +80,14 @@ export const searchSalonsSchema = z.object({
     category: z.string().optional(),
     service: z.string().optional(),
     gender: z.enum(["men", "women", "unisex"]).optional(),
-    homeService: z.boolean().optional(),
-    openNow: z.boolean().optional(),
-    rating: z.number().min(0).max(5).optional(),
-    minPrice: z.number().min(0).optional(),
-    maxPrice: z.number().min(0).optional(),
+    homeService: queryBool,
+    openNow: queryBool,
+    rating: z.coerce.number().min(0).max(5).optional(),
+    minPrice: z.coerce.number().min(0).optional(),
+    maxPrice: z.coerce.number().min(0).optional(),
     sort: z
         .enum(["recommended", "rating", "reviews", "price_low", "price_high", "newest"])
         .optional(),
-    page: z.number().int().min(1).default(1),
-    limit: z.number().int().min(1).max(50).default(12),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(50).default(12),
 });
