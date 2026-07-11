@@ -22,6 +22,7 @@ import type {
 } from "../../../shared/dist/validations/salon.js";
 import type { SalonCardData } from "../../../shared/dist/types.js";
 import { notify } from "./notification.service.js";
+import { getSalonSubscription, startFreeTrial } from "./subscription.service.js";
 
 /** Serialize a salon document to the lean card shape the frontend uses */
 export function toSalonCard(
@@ -440,12 +441,19 @@ export async function moderateSalon(
   if (!salon) throw new ApiError("Salon not found.", 404);
 
   switch (action) {
-    case "approve":
+    case "approve": {
       salon.status = "approved";
       salon.isVerified = true;
       salon.rejectionReason = undefined;
       await City.updateOne({ _id: salon.city }, { $inc: { salonCount: 1 } });
+      // The free trial must actually start at approval, or the salon is
+      // visible but unbookable - createBooking enforces an active
+      // subscription. Idempotent: re-approving after a suspension must
+      // not grant a fresh trial.
+      const existing = await getSalonSubscription(salonId);
+      if (!existing) await startFreeTrial(salonId);
       break;
+    }
     case "reject":
       salon.status = "rejected";
       salon.rejectionReason = reason || "Does not meet listing guidelines.";

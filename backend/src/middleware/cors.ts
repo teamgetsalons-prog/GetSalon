@@ -29,9 +29,18 @@ function allowedOrigins(): string[] {
   ];
 }
 
+// Outside production, any localhost port is a developer's own machine -
+// dev servers and test harnesses bind to arbitrary ports.
+function isDevLocalhost(origin: string): boolean {
+  return (
+    process.env.NODE_ENV !== "production" &&
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+  );
+}
+
 export const corsOptions: CorsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins().includes(normalize(origin))) {
+    if (!origin || isDevLocalhost(origin) || allowedOrigins().includes(normalize(origin))) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));

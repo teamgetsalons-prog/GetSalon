@@ -90,17 +90,22 @@ export async function upgradeSubscription(salonId: string, plan: "basic" | "prem
   const expiryDate = new Date(now);
   expiryDate.setDate(expiryDate.getDate() + planConfig.duration);
 
-  // Deactivate existing
-  await SalonSubscription.updateMany({ salon: salonId, status: "active" }, { status: "expired" });
-
-  const subscription = await SalonSubscription.create({
-    salon: salonId,
-    plan,
-    status: "active",
-    startDate: now,
-    expiryDate,
-    renewalDate: expiryDate,
-  });
+  // One subscription document per salon (the salon field is unique) -
+  // an upgrade replaces the current plan in place rather than creating
+  // a history document, which would violate that index.
+  const subscription = await SalonSubscription.findOneAndUpdate(
+    { salon: salonId },
+    {
+      $set: {
+        plan,
+        status: "active",
+        startDate: now,
+        expiryDate,
+        renewalDate: expiryDate,
+      },
+    },
+    { upsert: true, new: true }
+  );
 
   if (plan === "premium") {
     await Salon.updateOne({ _id: salonId }, { isPremium: true, isFeatured: true });

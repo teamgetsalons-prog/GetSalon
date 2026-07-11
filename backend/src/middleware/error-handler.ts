@@ -54,6 +54,11 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
   if (err instanceof mongoose.Error.CastError) {
     return fail(res, "Invalid id.", 400);
   }
+  // Unique index violations (duplicate email, category slug, ...) are
+  // conflicts, not server faults.
+  if ((err as { code?: number }).code === 11000) {
+    return fail(res, "This already exists.", 409);
+  }
   // Log the stack string, not the raw object - inspecting foreign error
   // objects (e.g. cross-package zod) has crashed console.error before,
   // which took down the response with it.
