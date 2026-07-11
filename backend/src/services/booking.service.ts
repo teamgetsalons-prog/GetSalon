@@ -246,13 +246,19 @@ async function resolveStaff(
 }
 
 export async function createBooking(
-  customer: { id: string; name?: string | null; email?: string | null },
+  customer: { id: string; name?: string | null; email?: string | null; salonId?: string },
   input: CreateBookingInput
 ): Promise<IAppointment> {
   const { salon, service } = await loadBookableContext(
     input.salonId,
     input.serviceId
   );
+
+  // Owners and their staff cannot book appointments at their own salon -
+  // it would pollute their schedule/analytics and inflate booking counts.
+  if (salon.owner.toString() === customer.id || customer.salonId === salon._id.toString()) {
+    throw new ApiError("You cannot book an appointment at your own salon.", 403);
+  }
 
   // ── Subscription enforcement ──
   const hasActiveSubscription = await isActiveSubscription(input.salonId);

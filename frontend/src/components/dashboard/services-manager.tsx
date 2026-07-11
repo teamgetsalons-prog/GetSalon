@@ -21,12 +21,16 @@ export interface ServiceRow {
   isPopular: boolean;
 }
 
+// Numeric fields are kept as STRINGS while editing: binding a number
+// input straight to Number(e.target.value) turns a cleared field into
+// NaN, which serializes to null and fails validation with a message
+// owners can't act on. Converted (and validated) only on save.
 const emptyDraft = {
   name: "",
   description: "",
-  duration: 45,
-  price: 1000,
-  discountPrice: 0,
+  duration: "45",
+  price: "1000",
+  discountPrice: "",
   isPopular: false,
   isActive: true,
 };
@@ -59,9 +63,9 @@ export function ServicesManager({
     setDraft({
       name: row.name,
       description: row.description ?? "",
-      duration: row.duration,
-      price: row.price,
-      discountPrice: row.discountPrice ?? 0,
+      duration: String(row.duration),
+      price: String(row.price),
+      discountPrice: row.discountPrice ? String(row.discountPrice) : "",
       isPopular: row.isPopular,
       isActive: row.isActive,
     });
@@ -70,11 +74,41 @@ export function ServicesManager({
   }
 
   async function save() {
+    // Friendly validation before the API sees anything.
+    const duration = Number(draft.duration);
+    const price = Number(draft.price);
+    const discountPrice = draft.discountPrice.trim() === "" ? undefined : Number(draft.discountPrice);
+    if (draft.name.trim().length < 2) {
+      setError("Please enter a service name (at least 2 characters).");
+      return;
+    }
+    if (!Number.isFinite(duration) || duration < 5 || duration > 480) {
+      setError("Duration must be between 5 and 480 minutes.");
+      return;
+    }
+    if (!Number.isFinite(price) || price < 0) {
+      setError("Please enter a valid price.");
+      return;
+    }
+    if (discountPrice !== undefined && (!Number.isFinite(discountPrice) || discountPrice < 0)) {
+      setError("Sale price must be a valid amount (or leave it empty).");
+      return;
+    }
+    if (discountPrice !== undefined && discountPrice >= price) {
+      setError("Sale price should be lower than the regular price.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     const payload = {
-      ...draft,
-      discountPrice: draft.discountPrice || undefined,
+      name: draft.name.trim(),
+      description: draft.description.trim() || undefined,
+      duration,
+      price,
+      discountPrice,
+      isPopular: draft.isPopular,
+      isActive: draft.isActive,
     };
     const res =
       editing === "new"
@@ -88,13 +122,9 @@ export function ServicesManager({
       setEditing(null);
       void refresh();
     } else {
-      setError(
-        res.message ??
-          Object.values(res.errors ?? {})
-            .flat()
-            .join(" ") ??
-          "Could not save."
-      );
+      // Field-level messages are far more useful than "Validation failed".
+      const fieldErrors = Object.values(res.errors ?? {}).flat().join(" ");
+      setError(fieldErrors || res.message || "Could not save. Please try again.");
     }
   }
 
@@ -194,34 +224,32 @@ export function ServicesManager({
               <Label required>Duration (min)</Label>
               <Input
                 type="number"
-                min={10}
+                inputMode="numeric"
+                min={5}
                 max={480}
                 value={draft.duration}
-                onChange={(e) =>
-                  setDraft({ ...draft, duration: Number(e.target.value) })
-                }
+                onChange={(e) => setDraft({ ...draft, duration: e.target.value })}
               />
             </div>
             <div>
               <Label required>Price (Rs)</Label>
               <Input
                 type="number"
+                inputMode="numeric"
                 min={0}
                 value={draft.price}
-                onChange={(e) =>
-                  setDraft({ ...draft, price: Number(e.target.value) })
-                }
+                onChange={(e) => setDraft({ ...draft, price: e.target.value })}
               />
             </div>
             <div>
               <Label>Sale price</Label>
               <Input
                 type="number"
+                inputMode="numeric"
                 min={0}
+                placeholder="Optional"
                 value={draft.discountPrice}
-                onChange={(e) =>
-                  setDraft({ ...draft, discountPrice: Number(e.target.value) })
-                }
+                onChange={(e) => setDraft({ ...draft, discountPrice: e.target.value })}
               />
             </div>
           </div>

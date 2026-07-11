@@ -12,7 +12,7 @@ const router = Router();
 router.post("/", authenticate, async (req: Request, res: Response) => {
   const input = createBookingSchema.parse(req.body);
   const appointment = await createBooking(
-    { id: req.user!.id, name: req.user!.name, email: req.user!.email },
+    { id: req.user!.id, name: req.user!.name, email: req.user!.email, salonId: req.user!.salonId },
     input
   );
 

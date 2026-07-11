@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ArrowLeft,
   BarChart3,
   CalendarDays,
   Clock,
@@ -71,6 +72,12 @@ export function DashboardShell({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <Link
+        href="/"
+        className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-fg-muted transition-colors hover:text-gold"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to website
+      </Link>
       <h1 className="font-display mb-5 text-2xl font-bold">{title}</h1>
 
       {/* Mobile tabs */}
