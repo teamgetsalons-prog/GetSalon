@@ -18,6 +18,16 @@ export const openingHourSchema = z.object({
 
 export type OpeningHourInput = z.infer<typeof openingHourSchema>;
 
+// Rendered as raw <a href> on public pages, so the protocol must be
+// pinned to http(s) - z.string().url() alone accepts javascript: URLs,
+// which would be a stored-XSS vector.
+const httpUrl = z
+  .string()
+  .url("Invalid URL")
+  .refine((u) => u.startsWith("http://") || u.startsWith("https://"), {
+    message: "Link must start with http:// or https://",
+  });
+
 export const createSalonSchema = z.object({
   name: z
     .string()
@@ -31,7 +41,7 @@ export const createSalonSchema = z.object({
   about: z.string().max(3000).optional(),
   phone: z.string().regex(/^(\+?[1-9]\d{6,14}|0\d{9,10})$/, "Invalid phone number"),
   email: z.string().email("Invalid email address").optional(),
-  website: z.string().url("Invalid URL").optional().or(z.literal("")),
+  website: httpUrl.optional().or(z.literal("")),
   address: z.string().min(5, "Address is required").max(300),
   cityId: z.string().min(1, "City is required"),
   areaId: z.string().optional(),
@@ -42,9 +52,9 @@ export const createSalonSchema = z.object({
   whatsapp: z.string().optional(),
   socials: z
     .object({
-      facebook: z.string().optional(),
-      instagram: z.string().optional(),
-      tiktok: z.string().optional(),
+      facebook: httpUrl.optional().or(z.literal("")),
+      instagram: httpUrl.optional().or(z.literal("")),
+      tiktok: httpUrl.optional().or(z.literal("")),
     })
     .optional(),
   coverImage: z.string().url("Invalid URL").optional().or(z.literal("")),

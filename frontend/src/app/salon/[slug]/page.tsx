@@ -12,6 +12,7 @@ import {
   Instagram,
   MapPin,
   MessageCircle,
+  Music2,
   Phone,
   ShieldCheck,
 } from "lucide-react";
@@ -55,6 +56,13 @@ const genderLabel = {
   women: "Women Only",
   unisex: "Unisex",
 } as const;
+
+/** Only ever link out to http(s) URLs - anything else (javascript:, data:,
+ * protocol-less strings from legacy data) is dropped rather than rendered. */
+function safeHttpUrl(url: string | undefined): string | null {
+  if (!url) return null;
+  return url.startsWith("http://") || url.startsWith("https://") ? url : null;
+}
 
 export default async function SalonPage({ params }: Params) {
   const { slug } = await params;
@@ -448,25 +456,37 @@ export default async function SalonPage({ params }: Params) {
           </div>
 
           {/* Socials */}
-          {(salon.socials?.instagram || salon.socials?.facebook || salon.website) && (
-            <div className="flex items-center gap-2 rounded-2xl border border-line bg-card p-4">
-              {salon.socials?.instagram && (
-                <SocialLink href={salon.socials.instagram} label="Instagram">
-                  <Instagram className="h-4 w-4" />
-                </SocialLink>
-              )}
-              {salon.socials?.facebook && (
-                <SocialLink href={salon.socials.facebook} label="Facebook">
-                  <Facebook className="h-4 w-4" />
-                </SocialLink>
-              )}
-              {salon.website && (
-                <SocialLink href={salon.website} label="Website">
-                  <Globe className="h-4 w-4" />
-                </SocialLink>
-              )}
-            </div>
-          )}
+          {(() => {
+            const instagram = safeHttpUrl(salon.socials?.instagram);
+            const facebook = safeHttpUrl(salon.socials?.facebook);
+            const tiktok = safeHttpUrl(salon.socials?.tiktok);
+            const website = safeHttpUrl(salon.website);
+            if (!instagram && !facebook && !tiktok && !website) return null;
+            return (
+              <div className="flex items-center gap-2 rounded-2xl border border-line bg-card p-4">
+                {instagram && (
+                  <SocialLink href={instagram} label="Instagram">
+                    <Instagram className="h-4 w-4" />
+                  </SocialLink>
+                )}
+                {facebook && (
+                  <SocialLink href={facebook} label="Facebook">
+                    <Facebook className="h-4 w-4" />
+                  </SocialLink>
+                )}
+                {tiktok && (
+                  <SocialLink href={tiktok} label="TikTok">
+                    <Music2 className="h-4 w-4" />
+                  </SocialLink>
+                )}
+                {website && (
+                  <SocialLink href={website} label="Website">
+                    <Globe className="h-4 w-4" />
+                  </SocialLink>
+                )}
+              </div>
+            );
+          })()}
         </aside>
       </div>
     </div>

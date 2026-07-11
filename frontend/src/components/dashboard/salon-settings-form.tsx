@@ -19,6 +19,7 @@ export interface SalonSettingsData {
   homeService: boolean;
   instagram: string;
   facebook: string;
+  tiktok: string;
   cancellationPolicy: string;
 }
 
@@ -57,7 +58,7 @@ export function SalonSettingsForm({
         website: form.website,
         genderServed: form.genderServed,
         homeService: form.homeService,
-        socials: { instagram: form.instagram, facebook: form.facebook },
+        socials: { instagram: form.instagram, facebook: form.facebook, tiktok: form.tiktok },
         policies: { cancellation: form.cancellationPolicy },
       },
     });
@@ -127,6 +128,10 @@ export function SalonSettingsForm({
           <div>
             <Label>Facebook</Label>
             <Input value={form.facebook} placeholder="https://facebook.com/…" onChange={(e) => set("facebook", e.target.value)} />
+          </div>
+          <div>
+            <Label>TikTok</Label>
+            <Input value={form.tiktok} placeholder="https://tiktok.com/@…" onChange={(e) => set("tiktok", e.target.value)} />
           </div>
         </div>
 

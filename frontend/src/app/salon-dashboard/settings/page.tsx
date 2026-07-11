@@ -29,6 +29,7 @@ export default async function SalonSettingsPage() {
         homeService: salon.homeService,
         instagram: salon.socials?.instagram ?? "",
         facebook: salon.socials?.facebook ?? "",
+        tiktok: salon.socials?.tiktok ?? "",
         cancellationPolicy: salon.policies?.cancellation ?? "",
       }}
     />

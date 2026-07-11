@@ -64,7 +64,7 @@ export interface SalonPublicData {
   phone: string;
   whatsapp?: string;
   website?: string;
-  socials?: { facebook?: string; instagram?: string };
+  socials?: { facebook?: string; instagram?: string; tiktok?: string };
   genderServed: string;
   homeService: boolean;
   isVerified: boolean;

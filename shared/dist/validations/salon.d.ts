@@ -32,7 +32,7 @@ export declare const createSalonSchema: z.ZodObject<{
     about: z.ZodOptional<z.ZodString>;
     phone: z.ZodString;
     email: z.ZodOptional<z.ZodString>;
-    website: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>;
+    website: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
     address: z.ZodString;
     cityId: z.ZodString;
     areaId: z.ZodOptional<z.ZodString>;
@@ -42,9 +42,9 @@ export declare const createSalonSchema: z.ZodObject<{
     homeService: z.ZodDefault<z.ZodBoolean>;
     whatsapp: z.ZodOptional<z.ZodString>;
     socials: z.ZodOptional<z.ZodObject<{
-        facebook: z.ZodOptional<z.ZodString>;
-        instagram: z.ZodOptional<z.ZodString>;
-        tiktok: z.ZodOptional<z.ZodString>;
+        facebook: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
+        instagram: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
+        tiktok: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
     }, "strip", z.ZodTypeAny, {
         facebook?: string | undefined;
         instagram?: string | undefined;
@@ -190,7 +190,7 @@ export declare const updateSalonSchema: z.ZodObject<{
     about: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     phone: z.ZodOptional<z.ZodString>;
     email: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-    website: z.ZodOptional<z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>>;
+    website: z.ZodOptional<z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>>;
     address: z.ZodOptional<z.ZodString>;
     cityId: z.ZodOptional<z.ZodString>;
     areaId: z.ZodOptional<z.ZodOptional<z.ZodString>>;
@@ -200,9 +200,9 @@ export declare const updateSalonSchema: z.ZodObject<{
     homeService: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
     whatsapp: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     socials: z.ZodOptional<z.ZodOptional<z.ZodObject<{
-        facebook: z.ZodOptional<z.ZodString>;
-        instagram: z.ZodOptional<z.ZodString>;
-        tiktok: z.ZodOptional<z.ZodString>;
+        facebook: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
+        instagram: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
+        tiktok: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
     }, "strip", z.ZodTypeAny, {
         facebook?: string | undefined;
         instagram?: string | undefined;
