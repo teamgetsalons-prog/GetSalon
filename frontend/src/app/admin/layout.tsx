@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getServerSession } from "@/lib/server-api";
 import { DashboardShell, type NavItem } from "@/components/dashboard/shell";
 
 export const metadata: Metadata = {
@@ -14,11 +16,18 @@ const items: NavItem[] = [
   { href: "/admin/catalog", label: "Cities & Categories", icon: "map-pin" },
 ];
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Defense in depth: middleware already gates /admin, but the console
+  // must never render for a non-admin even if middleware were bypassed
+  // or misconfigured.
+  const session = await getServerSession();
+  if (!session) redirect("/login?callbackUrl=/admin");
+  if (session.role !== "admin") redirect("/");
+
   return (
     <DashboardShell title="Admin Console" items={items}>
       {children}

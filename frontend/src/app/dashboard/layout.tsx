@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getServerSession } from "@/lib/server-api";
 import { DashboardShell, type NavItem } from "@/components/dashboard/shell";
 
 export const metadata: Metadata = {
@@ -14,11 +16,15 @@ const items: NavItem[] = [
   { href: "/dashboard/settings", label: "Settings", icon: "settings" },
 ];
 
-export default function CustomerDashboardLayout({
+export default async function CustomerDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Defense in depth alongside the middleware gate.
+  const session = await getServerSession();
+  if (!session) redirect("/login?callbackUrl=/dashboard");
+
   return (
     <DashboardShell title="My Dashboard" items={items}>
       {children}

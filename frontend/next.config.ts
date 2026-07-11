@@ -55,6 +55,21 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
         ],
       },
+      // Authenticated panels must never be served from any cache (browser,
+      // proxy, or back/forward) - a cached copy could show a logged-out or
+      // logged-in-as-someone-else visitor stale privileged content.
+      {
+        source: "/(admin|salon-dashboard|dashboard)/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-cache, no-store, max-age=0, must-revalidate" },
+        ],
+      },
+      {
+        source: "/(admin|salon-dashboard|dashboard)",
+        headers: [
+          { key: "Cache-Control", value: "private, no-cache, no-store, max-age=0, must-revalidate" },
+        ],
+      },
     ];
   },
 };
