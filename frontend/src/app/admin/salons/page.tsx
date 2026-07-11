@@ -75,6 +75,21 @@ export default function AdminSalonsPage() {
     if (res.success) void load();
   }
 
+  async function hardDelete(row: AdminSalonRow) {
+    if (
+      !window.confirm(
+        `PERMANENTLY delete "${row.name}"?\n\nThis removes the salon, its services, staff, bookings, reviews and subscription. This cannot be undone.\n\nUse Suspend instead if you might want it back.`
+      )
+    ) {
+      return;
+    }
+    setBusy(row._id);
+    const res = await api(`/api/admin/salons/${row._id}`, { method: "DELETE" });
+    setBusy(null);
+    if (res.success) void load();
+    else window.alert(res.message ?? "Could not delete.");
+  }
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap gap-2">
@@ -177,6 +192,15 @@ export default function AdminSalonsPage() {
                     Re-approve
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="ml-auto text-red-500"
+                  loading={busy === row._id}
+                  onClick={() => hardDelete(row)}
+                >
+                  Delete permanently
+                </Button>
               </div>
             </div>
           ))}

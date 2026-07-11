@@ -45,6 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await authLogout();
     setUser(null);
+    // Full navigation, not a client-side push: it drops all in-memory
+    // state (dashboard data, admin lists) and guarantees the visitor
+    // leaves any authenticated panel they were on.
+    window.location.href = "/";
   }, []);
 
   useEffect(() => {

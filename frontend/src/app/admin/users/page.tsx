@@ -25,6 +25,7 @@ const roleTabs = [
   { value: "", label: "All" },
   { value: "customer", label: "Customers" },
   { value: "owner", label: "Owners" },
+  { value: "staff", label: "Staff" },
   { value: "admin", label: "Admins" },
 ];
 
@@ -64,6 +65,19 @@ export default function AdminUsersPage() {
     });
     setBusy(null);
     if (res.success) void load();
+  }
+
+  async function changeRole(row: UserRow, newRole: string) {
+    if (newRole === row.role) return;
+    if (!window.confirm(`Change ${row.name}'s role from ${row.role} to ${newRole}?`)) return;
+    setBusy(row._id);
+    const res = await api("/api/admin/users", {
+      method: "PATCH",
+      json: { userId: row._id, role: newRole },
+    });
+    setBusy(null);
+    if (res.success) void load();
+    else window.alert(res.message ?? "Could not change role.");
   }
 
   return (
@@ -116,7 +130,19 @@ export default function AdminUsersPage() {
                   </p>
                 </div>
               </div>
-              {row.role !== "admin" && (
+              <div className="flex items-center gap-2">
+                <select
+                  value={row.role}
+                  onChange={(e) => changeRole(row, e.target.value)}
+                  disabled={busy === row._id}
+                  aria-label={`Role for ${row.name}`}
+                  className="h-8 cursor-pointer rounded-lg border border-line bg-card px-2 text-xs text-fg outline-none focus:border-gold-500 [color-scheme:light] dark:[color-scheme:dark]"
+                >
+                  <option value="customer">customer</option>
+                  <option value="owner">owner</option>
+                  <option value="staff">staff</option>
+                  <option value="admin">admin</option>
+                </select>
                 <Button
                   size="sm"
                   variant={row.isActive ? "ghost" : "primary"}
@@ -126,7 +152,7 @@ export default function AdminUsersPage() {
                 >
                   {row.isActive ? "Deactivate" : "Reactivate"}
                 </Button>
-              )}
+              </div>
             </div>
           ))}
         </div>

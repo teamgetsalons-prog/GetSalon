@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { User, Salon, Appointment, Review, AuditLog } from "../models/index.js";
+import { User, Salon, Appointment, Review, AuditLog, Service, Staff, Comment, SalonSubscription, City } from "../models/index.js";
 function toDateKey(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -111,6 +111,39 @@ router.post("/salons/:id/moderate", async (req: Request, res: Response) => {
   return ok(res, { id: salon._id.toString(), status: salon.status, isFeatured: salon.isFeatured });
 });
 
+// Hard delete: removes the salon and everything attached to it. The
+// softer tool (suspend) exists on the moderate endpoint; this is for
+// spam/duplicate listings that should leave no trace.
+router.delete("/salons/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const salon = await Salon.findById(id);
+  if (!salon) return fail(res, "Salon not found.", 404);
+
+  await Promise.all([
+    Service.deleteMany({ salon: salon._id }),
+    Staff.deleteMany({ salon: salon._id }),
+    Appointment.deleteMany({ salon: salon._id }),
+    Review.deleteMany({ salon: salon._id }),
+    Comment.deleteMany({ salon: salon._id }),
+    SalonSubscription.deleteMany({ salon: salon._id }),
+    User.updateOne({ _id: salon.owner }, { $unset: { salon: 1 } }),
+  ]);
+  if (salon.status === "approved") {
+    await City.updateOne({ _id: salon.city }, { $inc: { salonCount: -1 } });
+  }
+  await Salon.deleteOne({ _id: salon._id });
+
+  await AuditLog.create({
+    actor: req.user!.id,
+    actorRole: "admin",
+    action: "salon.delete",
+    entity: "Salon",
+    entityId: id,
+  });
+
+  return ok(res, { deleted: true });
+});
+
 router.get("/users", async (req: Request, res: Response) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(50, Number(req.query.limit) || 20);
@@ -139,26 +172,44 @@ router.get("/users", async (req: Request, res: Response) => {
 });
 
 router.patch("/users", async (req: Request, res: Response) => {
-  const { userId, isActive } = req.body;
-  if (!userId || typeof isActive !== "boolean") {
-    return fail(res, "userId and isActive are required.", 400);
+  const { userId, isActive, role } = req.body;
+  if (!userId || (typeof isActive !== "boolean" && role === undefined)) {
+    return fail(res, "userId plus isActive and/or role are required.", 400);
+  }
+  if (role !== undefined && !["customer", "owner", "staff", "admin"].includes(role)) {
+    return fail(res, "Invalid role.", 400);
   }
 
   const user = await User.findById(userId);
   if (!user) return fail(res, "User not found.", 404);
 
-  user.isActive = isActive;
+  // An admin must never be able to lock themselves out by accident.
+  if (user._id.toString() === req.user!.id && (isActive === false || (role !== undefined && role !== "admin"))) {
+    return fail(res, "You cannot deactivate or demote your own account.", 400);
+  }
+
+  const actions: string[] = [];
+  if (typeof isActive === "boolean") {
+    user.isActive = isActive;
+    actions.push(isActive ? "user.activate" : "user.deactivate");
+  }
+  if (role !== undefined && role !== user.role) {
+    user.role = role;
+    actions.push(`user.role:${role}`);
+  }
   await user.save();
 
-  await AuditLog.create({
-    actor: req.user!.id,
-    actorRole: "admin",
-    action: isActive ? "user.activate" : "user.deactivate",
-    entity: "User",
-    entityId: userId,
-  });
+  for (const action of actions) {
+    await AuditLog.create({
+      actor: req.user!.id,
+      actorRole: "admin",
+      action,
+      entity: "User",
+      entityId: userId,
+    });
+  }
 
-  return ok(res, { id: user._id.toString(), isActive: user.isActive });
+  return ok(res, { id: user._id.toString(), isActive: user.isActive, role: user.role });
 });
 
 router.get("/subscriptions", async (req: Request, res: Response) => {
