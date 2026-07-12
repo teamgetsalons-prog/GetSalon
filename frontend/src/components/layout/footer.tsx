@@ -25,9 +25,18 @@ const columns = [
   {
     title: "Company",
     links: [
-      { label: "About Us", href: "/#about" },
+      { label: "About Us", href: "/about" },
+      { label: "Contact Us", href: "/contact" },
       { label: "FAQs", href: "/#faq" },
-      { label: "Contact", href: "mailto:hello@getsalons.pk" },
+      { label: "Beauty Blog", href: "/blog" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Refund Policy", href: "/refund" },
     ],
   },
 ];
@@ -35,7 +44,7 @@ const columns = [
 export function Footer() {
   return (
     <footer className="border-t border-line bg-bg-soft/60">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.2fr_1fr_1fr_1fr_1fr]">
         <div>
           <Link href="/" className="flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold-500 text-gold-950">
