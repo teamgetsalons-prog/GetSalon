@@ -7,6 +7,15 @@ import { SITE } from "../../../shared/dist/constants.js";
  * so development works without an email account.
  */
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function getTransport() {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) return null;
@@ -28,19 +37,19 @@ function baseTemplate(title: string, bodyHtml: string): string {
         <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#161616;border:1px solid #2a2a2a;border-radius:16px;overflow:hidden;">
           <tr>
             <td style="padding:28px 32px;border-bottom:1px solid #2a2a2a;">
-              <span style="font-size:20px;font-weight:700;color:#e8b426;">✂ ${SITE.shortName}</span>
+              <span style="font-size:20px;font-weight:700;color:#e8b426;">✂ ${escapeHtml(SITE.shortName)}</span>
             </td>
           </tr>
           <tr>
             <td style="padding:32px;">
-              <h1 style="margin:0 0 16px;font-size:20px;color:#ffffff;">${title}</h1>
+              <h1 style="margin:0 0 16px;font-size:20px;color:#ffffff;">${escapeHtml(title)}</h1>
               <div style="font-size:15px;line-height:1.6;color:#c9c9c9;">${bodyHtml}</div>
             </td>
           </tr>
           <tr>
             <td style="padding:20px 32px;border-top:1px solid #2a2a2a;font-size:12px;color:#777;">
-              ${SITE.name} — ${SITE.tagline}<br/>
-              <a href="${SITE.url}" style="color:#e8b426;text-decoration:none;">${SITE.url}</a>
+              ${escapeHtml(SITE.name)} — ${escapeHtml(SITE.tagline)}<br/>
+              <a href="${SITE.url}" style="color:#e8b426;text-decoration:none;">${escapeHtml(SITE.url)}</a>
             </td>
           </tr>
         </table>
@@ -88,8 +97,8 @@ export function bookingEmailHtml(b: {
 }): string {
   const row = (label: string, value: string) =>
     `<tr>
-      <td style="padding:8px 0;color:#888;font-size:13px;">${label}</td>
-      <td style="padding:8px 0;color:#fff;font-size:14px;text-align:right;font-weight:600;">${value}</td>
+      <td style="padding:8px 0;color:#888;font-size:13px;">${escapeHtml(label)}</td>
+      <td style="padding:8px 0;color:#fff;font-size:14px;text-align:right;font-weight:600;">${escapeHtml(value)}</td>
     </tr>`;
 
   return `

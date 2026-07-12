@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { authenticate } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { Appointment, Salon } from "../models/index.js";
+import { Appointment, Salon, User } from "../models/index.js";
 import { createBookingSchema, updateBookingSchema, availabilityQuerySchema } from "../../../shared/dist/validations/booking.js";
 import { createBooking, updateBooking, getAvailability } from "../services/booking.service.js";
 import { toDateKey } from "../../../shared/dist/utils.js";
@@ -11,8 +11,9 @@ const router = Router();
 
 router.post("/", authenticate, async (req: Request, res: Response) => {
   const input = createBookingSchema.parse(req.body);
+  const user = await User.findById(req.user!.id).select("name email");
   const appointment = await createBooking(
-    { id: req.user!.id, name: req.user!.name, email: req.user!.email, salonId: req.user!.salonId },
+    { id: req.user!.id, name: user?.name, email: user?.email, salonId: req.user!.salonId },
     input
   );
 
@@ -104,6 +105,13 @@ router.delete("/:id", authenticate, async (req: Request, res: Response) => {
 
   if (user.role === "customer" && appointment.customer.toString() !== user.id) {
     return fail(res, "Not allowed.", 403);
+  }
+
+  if (user.role === "owner" || user.role === "staff") {
+    const salonId = user.salonId ?? (await Salon.findOne({ owner: user.id }).select("_id"))?._id?.toString();
+    if (!salonId || appointment.salon.toString() !== salonId) {
+      return fail(res, "Not allowed.", 403);
+    }
   }
 
   appointment.status = "cancelled";

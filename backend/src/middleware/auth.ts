@@ -6,6 +6,7 @@ export interface AuthUser {
   id: string;
   role: string;
   salonId?: string;
+  // Optional: may be present from older tokens but not signed into new ones
   name?: string;
   email?: string;
 }
@@ -48,8 +49,8 @@ export function requireRole(...roles: string[]) {
   };
 }
 
-export function signToken(user: { id: string; role: string; salonId?: string; name?: string; email?: string }): string {
-  return jwt.sign(user, getEnv().AUTH_SECRET, { expiresIn: "30d" });
+export function signToken(user: { id: string; role: string; salonId?: string }): string {
+  return jwt.sign({ id: user.id, role: user.role, salonId: user.salonId }, getEnv().AUTH_SECRET, { expiresIn: "7d" });
 }
 
 // All browser traffic reaches us through the frontend's /api proxy on the
@@ -62,5 +63,6 @@ export const authCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
-  maxAge: 30 * 24 * 60 * 60 * 1000,
+  path: "/",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };

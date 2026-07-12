@@ -48,8 +48,6 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
     id: user.id,
     role: "owner",
     salonId: salon._id.toString(),
-    name: user.name,
-    email: user.email,
   });
   res.cookie("getsalons_token", token, authCookieOptions);
 

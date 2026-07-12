@@ -4,7 +4,7 @@ import { User, Salon } from "../models/index.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { authenticate, signToken, authCookieOptions } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rate-limit.js";
-import { registerSchema, loginSchema } from "../../../shared/dist/validations/auth.js";
+import { registerSchema, loginSchema, updateProfileSchema } from "../../../shared/dist/validations/auth.js";
 import type { Request, Response } from "express";
 
 const router = Router();
@@ -21,7 +21,7 @@ router.post("/register", authLimiter, async (req: Request, res: Response) => {
     email: input.email,
     phone: input.phone,
     passwordHash,
-    role: input.role,
+    role: "customer",
   });
 
   return ok(res, { id: user._id.toString(), email: user.email, role: user.role }, undefined, 201);
@@ -54,8 +54,6 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
     id: user._id.toString(),
     role: user.role,
     salonId,
-    name: user.name,
-    email: user.email,
   });
 
   res.cookie("getsalons_token", token, authCookieOptions);
@@ -84,10 +82,11 @@ router.patch("/session", authenticate, async (req: Request, res: Response) => {
   const user = await User.findById(req.user!.id);
   if (!user) return fail(res, "User not found.", 404);
 
-  if (req.body.name !== undefined) user.name = req.body.name;
-  if (req.body.phone !== undefined) user.phone = req.body.phone || undefined;
-  if (req.body.avatar !== undefined) user.avatar = req.body.avatar || undefined;
-  if (req.body.city !== undefined) user.city = req.body.city || undefined;
+  const input = updateProfileSchema.parse(req.body);
+  if (input.name !== undefined) user.name = input.name;
+  if (input.phone !== undefined) user.phone = input.phone || undefined;
+  if (input.avatar !== undefined) user.avatar = input.avatar || undefined;
+  if (input.city !== undefined) user.city = input.city || undefined;
 
   await user.save();
   return ok(res, { name: user.name, phone: user.phone, avatar: user.avatar, city: user.city });

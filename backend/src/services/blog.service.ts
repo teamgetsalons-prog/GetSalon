@@ -113,9 +113,10 @@ export async function adminListBlogPosts(opts: {
   const limit = opts.limit ?? 20;
   const filter: Record<string, unknown> = {};
   if (opts.search) {
+    const escaped = opts.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     filter.$or = [
-      { title: { $regex: opts.search, $options: "i" } },
-      { category: { $regex: opts.search, $options: "i" } },
+      { title: { $regex: escaped, $options: "i" } },
+      { category: { $regex: escaped, $options: "i" } },
     ];
   }
 

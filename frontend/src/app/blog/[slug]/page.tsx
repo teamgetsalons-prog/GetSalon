@@ -44,9 +44,17 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   }
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function renderMarkdown(content: string): string {
-  // Simple markdown-to-HTML: headers, bold, paragraphs
-  let html = content
+  let html = escapeHtml(content)
     // H2 headers
     .replace(/^## (.+)$/gm, '<h2 class="font-display mt-8 mb-4 text-xl font-bold text-fg">$1</h2>')
     // H3 headers

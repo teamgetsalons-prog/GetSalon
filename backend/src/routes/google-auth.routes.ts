@@ -121,8 +121,6 @@ router.post("/google", authLimiter, async (req: Request, res: Response) => {
       id: user._id.toString(),
       role: user.role,
       salonId,
-      name: user.name,
-      email: user.email,
     });
 
     res.cookie("getsalons_token", token, authCookieOptions);
