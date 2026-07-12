@@ -13,6 +13,7 @@ export async function api<T = unknown>(
     // coupling that has broken production before.
     const isFormData = init.body instanceof FormData;
     const res = await fetch(path, {
+      cache: "no-store",
       ...init,
       credentials: "include",
       // Let the browser set Content-Type (with multipart boundary) for FormData bodies.

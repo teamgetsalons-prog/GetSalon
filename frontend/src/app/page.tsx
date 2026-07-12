@@ -8,7 +8,7 @@ import {
   Star,
   Store,
 } from "lucide-react";
-import { getHomePageData, type HomePageData } from "@/lib/server-api";
+import { getHomePageData, searchSalonsApi, type HomePageData } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { FaqAccordion } from "@/components/home/faq-accordion";
 import { AnimatedHero } from "@/components/home/animated-hero";
@@ -20,11 +20,14 @@ import { SITE, SITE_FAQS, TESTIMONIALS } from "@getsalons/shared/constants";
 import { CategoryIcon } from "@/components/home/category-icon";
 import type { SalonCardData } from "@getsalons/shared/types";
 
-// ISR: revalidate every 60 seconds instead of forcing dynamic on every load
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
-async function loadData(): Promise<HomePageData> {
-  return (await getHomePageData()) ?? {
+async function loadData(): Promise<HomePageData & { popular: SalonCardData[] }> {
+  const [home, popularResult] = await Promise.all([
+    getHomePageData(),
+    searchSalonsApi({ sort: "rating", limit: 8 }),
+  ]);
+  const base = home ?? {
     featured: [],
     topRated: [],
     newest: [],
@@ -32,6 +35,7 @@ async function loadData(): Promise<HomePageData> {
     cities: [],
     stats: { salons: 0, customers: 0, bookings: 0, cities: 0 },
   };
+  return { ...base, popular: popularResult.salons };
 }
 
 export default async function HomePage() {
@@ -145,6 +149,39 @@ export default async function HomePage() {
           ))}
         </div>
       </AnimatedSection>
+
+      {/* ── Popular salons ────────────────────────────────── */}
+      {data.popular.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+          <div className="mb-7 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="font-display text-2xl font-bold sm:text-3xl">
+                Popular salons
+              </h2>
+              <p className="mt-1.5 text-sm text-fg-muted">
+                Most booked and highest-rated salons across Pakistan.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {data.popular.slice(0, 8).map((salon, i) => (
+              <AnimatedCard key={salon._id} index={i}>
+                <SalonCard salon={salon} />
+              </AnimatedCard>
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <Link
+              href="/salons"
+              className="inline-flex items-center gap-2 rounded-xl border border-gold-500/40 bg-gold-500/10 px-6 py-3 text-sm font-semibold text-gold transition-all hover:bg-gold-500 hover:text-gold-950 hover:shadow-lg hover:shadow-gold-500/20"
+            >
+              View all salons <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* ── New on GetSalons ──────────────────────────────── */}
       {data.newest.length > 0 && (

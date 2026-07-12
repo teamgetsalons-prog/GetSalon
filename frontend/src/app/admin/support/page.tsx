@@ -41,10 +41,14 @@ export default function AdminSupportPage() {
     void load();
   }, [load]);
 
+  function busyKey(rowId: string, action: string) {
+    return `${rowId}-${action}`;
+  }
+
   async function reply(row: SupportRow, resolve: boolean) {
     const text = (drafts[row._id] ?? "").trim();
     if (!text && !resolve) return;
-    setBusy(row._id);
+    setBusy(busyKey(row._id, resolve ? "resolve" : "reply"));
     const res = await api(`/api/admin/support/${row._id}`, {
       method: "PATCH",
       json: { ...(text ? { reply: text } : {}), ...(resolve ? { status: "resolved" } : {}) },
@@ -116,20 +120,20 @@ export default function AdminSupportPage() {
                   maxLength={3000}
                 />
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" loading={busy === row._id} onClick={() => reply(row, false)}>
+                  <Button size="sm" loading={busy === busyKey(row._id, "reply")} onClick={() => reply(row, false)}>
                     Send reply
                   </Button>
                   {row.status === "open" ? (
-                    <Button size="sm" variant="outline" loading={busy === row._id} onClick={() => reply(row, true)}>
+                    <Button size="sm" variant="outline" loading={busy === busyKey(row._id, "resolve")} onClick={() => reply(row, true)}>
                       {drafts[row._id]?.trim() ? "Reply & resolve" : "Mark resolved"}
                     </Button>
                   ) : (
                     <Button
                       size="sm"
                       variant="ghost"
-                      loading={busy === row._id}
+                      loading={busy === busyKey(row._id, "reopen")}
                       onClick={async () => {
-                        setBusy(row._id);
+                        setBusy(busyKey(row._id, "reopen"));
                         await api(`/api/admin/support/${row._id}`, { method: "PATCH", json: { status: "open" } });
                         setBusy(null);
                         void load();

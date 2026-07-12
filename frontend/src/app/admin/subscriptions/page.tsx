@@ -95,8 +95,12 @@ export default function AdminSubscriptionsPage() {
     load();
   }, [load]);
 
+  function busyKey(salonId: string, action: string) {
+    return `${salonId}-${action}`;
+  }
+
   async function handleAction(action: string, salonId: string, extra?: Record<string, unknown>) {
-    setBusy(salonId);
+    setBusy(busyKey(salonId, action));
     const body = { salonId, ...extra };
     await api("/api/admin/subscriptions", { method: "PATCH", json: body });
     load();
@@ -359,7 +363,7 @@ export default function AdminSubscriptionsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            disabled={busy === row._id}
+                            disabled={busy === busyKey(row._id, "extend")}
                             onClick={() =>
                               handleAction("extend", row._id, { additionalDays: 30 })
                             }
@@ -372,7 +376,7 @@ export default function AdminSubscriptionsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            disabled={busy === row._id}
+                            disabled={busy === busyKey(row._id, "upgrade")}
                             onClick={() => handleAction("upgrade", row._id, { plan: "premium" })}
                             className="h-7 text-xs text-gold hover:text-gold-400"
                           >
@@ -383,7 +387,7 @@ export default function AdminSubscriptionsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            disabled={busy === row._id}
+                            disabled={busy === busyKey(row._id, "suspend")}
                             onClick={() =>
                               handleAction("suspend", row._id, {
                                 reason: "Admin suspension",

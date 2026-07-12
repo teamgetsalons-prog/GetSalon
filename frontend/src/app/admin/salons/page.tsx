@@ -57,6 +57,10 @@ export default function AdminSalonsPage() {
     void load();
   }, [load]);
 
+  function busyKey(rowId: string, action: string) {
+    return `${rowId}-${action}`;
+  }
+
   async function moderate(
     row: AdminSalonRow,
     action: "approve" | "reject" | "suspend" | "feature" | "unfeature"
@@ -66,7 +70,7 @@ export default function AdminSalonsPage() {
       reason = window.prompt("Rejection reason (sent to the owner):") ?? undefined;
       if (reason === undefined) return;
     }
-    setBusy(row._id);
+    setBusy(busyKey(row._id, action));
     const res = await api(`/api/salons/${row._id}/moderate`, {
       method: "POST",
       json: { action, reason },
@@ -83,7 +87,7 @@ export default function AdminSalonsPage() {
     ) {
       return;
     }
-    setBusy(row._id);
+    setBusy(busyKey(row._id, "delete"));
     const res = await api(`/api/admin/salons/${row._id}`, { method: "DELETE" });
     setBusy(null);
     if (res.success) void load();
@@ -152,13 +156,13 @@ export default function AdminSalonsPage() {
               <div className="mt-3 flex flex-wrap gap-2 border-t border-line pt-3">
                 {row.status === "pending" && (
                   <>
-                    <Button size="sm" loading={busy === row._id} onClick={() => moderate(row, "approve")}>
+                    <Button size="sm" loading={busy === busyKey(row._id, "approve")} onClick={() => moderate(row, "approve")}>
                       Approve
                     </Button>
                     <Button
                       size="sm"
                       variant="danger"
-                      loading={busy === row._id}
+                      loading={busy === busyKey(row._id, "reject")}
                       onClick={() => moderate(row, "reject")}
                     >
                       Reject
@@ -170,7 +174,7 @@ export default function AdminSalonsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      loading={busy === row._id}
+                      loading={busy === busyKey(row._id, row.isFeatured ? "unfeature" : "feature")}
                       onClick={() => moderate(row, row.isFeatured ? "unfeature" : "feature")}
                     >
                       <Star className="h-3.5 w-3.5" />
@@ -180,7 +184,7 @@ export default function AdminSalonsPage() {
                       size="sm"
                       variant="ghost"
                       className="text-red-500"
-                      loading={busy === row._id}
+                      loading={busy === busyKey(row._id, "suspend")}
                       onClick={() => moderate(row, "suspend")}
                     >
                       Suspend
@@ -188,7 +192,7 @@ export default function AdminSalonsPage() {
                   </>
                 )}
                 {(row.status === "rejected" || row.status === "suspended") && (
-                  <Button size="sm" loading={busy === row._id} onClick={() => moderate(row, "approve")}>
+                  <Button size="sm" loading={busy === busyKey(row._id, "approve")} onClick={() => moderate(row, "approve")}>
                     Re-approve
                   </Button>
                 )}
@@ -196,7 +200,7 @@ export default function AdminSalonsPage() {
                   size="sm"
                   variant="ghost"
                   className="ml-auto text-red-500"
-                  loading={busy === row._id}
+                  loading={busy === busyKey(row._id, "delete")}
                   onClick={() => hardDelete(row)}
                 >
                   Delete permanently

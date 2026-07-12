@@ -51,6 +51,10 @@ export default function AdminUsersPage() {
     void load();
   }, [load]);
 
+  function busyKey(rowId: string, action: string) {
+    return `${rowId}-${action}`;
+  }
+
   async function toggleActive(row: UserRow) {
     if (
       row.isActive &&
@@ -58,7 +62,7 @@ export default function AdminUsersPage() {
     ) {
       return;
     }
-    setBusy(row._id);
+    setBusy(busyKey(row._id, "toggle"));
     const res = await api("/api/admin/users", {
       method: "PATCH",
       json: { userId: row._id, isActive: !row.isActive },
@@ -70,7 +74,7 @@ export default function AdminUsersPage() {
   async function changeRole(row: UserRow, newRole: string) {
     if (newRole === row.role) return;
     if (!window.confirm(`Change ${row.name}'s role from ${row.role} to ${newRole}?`)) return;
-    setBusy(row._id);
+    setBusy(busyKey(row._id, "role"));
     const res = await api("/api/admin/users", {
       method: "PATCH",
       json: { userId: row._id, role: newRole },
@@ -82,7 +86,7 @@ export default function AdminUsersPage() {
 
   async function deleteUser(row: UserRow) {
     if (!window.confirm(`PERMANENTLY delete "${row.name}" (${row.email})?\n\nThis removes the user, their salon, services, staff, bookings and reviews. This cannot be undone.`)) return;
-    setBusy(row._id);
+    setBusy(busyKey(row._id, "delete"));
     const res = await api(`/api/admin/users/${row._id}`, { method: "DELETE" });
     setBusy(null);
     if (res.success) void load();
@@ -143,7 +147,7 @@ export default function AdminUsersPage() {
                 <select
                   value={row.role}
                   onChange={(e) => changeRole(row, e.target.value)}
-                  disabled={busy === row._id}
+                  disabled={busy === busyKey(row._id, "role")}
                   aria-label={`Role for ${row.name}`}
                   className="h-8 cursor-pointer rounded-lg border border-line bg-card px-2 text-xs text-fg outline-none focus:border-gold-500 [color-scheme:light] dark:[color-scheme:dark]"
                 >
@@ -156,7 +160,7 @@ export default function AdminUsersPage() {
                   size="sm"
                   variant={row.isActive ? "ghost" : "primary"}
                   className={row.isActive ? "text-red-500" : undefined}
-                  loading={busy === row._id}
+                  loading={busy === busyKey(row._id, "toggle")}
                   onClick={() => toggleActive(row)}
                 >
                   {row.isActive ? "Deactivate" : "Reactivate"}
@@ -166,7 +170,7 @@ export default function AdminUsersPage() {
                     size="sm"
                     variant="ghost"
                     className="text-red-500"
-                    loading={busy === row._id}
+                    loading={busy === busyKey(row._id, "delete")}
                     onClick={() => deleteUser(row)}
                   >
                     Delete
