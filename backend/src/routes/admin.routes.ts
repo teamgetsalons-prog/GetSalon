@@ -2,7 +2,8 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { User, Salon, Appointment, Review, AuditLog, Service, Staff, Comment, SalonSubscription, City } from "../models/index.js";
+import { User, Salon, Appointment, Review, AuditLog, Service, Staff, Comment, SalonSubscription, City, SupportMessage } from "../models/index.js";
+import { notify } from "../services/notification.service.js";
 function toDateKey(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -210,6 +211,45 @@ router.patch("/users", async (req: Request, res: Response) => {
   }
 
   return ok(res, { id: user._id.toString(), isActive: user.isActive, role: user.role });
+});
+
+// ── Support inbox ──
+
+router.get("/support", async (req: Request, res: Response) => {
+  const status = req.query.status as string | undefined;
+  const filter: Record<string, unknown> = {};
+  if (status === "open" || status === "resolved") filter.status = status;
+  const messages = await SupportMessage.find(filter)
+    .populate("from", "name email phone role")
+    .populate("salon", "name slug")
+    .sort({ status: 1, createdAt: -1 })
+    .limit(100);
+  return ok(res, messages);
+});
+
+router.patch("/support/:id", async (req: Request, res: Response) => {
+  const { reply, status } = req.body;
+  const doc = await SupportMessage.findById(req.params.id);
+  if (!doc) return fail(res, "Message not found.", 404);
+
+  if (typeof reply === "string" && reply.trim()) {
+    doc.reply = reply.trim().slice(0, 3000);
+    doc.repliedAt = new Date();
+  }
+  if (status === "open" || status === "resolved") doc.status = status;
+  await doc.save();
+
+  if (doc.reply) {
+    await notify({
+      userId: doc.from.toString(),
+      type: "support_reply",
+      title: "Support replied to your message",
+      message: doc.reply.slice(0, 120),
+      link: "/salon-dashboard/support",
+    });
+  }
+
+  return ok(res, doc.toJSON());
 });
 
 router.get("/subscriptions", async (req: Request, res: Response) => {

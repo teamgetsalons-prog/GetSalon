@@ -26,7 +26,8 @@ import {
 import { MAX_BOOKING_DAYS_AHEAD } from "@getsalons/shared/constants";
 import type { TimeSlot } from "@getsalons/shared/types";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/input";
+import { Input, Textarea } from "@/components/ui/input";
+import { useAuth } from "@/lib/auth-context";
 import { Spinner, Avatar } from "@/components/ui/misc";
 import { StarRating } from "@/components/ui/star-rating";
 
@@ -83,6 +84,14 @@ export function BookingWizard({
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [notes, setNotes] = useState("");
+  const { user } = useAuth();
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  // Prefill the name from the account once it loads (still editable).
+  useEffect(() => {
+    if (user?.name) setContactName((v) => v || user.name);
+  }, [user?.name]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ bookingNumber: string } | null>(null);
@@ -134,6 +143,19 @@ export function BookingWizard({
 
   async function submit() {
     if (!service || !slot) return;
+    // Friendly checks before the API sees anything.
+    if (contactName.trim().length < 2) {
+      setError("Please enter your name so the salon knows who's coming.");
+      return;
+    }
+    if (!/^(\+?[1-9]\d{6,14}|0\d{9,10})$/.test(contactPhone.trim())) {
+      setError("Please enter a valid phone number (e.g. 03XX XXXXXXX).");
+      return;
+    }
+    if (contactEmail.trim() && !/^\S+@\S+\.\S+$/.test(contactEmail.trim())) {
+      setError("That email doesn't look right — fix it or leave it empty.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -145,6 +167,9 @@ export function BookingWizard({
         staffId: staffId ?? undefined,
         date,
         startTime: slot.time,
+        contactName: contactName.trim(),
+        contactPhone: contactPhone.trim(),
+        contactEmail: contactEmail.trim() || undefined,
         notes: notes || undefined,
       },
     });
@@ -426,6 +451,47 @@ export function BookingWizard({
                   value={formatPKR(effectivePrice(service))}
                   gold
                 />
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-3 rounded-2xl border border-line bg-card p-4">
+              <p className="text-sm font-semibold">Your contact details</p>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-fg-muted">
+                  Name <span className="text-gold">*</span>
+                </span>
+                <Input
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  placeholder="Your full name"
+                  autoComplete="name"
+                />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-1.5 block text-xs font-medium text-fg-muted">
+                    Phone <span className="text-gold">*</span>
+                  </span>
+                  <Input
+                    type="tel"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="03XX XXXXXXX"
+                    autoComplete="tel"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-xs font-medium text-fg-muted">
+                    Email (optional)
+                  </span>
+                  <Input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
+                </label>
               </div>
             </div>
 

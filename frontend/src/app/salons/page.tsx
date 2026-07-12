@@ -95,7 +95,11 @@ export default async function SalonsPage({
 
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold sm:text-3xl">
-          {input.q ? `Results for “${input.q}”` : "Find your perfect salon"}
+          {input.deals
+            ? "Deals & Offers"
+            : input.q
+              ? `Results for “${input.q}”`
+              : "Find your perfect salon"}
         </h1>
         <p className="mt-1 text-sm text-fg-muted">
           {result.total} salon{result.total === 1 ? "" : "s"} found

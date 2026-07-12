@@ -106,6 +106,28 @@ export async function searchSalons(input: SearchSalonsInput): Promise<{
   if (input.homeService) filter.homeService = true;
   if (input.rating) filter["rating.average"] = { $gte: input.rating };
 
+  // Deals: only salons with at least one active discounted service.
+  if (input.deals) {
+    const dealSalonIds = await Service.distinct("salon", {
+      isActive: true,
+      discountPrice: { $gt: 0 },
+      $expr: { $lt: ["$discountPrice", "$price"] },
+    });
+    if (dealSalonIds.length === 0) {
+      return { salons: [], total: 0, page: 1, totalPages: 0 };
+    }
+    const prior = filter._id as { $in?: { toString(): string }[] } | undefined;
+    if (prior?.$in) {
+      // Intersect with an earlier _id constraint (the service filter).
+      const priorSet = new Set(prior.$in.map((id) => id.toString()));
+      const both = dealSalonIds.filter((id) => priorSet.has(id.toString()));
+      if (both.length === 0) return { salons: [], total: 0, page: 1, totalPages: 0 };
+      filter._id = { $in: both };
+    } else {
+      filter._id = { $in: dealSalonIds };
+    }
+  }
+
   // Price overlap: salon range intersects the requested range
   if (input.minPrice !== undefined) {
     filter["priceRange.max"] = { $gte: input.minPrice };

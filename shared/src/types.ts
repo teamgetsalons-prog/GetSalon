@@ -25,6 +25,7 @@ export type NotificationType =
   | "subscription_expiry"
   | "subscription_expiring"
   | "trial_expiry_warning"
+  | "support_reply"
   | "system";
 
 export interface OpeningHour {

@@ -382,6 +382,7 @@ export declare const searchSalonsSchema: z.ZodObject<{
     gender: z.ZodOptional<z.ZodEnum<["men", "women", "unisex"]>>;
     homeService: z.ZodEffects<z.ZodOptional<z.ZodBoolean>, boolean | undefined, unknown>;
     openNow: z.ZodEffects<z.ZodOptional<z.ZodBoolean>, boolean | undefined, unknown>;
+    deals: z.ZodEffects<z.ZodOptional<z.ZodBoolean>, boolean | undefined, unknown>;
     rating: z.ZodOptional<z.ZodNumber>;
     minPrice: z.ZodOptional<z.ZodNumber>;
     maxPrice: z.ZodOptional<z.ZodNumber>;
@@ -401,6 +402,7 @@ export declare const searchSalonsSchema: z.ZodObject<{
     service?: string | undefined;
     gender?: "men" | "women" | "unisex" | undefined;
     openNow?: boolean | undefined;
+    deals?: boolean | undefined;
     minPrice?: number | undefined;
     maxPrice?: number | undefined;
 }, {
@@ -414,6 +416,7 @@ export declare const searchSalonsSchema: z.ZodObject<{
     service?: string | undefined;
     gender?: "men" | "women" | "unisex" | undefined;
     openNow?: unknown;
+    deals?: unknown;
     minPrice?: number | undefined;
     maxPrice?: number | undefined;
     page?: number | undefined;

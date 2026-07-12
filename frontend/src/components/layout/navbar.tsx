@@ -55,7 +55,7 @@ const navLinks = [
   { href: "/salons", label: "Services", hasDropdown: true, type: "services" },
   { href: "/top-salons", label: "Top Salons" },
   { href: "/blog", label: "Beauty Blog" },
-  { href: "/salons?sort=newest", label: "Offers" },
+  { href: "/salons?deals=true", label: "Offers" },
   { href: "/partner", label: "List Your Salon" },
 ];
 
@@ -471,7 +471,7 @@ export function Navbar() {
                 Beauty Blog
               </Link>
               <Link
-                href="/salons?sort=newest"
+                href="/salons?deals=true"
                 onClick={() => setMobileOpen(false)}
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
               >

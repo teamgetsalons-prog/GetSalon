@@ -91,6 +91,7 @@ export const searchSalonsSchema = z.object({
     gender: z.enum(["men", "women", "unisex"]).optional(),
     homeService: queryBool,
     openNow: queryBool,
+    deals: queryBool,
     rating: z.coerce.number().min(0).max(5).optional(),
     minPrice: z.coerce.number().min(0).optional(),
     maxPrice: z.coerce.number().min(0).optional(),

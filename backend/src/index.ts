@@ -24,6 +24,7 @@ import { analyticsRoutes } from "./routes/analytics.routes.js";
 import { uploadRoutes } from "./routes/upload.routes.js";
 import { userRoutes } from "./routes/users.routes.js";
 import { categoryCityRoutes } from "./routes/categories-cities.routes.js";
+import { supportRoutes } from "./routes/support.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -63,6 +64,7 @@ app.use("/upload", uploadRoutes);
 app.use("/users", userRoutes);
 app.use("/categories", categoryCityRoutes);
 app.use("/cities", categoryCityRoutes);
+app.use("/support", supportRoutes);
 
 app.use(errorHandler);
 

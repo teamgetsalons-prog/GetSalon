@@ -6,20 +6,29 @@ export declare const createBookingSchema: z.ZodObject<{
     date: z.ZodString;
     startTime: z.ZodString;
     notes: z.ZodOptional<z.ZodString>;
+    contactName: z.ZodString;
+    contactPhone: z.ZodString;
+    contactEmail: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>;
 }, "strip", z.ZodTypeAny, {
     date: string;
     salonId: string;
     serviceId: string;
     startTime: string;
+    contactName: string;
+    contactPhone: string;
     staffId?: string | undefined;
     notes?: string | undefined;
+    contactEmail?: string | undefined;
 }, {
     date: string;
     salonId: string;
     serviceId: string;
     startTime: string;
+    contactName: string;
+    contactPhone: string;
     staffId?: string | undefined;
     notes?: string | undefined;
+    contactEmail?: string | undefined;
 }>;
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export declare const availabilityQuerySchema: z.ZodObject<{

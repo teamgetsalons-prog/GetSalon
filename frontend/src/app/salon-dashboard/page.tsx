@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { BadgeCheck } from "lucide-react";
-import { getManagedSalon, getServerSession } from "@/lib/server-api";
+import { getManagedSalon, getServerSession, serverFetch } from "@/lib/server-api";
 import { StatCard } from "@/components/dashboard/shell";
 import { BookingList } from "@/components/dashboard/booking-list";
 import { NoSalonYet } from "@/components/dashboard/no-salon";
+import { ProfileCompletion, type CompletionStep } from "@/components/dashboard/profile-completion";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,69 @@ export default async function SalonOverviewPage() {
 
   const salon = await getManagedSalon();
   if (!salon) return <NoSalonYet />;
+
+  const [servicesRes, staffRes] = await Promise.all([
+    serverFetch<unknown[]>(`/services?salonId=${salon._id}&all=1`),
+    serverFetch<unknown[]>(`/staff?salonId=${salon._id}`),
+  ]);
+  const serviceCount = servicesRes.data?.length ?? 0;
+  const staffCount = staffRes.data?.length ?? 0;
+
+  const steps: CompletionStep[] = [
+    {
+      label: "Create your salon profile",
+      done: true,
+      href: "/salon-dashboard/settings",
+      hint: "done at registration",
+    },
+    {
+      label: "Add your services",
+      done: serviceCount > 0,
+      href: "/salon-dashboard/services",
+      hint: "customers book from your menu",
+    },
+    {
+      label: "Add your team",
+      done: staffCount > 0,
+      href: "/salon-dashboard/staff",
+      hint: "specialists customers can pick",
+    },
+    {
+      label: "Set your working hours",
+      done: (salon.openingHours ?? []).some((h) => !h.isClosed),
+      href: "/salon-dashboard/hours",
+      hint: "controls your booking slots",
+    },
+    {
+      label: "Upload a cover photo",
+      done: Boolean(salon.coverImage) && !salon.coverImage.includes("unsplash.com"),
+      href: "/salon-dashboard/gallery",
+      hint: "your storefront on GetSalons",
+    },
+    {
+      label: "Add gallery photos (3+)",
+      done: (salon.gallery?.length ?? 0) >= 3,
+      href: "/salon-dashboard/gallery",
+      hint: "show off your best work",
+    },
+    {
+      label: "Tell your story in About",
+      done: (salon.about ?? "").trim().length >= 40,
+      href: "/salon-dashboard/settings",
+      hint: "why customers should choose you",
+    },
+    {
+      label: "Add WhatsApp or social links",
+      done: Boolean(
+        salon.whatsapp ||
+          salon.socials?.instagram ||
+          salon.socials?.facebook ||
+          salon.socials?.tiktok
+      ),
+      href: "/salon-dashboard/settings",
+      hint: "let customers reach you anywhere",
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -46,6 +110,8 @@ export default async function SalonOverviewPage() {
           contact support to re-submit.
         </p>
       )}
+
+      <ProfileCompletion steps={steps} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard

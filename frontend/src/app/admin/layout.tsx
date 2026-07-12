@@ -13,6 +13,7 @@ const items: NavItem[] = [
   { href: "/admin/salons", label: "Salons", icon: "store" },
   { href: "/admin/users", label: "Users", icon: "users" },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: "credit-card" },
+  { href: "/admin/support", label: "Support Inbox", icon: "message-circle" },
   { href: "/admin/catalog", label: "Cities & Categories", icon: "map-pin" },
 ];
 

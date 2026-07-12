@@ -16,3 +16,4 @@ export { AuditLog, type IAuditLog } from "./AuditLog.js";
 export { Advertisement, type IAdvertisement } from "./Advertisement.js";
 export { Setting, type ISetting } from "./Setting.js";
 export { LoyaltyAccount, LoyaltyTransaction, LOYALTY_RULES, type ILoyaltyAccount, type ILoyaltyTransaction } from "./Loyalty.js";
+export { SupportMessage, type ISupportMessage } from "./SupportMessage.js";

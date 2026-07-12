@@ -329,6 +329,11 @@ export async function createBooking(
       endMinutes,
       price,
       status: "pending",
+      contact: {
+        name: input.contactName,
+        phone: input.contactPhone,
+        email: input.contactEmail || undefined,
+      },
       notes: input.notes || undefined,
     });
   } catch (err) {

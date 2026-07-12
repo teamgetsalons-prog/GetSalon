@@ -18,6 +18,7 @@ const items: NavItem[] = [
   { href: "/salon-dashboard/gallery", label: "Gallery", icon: "images" },
   { href: "/salon-dashboard/analytics", label: "Analytics", icon: "bar-chart" },
   { href: "/salon-dashboard/subscription", label: "Subscription", icon: "credit-card" },
+  { href: "/salon-dashboard/support", label: "Contact Admin", icon: "message-circle" },
   { href: "/salon-dashboard/settings", label: "Settings", icon: "settings" },
 ];
 

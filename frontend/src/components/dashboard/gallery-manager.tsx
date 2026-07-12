@@ -14,14 +14,54 @@ export type GalleryItem = GalleryImage & { _id?: string };
 export function GalleryManager({
   salonId,
   initial,
+  initialCover,
 }: {
   salonId: string;
   initial: GalleryItem[];
+  initialCover?: string;
 }) {
   const [images, setImages] = useState(initial);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [cover, setCover] = useState(initialCover ?? "");
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverRef = useRef<HTMLInputElement>(null);
+
+  async function onCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setCoverUploading(true);
+    setMessage(null);
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", "covers");
+
+    const upload = await api<{ url: string; publicId: string }>("/api/upload", {
+      method: "POST",
+      body: form,
+    });
+    if (!upload.success || !upload.data) {
+      setCoverUploading(false);
+      setMessage(upload.message ?? "Upload failed.");
+      return;
+    }
+
+    const patch = await api(`/api/salons/${salonId}`, {
+      method: "PATCH",
+      json: { coverImage: upload.data.url },
+    });
+    setCoverUploading(false);
+    if (patch.success) {
+      setCover(upload.data.url);
+      setMessage("Cover photo updated!");
+    } else {
+      setMessage(patch.message ?? "Could not save the cover photo.");
+    }
+  }
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -71,6 +111,32 @@ export function GalleryManager({
 
   return (
     <div>
+      {/* Cover photo */}
+      <div className="mb-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Cover photo</h2>
+          <input
+            ref={coverRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/avif"
+            className="hidden"
+            onChange={onCoverFile}
+          />
+          <Button size="sm" variant="outline" loading={coverUploading} onClick={() => coverRef.current?.click()}>
+            <ImagePlus className="h-4 w-4" /> {cover ? "Change cover" : "Upload cover"}
+          </Button>
+        </div>
+        <div className="relative aspect-[3/1] overflow-hidden rounded-2xl border border-line bg-bg-soft">
+          {cover ? (
+            <Image src={cover} alt="Salon cover" fill className="object-cover" sizes="100vw" />
+          ) : (
+            <p className="flex h-full items-center justify-center text-sm text-fg-faint">
+              No cover photo yet — this is the first thing customers see.
+            </p>
+          )}
+        </div>
+      </div>
+
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Gallery ({images.length})</h2>
         <input

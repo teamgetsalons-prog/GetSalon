@@ -29,6 +29,19 @@ export function HoursEditor({
     setHours((hs) => hs.map((h) => (h.day === day ? { ...h, ...patch } : h)));
   }
 
+  const is24h = (h: OpeningHour) => !h.isClosed && h.open === "00:00" && h.close === "23:59";
+  const all24h = hours.every(is24h);
+
+  function toggleAll24h() {
+    setHours((hs) =>
+      hs.map((h) =>
+        all24h
+          ? { ...h, open: "10:00", close: "21:00", isClosed: false }
+          : { ...h, open: "00:00", close: "23:59", isClosed: false }
+      )
+    );
+  }
+
   async function save() {
     setSaving(true);
     setMessage(null);
@@ -44,7 +57,23 @@ export function HoursEditor({
 
   return (
     <div className="max-w-2xl">
-      <h2 className="mb-4 text-lg font-semibold">Working hours</h2>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold">Working hours</h2>
+        <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={all24h}
+            onClick={toggleAll24h}
+            className={`relative h-6 w-11 rounded-full transition-colors ${all24h ? "bg-gold-500" : "bg-line"}`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${all24h ? "left-[22px]" : "left-0.5"}`}
+            />
+          </button>
+          Open 24 hours
+        </label>
+      </div>
       <div className="divide-y divide-line rounded-2xl border border-line bg-card">
         {hours.map((h) => (
           <div

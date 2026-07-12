@@ -32,6 +32,7 @@ export interface BookingRow {
   service: string;
   salon?: { _id: string; name: string; slug: string; cityName?: string };
   customer?: { name?: string; phone?: string };
+  contact?: { name?: string; phone?: string; email?: string };
   staff?: { name?: string };
 }
 
@@ -154,9 +155,11 @@ export function BookingList({ role }: { role: ViewerRole }) {
                         {b.salon?.name}
                       </Link>
                     ) : (
+                      // Prefer the contact details entered at booking time.
                       <>
-                        {b.customer?.name ?? "Customer"}
-                        {b.customer?.phone ? ` · ${b.customer.phone}` : ""}
+                        {b.contact?.name ?? b.customer?.name ?? "Customer"}
+                        {(b.contact?.phone ?? b.customer?.phone) ? ` · ${b.contact?.phone ?? b.customer?.phone}` : ""}
+                        {b.contact?.email ? ` · ${b.contact.email}` : ""}
                       </>
                     )}
                     {b.staff?.name ? ` · with ${b.staff.name}` : ""}

@@ -21,6 +21,8 @@ export interface IAppointment {
   endMinutes: number;
   price: number;
   status: BookingStatus;
+  /** Contact details entered at booking time (account data may differ or change later) */
+  contact?: { name?: string; phone?: string; email?: string };
   notes?: string;
   cancelledBy?: "customer" | "salon" | "admin";
   cancelReason?: string;
@@ -61,6 +63,11 @@ const appointmentSchema = new Schema<IAppointment>(
       enum: ["pending", "confirmed", "completed", "cancelled", "no_show"],
       default: "pending",
       index: true,
+    },
+    contact: {
+      name: { type: String, trim: true, maxlength: 100 },
+      phone: { type: String, trim: true, maxlength: 20 },
+      email: { type: String, trim: true, lowercase: true, maxlength: 120 },
     },
     notes: { type: String, maxlength: 500 },
     cancelledBy: { type: String, enum: ["customer", "salon", "admin"] },
