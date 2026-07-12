@@ -43,12 +43,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await authLogout();
-    setUser(null);
+    setUser(null); // instant UI feedback
+    // Never let a slow backend strand the user mid-logout; the cookie
+    // clear almost always completes well inside the cap.
+    await Promise.race([
+      authLogout(),
+      new Promise((resolve) => setTimeout(resolve, 4000)),
+    ]);
+    try {
+      sessionStorage.setItem("gs-logged-out", "1");
+    } catch {}
     // Full navigation, not a client-side push: it drops all in-memory
     // state (dashboard data, admin lists) and guarantees the visitor
     // leaves any authenticated panel they were on.
-    window.location.href = "/";
+    window.location.replace("/");
   }, []);
 
   useEffect(() => {

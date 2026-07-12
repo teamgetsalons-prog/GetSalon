@@ -153,11 +153,19 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [showPw, setShowPw] = useState(false);
   const { refresh } = useAuth();
+  // Explicit account-type choice; ?as=owner preselects but the user can
+  // switch freely without leaving the page.
+  const [isOwner, setIsOwner] = useState(asOwner);
 
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: { role: asOwner ? "owner" : "customer" },
   });
+
+  function chooseRole(owner: boolean) {
+    setIsOwner(owner);
+    form.setValue("role", owner ? "owner" : "customer");
+  }
 
   async function onSubmit(values: RegisterInput) {
     setError(null);
@@ -176,13 +184,13 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
       return;
     }
     await refresh();
-    router.push(asOwner ? "/partner/register" : "/dashboard");
+    router.push(isOwner ? "/partner/register" : "/dashboard");
     router.refresh();
   }
 
   return (
     <AuthShell
-      title={asOwner ? "Partner with GetSalons" : "Create your account"}
+      title={isOwner ? "Partner with GetSalons" : "Create your account"}
       subtitle={
         <>
           Already have an account?{" "}
@@ -192,6 +200,38 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
         </>
       }
     >
+      {/* Account type */}
+      <div className="mb-5 grid grid-cols-2 gap-3" role="radiogroup" aria-label="Account type">
+        <button
+          type="button"
+          role="radio"
+          aria-checked={!isOwner}
+          onClick={() => chooseRole(false)}
+          className={`cursor-pointer rounded-2xl border p-3.5 text-left transition-all ${
+            !isOwner
+              ? "border-gold-500 bg-gold-500/10 ring-1 ring-gold-500/40"
+              : "border-line hover:border-gold-500/40"
+          }`}
+        >
+          <p className="text-sm font-semibold">Customer</p>
+          <p className="mt-0.5 text-xs text-fg-muted">Book salon appointments</p>
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={isOwner}
+          onClick={() => chooseRole(true)}
+          className={`cursor-pointer rounded-2xl border p-3.5 text-left transition-all ${
+            isOwner
+              ? "border-gold-500 bg-gold-500/10 ring-1 ring-gold-500/40"
+              : "border-line hover:border-gold-500/40"
+          }`}
+        >
+          <p className="text-sm font-semibold">Salon Owner</p>
+          <p className="mt-0.5 text-xs text-fg-muted">List &amp; manage my salon</p>
+        </button>
+      </div>
+
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
           <Label htmlFor="name" required>Full name</Label>
@@ -269,29 +309,17 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
           size="lg"
           loading={form.formState.isSubmitting}
         >
-          {asOwner ? "Create business account" : "Sign up free"}
+          {isOwner ? "Create business account" : "Sign up free"}
         </Button>
       </form>
 
       <GoogleSignInButton mode="signup" />
 
       <p className="text-center text-xs text-fg-faint">
-          {asOwner ? (
-            <>
-              Booking as a customer instead?{" "}
-              <Link href="/register" className="text-gold hover:underline">
-                Customer signup
-              </Link>
-            </>
-          ) : (
-            <>
-              Own a salon?{" "}
-              <Link href="/register?as=owner" className="text-gold hover:underline">
-                Create a business account
-              </Link>
-            </>
-          )}
-        </p>
+        {isOwner
+          ? "After signing up you'll add your salon details for review."
+          : "Free forever for customers — book unlimited appointments."}
+      </p>
     </AuthShell>
   );
 }
