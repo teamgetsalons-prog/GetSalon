@@ -160,6 +160,7 @@ export async function searchSalons(input: SearchSalonsInput): Promise<{
     price_low: { "priceRange.min": 1 },
     price_high: { "priceRange.max": -1 },
     newest: { createdAt: -1 },
+    featured: { isFeatured: -1, createdAt: -1 },
   };
 
   const page = input.page ?? 1;

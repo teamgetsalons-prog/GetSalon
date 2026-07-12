@@ -386,14 +386,14 @@ export declare const searchSalonsSchema: z.ZodObject<{
     rating: z.ZodOptional<z.ZodNumber>;
     minPrice: z.ZodOptional<z.ZodNumber>;
     maxPrice: z.ZodOptional<z.ZodNumber>;
-    sort: z.ZodOptional<z.ZodEnum<["recommended", "rating", "reviews", "price_low", "price_high", "newest"]>>;
+    sort: z.ZodOptional<z.ZodEnum<["recommended", "rating", "reviews", "price_low", "price_high", "newest", "featured"]>>;
     page: z.ZodDefault<z.ZodNumber>;
     limit: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     page: number;
     limit: number;
     rating?: number | undefined;
-    sort?: "recommended" | "rating" | "reviews" | "price_low" | "price_high" | "newest" | undefined;
+    sort?: "recommended" | "rating" | "reviews" | "price_low" | "price_high" | "newest" | "featured" | undefined;
     city?: string | undefined;
     homeService?: boolean | undefined;
     q?: string | undefined;
@@ -407,7 +407,7 @@ export declare const searchSalonsSchema: z.ZodObject<{
     maxPrice?: number | undefined;
 }, {
     rating?: number | undefined;
-    sort?: "recommended" | "rating" | "reviews" | "price_low" | "price_high" | "newest" | undefined;
+    sort?: "recommended" | "rating" | "reviews" | "price_low" | "price_high" | "newest" | "featured" | undefined;
     city?: string | undefined;
     homeService?: unknown;
     q?: string | undefined;

@@ -96,7 +96,7 @@ export const searchSalonsSchema = z.object({
     minPrice: z.coerce.number().min(0).optional(),
     maxPrice: z.coerce.number().min(0).optional(),
     sort: z
-        .enum(["recommended", "rating", "reviews", "price_low", "price_high", "newest"])
+        .enum(["recommended", "rating", "reviews", "price_low", "price_high", "newest", "featured"])
         .optional(),
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(50).default(12),
