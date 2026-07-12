@@ -93,7 +93,7 @@ export default async function SalonsPage({
         ])}
       />
 
-      <div className="mb-6">
+      <div className="mb-6 animate-fade-in-up">
         <h1 className="font-display text-2xl font-bold sm:text-3xl">
           {input.deals
             ? "Deals & Offers"
@@ -133,8 +133,10 @@ export default async function SalonsPage({
           ) : (
             <>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {result.salons.map((salon) => (
-                  <SalonCard key={salon._id} salon={salon} />
+                {result.salons.map((salon, i) => (
+                  <div key={salon._id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i * 60, 300)}ms` }}>
+                    <SalonCard salon={salon} />
+                  </div>
                 ))}
               </div>
 

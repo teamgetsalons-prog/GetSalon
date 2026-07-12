@@ -71,7 +71,7 @@ export default async function HomePage() {
               <AnimatedCard key={cat._id}>
                 <Link
                   href={`/salons?category=${cat.slug}`}
-                  className="group flex flex-col items-center gap-3 rounded-2xl border border-line bg-card p-5 text-center transition-all hover:-translate-y-0.5 hover:border-gold-500/40 hover:shadow-lg hover:shadow-gold-500/5"
+                  className="group flex flex-col items-center gap-3 rounded-2xl border border-line bg-card p-5 text-center transition-all duration-200 hover:-translate-y-1 hover:border-gold-500/40 hover:shadow-lg hover:shadow-gold-500/10"
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gold-500/12 text-gold transition-colors group-hover:bg-gold-500 group-hover:text-gold-950">
                     <CategoryIcon name={cat.icon} className="h-5.5 w-5.5" />
@@ -190,19 +190,19 @@ export default async function HomePage() {
       {/* ── Become a partner ─────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gold-950 via-[#241505] to-black px-6 py-14 text-center sm:px-12">
-          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gold-500/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-gold-500/10 blur-3xl" />
-          <Store className="mx-auto h-10 w-10 text-gold-400" aria-hidden />
-          <h2 className="font-display mx-auto mt-4 max-w-xl text-3xl font-bold text-white sm:text-4xl">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gold-500/20 blur-3xl animate-float" />
+          <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-gold-500/10 blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
+          <Store className="mx-auto h-10 w-10 text-gold-400 animate-fade-in" aria-hidden />
+          <h2 className="font-display mx-auto mt-4 max-w-xl text-3xl font-bold text-white sm:text-4xl animate-fade-in-up">
             Own a salon? Grow your business with GetSalons.
           </h2>
-          <p className="mx-auto mt-3 max-w-lg text-sm text-white/60 sm:text-base">
+          <p className="mx-auto mt-3 max-w-lg text-sm text-white/60 sm:text-base animate-fade-in-up delay-100">
             Get discovered by thousands of customers, take bookings 24/7,
             manage your team and build your reputation — free to start.
           </p>
           <Link
             href="/partner"
-            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-gold-500 px-7 py-3 text-sm font-semibold text-gold-950 transition-colors hover:bg-gold-400"
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-gold-500 px-7 py-3 text-sm font-semibold text-gold-950 transition-all hover:bg-gold-400 hover:scale-105 animate-fade-in-up delay-200 animate-pulse-glow"
           >
             Become a Partner <ArrowRight className="h-4 w-4" />
           </Link>
@@ -211,13 +211,13 @@ export default async function HomePage() {
 
       {/* ── FAQ ──────────────────────────────────────────── */}
       <section id="faq" className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <h2 className="font-display text-center text-3xl font-bold">
+        <h2 className="font-display text-center text-3xl font-bold animate-fade-in-up">
           Frequently asked questions
         </h2>
-        <p className="mt-2 text-center text-sm text-fg-muted">
+        <p className="mt-2 text-center text-sm text-fg-muted animate-fade-in-up delay-100">
           Everything you need to know about booking with GetSalons.
         </p>
-        <div className="mt-8">
+        <div className="mt-8 animate-fade-in-up delay-200">
           <FaqAccordion faqs={SITE_FAQS} />
         </div>
       </section>

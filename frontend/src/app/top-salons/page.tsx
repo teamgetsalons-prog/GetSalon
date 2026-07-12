@@ -87,7 +87,7 @@ export default async function TopSalonsPage({
       />
 
       {/* Hero Section */}
-      <div className="mb-8">
+      <div className="mb-8 animate-fade-in-up">
         <nav aria-label="Breadcrumb" className="mb-4 text-xs text-fg-faint">
           <Link href="/" className="hover:text-gold">Home</Link>
           <span className="mx-1.5">/</span>
@@ -153,7 +153,8 @@ export default async function TopSalonsPage({
                   i === 0
                     ? "border-gold shadow-lg shadow-gold/10"
                     : "border-line"
-                } bg-card`}
+                } bg-card animate-fade-in-up`}
+                style={{ animationDelay: `${i * 120}ms` }}
               >
                 {/* Rank Badge */}
                 <div
@@ -222,8 +223,8 @@ export default async function TopSalonsPage({
             More Top-Rated Salons
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {remaining.map((salon) => (
-              <div key={salon._id} className="relative">
+            {remaining.map((salon, i) => (
+              <div key={salon._id} className="relative animate-fade-in-up" style={{ animationDelay: `${Math.min(i * 60, 300)}ms` }}>
                 <SalonCard salon={salon} />
               </div>
             ))}

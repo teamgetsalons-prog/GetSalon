@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import {
   ArrowLeft,
   BarChart3,
+  BookOpen,
   CalendarDays,
   Clock,
   CreditCard,
@@ -45,6 +46,7 @@ const ICONS = {
   wallet: Wallet,
   "bar-chart": BarChart3,
   "credit-card": CreditCard,
+  "book-open": BookOpen,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

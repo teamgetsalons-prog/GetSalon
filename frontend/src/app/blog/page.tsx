@@ -63,10 +63,10 @@ export default async function BlogPage({
       />
 
       <div className="text-center">
-        <h1 className="font-display text-3xl font-bold sm:text-4xl">
+        <h1 className="font-display text-3xl font-bold sm:text-4xl animate-fade-in-up">
           The GetSalons <span className="text-gold-gradient">Beauty Blog</span>
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-fg-muted">
+        <p className="mx-auto mt-3 max-w-xl text-sm text-fg-muted animate-fade-in-up delay-100">
           Hair care, skin care, bridal trends and the best salons in every
           city — written by people obsessed with beauty.
         </p>
@@ -74,8 +74,10 @@ export default async function BlogPage({
 
       {posts.length > 0 ? (
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <BlogCard key={post._id} post={post} />
+          {posts.map((post, i) => (
+            <div key={post._id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i * 80, 400)}ms` }}>
+              <BlogCard post={post} />
+            </div>
           ))}
         </div>
       ) : (

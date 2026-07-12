@@ -136,7 +136,7 @@ export default async function SalonPage({ params }: Params) {
       </nav>
 
       {/* Hero */}
-      <div className="relative h-64 overflow-hidden rounded-3xl sm:h-80 md:h-96">
+      <div className="relative h-64 overflow-hidden rounded-3xl sm:h-80 md:h-96 animate-fade-in">
         <Image
           src={salon.coverImage}
           alt={salon.name}
@@ -209,7 +209,7 @@ export default async function SalonPage({ params }: Params) {
         {/* ── Main column ─────────────────────────────── */}
         <div className="min-w-0 space-y-10">
           {/* About */}
-          <section>
+          <section className="animate-fade-in-up">
             <h2 className="font-display text-xl font-bold">About</h2>
             <p className="mt-3 text-sm leading-relaxed text-fg-muted">
               {salon.about || salon.description}
@@ -217,7 +217,7 @@ export default async function SalonPage({ params }: Params) {
           </section>
 
           {/* Services */}
-          <section id="services">
+          <section id="services" className="animate-fade-in-up delay-100">
             <h2 className="font-display text-xl font-bold">
               Services & Prices
             </h2>
@@ -283,7 +283,7 @@ export default async function SalonPage({ params }: Params) {
 
           {/* Team */}
           {staff.length > 0 && (
-            <section>
+            <section className="animate-fade-in-up delay-200">
               <h2 className="font-display text-xl font-bold">Meet the team</h2>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 {staff.map((member) => (
@@ -324,7 +324,7 @@ export default async function SalonPage({ params }: Params) {
 
           {/* Gallery */}
           {salon.gallery.length > 0 && (
-            <section>
+            <section className="animate-fade-in-up delay-300">
               <h2 className="font-display text-xl font-bold">Gallery</h2>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {salon.gallery.slice(0, 9).map((img, i) => (
@@ -386,7 +386,7 @@ export default async function SalonPage({ params }: Params) {
         </div>
 
         {/* ── Sidebar ─────────────────────────────────── */}
-        <aside className="h-fit space-y-4 lg:sticky lg:top-20">
+        <aside className="h-fit space-y-4 lg:sticky lg:top-20 animate-fade-in-up delay-200">
           <div className="rounded-2xl border border-line bg-card p-5">
             <Link
               href={`/book/${salon.slug}`}

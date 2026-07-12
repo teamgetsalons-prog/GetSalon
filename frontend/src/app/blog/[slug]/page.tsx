@@ -133,7 +133,7 @@ export default async function BlogPostPage({ params }: Params) {
       </Link>
 
       {/* Article Header */}
-      <article>
+      <article className="animate-fade-in-up">
         <header className="mb-8">
           <span className="mb-3 inline-block rounded-lg bg-gold-500/10 px-3 py-1 text-xs font-semibold text-gold">
             {post.category}
@@ -195,7 +195,7 @@ export default async function BlogPostPage({ params }: Params) {
 
       {/* Related Posts */}
       {related.length > 0 && (
-        <section className="mt-14">
+        <section className="mt-14 animate-fade-in-up delay-200">
           <h2 className="font-display text-xl font-bold">You might also like</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             {related.map((r) => (
