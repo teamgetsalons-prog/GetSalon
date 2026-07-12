@@ -24,11 +24,16 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
   return ok(res, doc.toJSON(), undefined, 201);
 });
 
-// The sender's own messages (with admin replies).
+// The sender's own messages (with admin replies). Opening the list counts
+// as reading any waiting replies, which clears the panel badge.
 router.get("/mine", authenticate, async (req: Request, res: Response) => {
   const messages = await SupportMessage.find({ from: req.user!.id })
     .sort({ createdAt: -1 })
     .limit(50);
+  SupportMessage.updateMany(
+    { from: req.user!.id, replySeen: false },
+    { replySeen: true }
+  ).catch(() => {});
   return ok(res, messages);
 });
 

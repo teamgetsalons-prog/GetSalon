@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarDays,
   ChevronDown,
@@ -84,7 +83,6 @@ export function Navbar() {
     };
   }, []);
 
-  // Fetch dynamic cities (only those with salons) and categories (only those used)
   useEffect(() => {
     async function loadNavData() {
       try {
@@ -159,44 +157,41 @@ export function Navbar() {
                       )}
                     />
                   </button>
-                  <AnimatePresence>
-                    {activeDropdown === "find-salons" && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="absolute left-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-xl border border-line bg-card shadow-xl shadow-black/5"
-                        onMouseEnter={() => handleDropdownEnter("find-salons")}
-                        onMouseLeave={handleDropdownLeave}
-                      >
-                        <div className="p-2">
-                          <Link
-                            href="/salons"
-                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-fg transition-colors hover:bg-gold-500/10 hover:text-gold"
-                          >
-                            <MapPin className="h-4 w-4" />
-                            All Cities
-                          </Link>
-                          {cities.map((city) => (
-                            <Link
-                              key={city.slug}
-                              href={`/salons?city=${city.slug}`}
-                              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
-                            >
-                              <MapPin className="h-3.5 w-3.5 text-gold-500/60" />
-                              {city.name}
-                            </Link>
-                          ))}
-                          {cities.length === 0 && (
-                            <p className="px-3 py-2 text-xs text-fg-faint">
-                              No cities with salons yet
-                            </p>
-                          )}
-                        </div>
-                      </motion.div>
+                  <div
+                    className={cn(
+                      "absolute left-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-xl border border-line bg-card shadow-xl shadow-black/5 transition-all duration-150",
+                      activeDropdown === "find-salons"
+                        ? "opacity-100 translate-y-0 scale-100"
+                        : "opacity-0 translate-y-2 scale-96 pointer-events-none"
                     )}
-                  </AnimatePresence>
+                    onMouseEnter={() => handleDropdownEnter("find-salons")}
+                    onMouseLeave={handleDropdownLeave}
+                  >
+                    <div className="p-2">
+                      <Link
+                        href="/salons"
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-fg transition-colors hover:bg-gold-500/10 hover:text-gold"
+                      >
+                        <MapPin className="h-4 w-4" />
+                        All Cities
+                      </Link>
+                      {cities.map((city) => (
+                        <Link
+                          key={city.slug}
+                          href={`/salons?city=${city.slug}`}
+                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
+                        >
+                          <MapPin className="h-3.5 w-3.5 text-gold-500/60" />
+                          {city.name}
+                        </Link>
+                      ))}
+                      {cities.length === 0 && (
+                        <p className="px-3 py-2 text-xs text-fg-faint">
+                          No cities with salons yet
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               );
             }
@@ -223,51 +218,48 @@ export function Navbar() {
                       )}
                     />
                   </button>
-                  <AnimatePresence>
-                    {activeDropdown === "services" && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="absolute left-0 top-full z-50 mt-1 w-64 overflow-hidden rounded-xl border border-line bg-card shadow-xl shadow-black/5"
-                        onMouseEnter={() => handleDropdownEnter("services")}
-                        onMouseLeave={handleDropdownLeave}
-                      >
-                        <div className="p-2">
-                          {serviceCategories.map((cat) => {
-                            const IconComp = cat.icon ? iconMap[cat.icon] : Sparkles;
-                            return (
-                              <Link
-                                key={cat.slug}
-                                href={`/salons?category=${cat.slug}`}
-                                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
-                              >
-                                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold-500/10 text-gold">
-                                  {IconComp ? <IconComp className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-                                </span>
-                                {cat.name}
-                              </Link>
-                            );
-                          })}
-                          {serviceCategories.length === 0 && (
-                            <p className="px-3 py-2 text-xs text-fg-faint">
-                              No services available yet
-                            </p>
-                          )}
-                        </div>
-                        <div className="border-t border-line p-2">
-                          <Link
-                            href="/salons"
-                            className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold-500/10"
-                          >
-                            View All Services
-                            <ArrowRight className="h-3.5 w-3.5" />
-                          </Link>
-                        </div>
-                      </motion.div>
+                  <div
+                    className={cn(
+                      "absolute left-0 top-full z-50 mt-1 w-64 overflow-hidden rounded-xl border border-line bg-card shadow-xl shadow-black/5 transition-all duration-150",
+                      activeDropdown === "services"
+                        ? "opacity-100 translate-y-0 scale-100"
+                        : "opacity-0 translate-y-2 scale-96 pointer-events-none"
                     )}
-                  </AnimatePresence>
+                    onMouseEnter={() => handleDropdownEnter("services")}
+                    onMouseLeave={handleDropdownLeave}
+                  >
+                    <div className="p-2">
+                      {serviceCategories.map((cat) => {
+                        const IconComp = cat.icon ? iconMap[cat.icon] : Sparkles;
+                        return (
+                          <Link
+                            key={cat.slug}
+                            href={`/salons?category=${cat.slug}`}
+                            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
+                          >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold-500/10 text-gold">
+                              {IconComp ? <IconComp className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                            </span>
+                            {cat.name}
+                          </Link>
+                        );
+                      })}
+                      {serviceCategories.length === 0 && (
+                        <p className="px-3 py-2 text-xs text-fg-faint">
+                          No services available yet
+                        </p>
+                      )}
+                    </div>
+                    <div className="border-t border-line p-2">
+                      <Link
+                        href="/salons"
+                        className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold-500/10"
+                      >
+                        View All Services
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               );
             }
@@ -277,9 +269,7 @@ export function Navbar() {
                 <Link
                   key={link.href + link.label}
                   href={link.href}
-                  className={cn(
-                    "rounded-xl bg-gold-500 px-4 py-2 text-sm font-semibold text-gold-950 transition-colors hover:bg-gold-400 ml-1"
-                  )}
+                  className="rounded-xl bg-gold-500 px-4 py-2 text-sm font-semibold text-gold-950 transition-colors hover:bg-gold-400 ml-1"
                 >
                   {link.label}
                 </Link>
@@ -320,63 +310,55 @@ export function Navbar() {
                 </span>
               </button>
 
-              <AnimatePresence>
-                {menuOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
+              {menuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setMenuOpen(false)}
+                    aria-hidden
+                  />
+                  <div className="absolute right-0 z-20 mt-2 w-52 overflow-hidden rounded-xl border border-line bg-card py-1.5 shadow-xl animate-scale-in">
+                    <MenuLink
+                      href={dashboardHref}
+                      icon={<LayoutDashboard className="h-4 w-4" />}
                       onClick={() => setMenuOpen(false)}
-                      aria-hidden
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 z-20 mt-2 w-52 overflow-hidden rounded-xl border border-line bg-card py-1.5 shadow-xl"
                     >
-                      <MenuLink
-                        href={dashboardHref}
-                        icon={<LayoutDashboard className="h-4 w-4" />}
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Dashboard
-                      </MenuLink>
-                      {user.role === "customer" && (
-                        <>
-                          <MenuLink
-                            href="/dashboard/bookings"
-                            icon={<CalendarDays className="h-4 w-4" />}
-                            onClick={() => setMenuOpen(false)}
-                          >
-                            My Bookings
-                          </MenuLink>
-                          <MenuLink
-                            href="/dashboard/favorites"
-                            icon={<Heart className="h-4 w-4" />}
-                            onClick={() => setMenuOpen(false)}
-                          >
-                            Favourites
-                          </MenuLink>
-                        </>
-                      )}
-                      <MenuLink
-                        href="/dashboard/settings"
-                        icon={<User className="h-4 w-4" />}
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Profile
-                      </MenuLink>
-                      <button
-                        onClick={() => logout()}
-                        className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2 text-sm text-red-500 transition-colors hover:bg-bg-soft"
-                      >
-                        <LogOut className="h-4 w-4" /> Sign out
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
+                      Dashboard
+                    </MenuLink>
+                    {user.role === "customer" && (
+                      <>
+                        <MenuLink
+                          href="/dashboard/bookings"
+                          icon={<CalendarDays className="h-4 w-4" />}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          My Bookings
+                        </MenuLink>
+                        <MenuLink
+                          href="/dashboard/favorites"
+                          icon={<Heart className="h-4 w-4" />}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          Favourites
+                        </MenuLink>
+                      </>
+                    )}
+                    <MenuLink
+                      href="/dashboard/settings"
+                      icon={<User className="h-4 w-4" />}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Profile
+                    </MenuLink>
+                    <button
+                      onClick={() => logout()}
+                      className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-2 text-sm text-red-500 transition-colors hover:bg-bg-soft"
+                    >
+                      <LogOut className="h-4 w-4" /> Sign out
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="hidden items-center gap-2 sm:flex">
@@ -406,173 +388,151 @@ export function Navbar() {
       </nav>
 
       {/* Mobile Navigation */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="overflow-hidden border-t border-line lg:hidden"
-          >
-            <div className="space-y-1 px-4 py-3">
-              {/* Find Salons Dropdown */}
-              <div>
-                <button
-                  onClick={() =>
-                    setMobileExpanded(mobileExpanded === "salons" ? null : "salons")
-                  }
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft"
-                >
-                  <span className="flex items-center gap-2">
-                    <Search className="h-4 w-4" />
-                    Find Salons
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      "h-4 w-4 transition-transform",
-                      mobileExpanded === "salons" && "rotate-180"
-                    )}
-                  />
-                </button>
-                <AnimatePresence>
-                  {mobileExpanded === "salons" && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden pl-6"
-                    >
-                      <Link
-                        href="/salons"
-                        onClick={() => setMobileOpen(false)}
-                        className="block rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
-                      >
-                        All Cities
-                      </Link>
-                      {cities.map((city) => (
-                        <Link
-                          key={city.slug}
-                          href={`/salons?city=${city.slug}`}
-                          onClick={() => setMobileOpen(false)}
-                          className="block rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
-                        >
-                          {city.name}
-                        </Link>
-                      ))}
-                      {cities.length === 0 && (
-                        <p className="px-3 py-2 text-xs text-fg-faint">
-                          No cities with salons yet
-                        </p>
-                      )}
-                    </motion.div>
+      {mobileOpen && (
+        <div className="border-t border-line lg:hidden animate-fade-in">
+          <div className="space-y-1 px-4 py-3">
+            {/* Find Salons Dropdown */}
+            <div>
+              <button
+                onClick={() =>
+                  setMobileExpanded(mobileExpanded === "salons" ? null : "salons")
+                }
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft"
+              >
+                <span className="flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  Find Salons
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform",
+                    mobileExpanded === "salons" && "rotate-180"
                   )}
-                </AnimatePresence>
-              </div>
-
-              {/* Services Dropdown */}
-              <div>
-                <button
-                  onClick={() =>
-                    setMobileExpanded(mobileExpanded === "services" ? null : "services")
-                  }
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft"
-                >
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Services
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      "h-4 w-4 transition-transform",
-                      mobileExpanded === "services" && "rotate-180"
-                    )}
-                  />
-                </button>
-                <AnimatePresence>
-                  {mobileExpanded === "services" && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden pl-6"
+                />
+              </button>
+              {mobileExpanded === "salons" && (
+                <div className="overflow-hidden pl-6 animate-fade-in">
+                  <Link
+                    href="/salons"
+                    onClick={() => setMobileOpen(false)}
+                    className="block rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
+                  >
+                    All Cities
+                  </Link>
+                  {cities.map((city) => (
+                    <Link
+                      key={city.slug}
+                      href={`/salons?city=${city.slug}`}
+                      onClick={() => setMobileOpen(false)}
+                      className="block rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
                     >
-                      {serviceCategories.map((cat) => {
-                        const IconComp = cat.icon ? iconMap[cat.icon] : Sparkles;
-                        return (
-                          <Link
-                            key={cat.slug}
-                            href={`/salons?category=${cat.slug}`}
-                            onClick={() => setMobileOpen(false)}
-                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
-                          >
-                            {IconComp ? <IconComp className="h-3.5 w-3.5 text-gold" /> : <Sparkles className="h-3.5 w-3.5 text-gold" />}
-                            {cat.name}
-                          </Link>
-                        );
-                      })}
-                      {serviceCategories.length === 0 && (
-                        <p className="px-3 py-2 text-xs text-fg-faint">
-                          No services available yet
-                        </p>
-                      )}
-                    </motion.div>
+                      {city.name}
+                    </Link>
+                  ))}
+                  {cities.length === 0 && (
+                    <p className="px-3 py-2 text-xs text-fg-faint">
+                      No cities with salons yet
+                    </p>
                   )}
-                </AnimatePresence>
-              </div>
-
-              {/* Simple Links */}
-              <Link
-                href="/salons?sort=rating"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
-              >
-                Top Salons
-              </Link>
-              <Link
-                href="/blog"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
-              >
-                Beauty Blog
-              </Link>
-              <Link
-                href="/salons?deals=true"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
-              >
-                Offers
-              </Link>
-              <Link
-                href="/partner"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-xl bg-gold-500 px-4 py-2.5 text-center text-sm font-semibold text-gold-950 hover:bg-gold-400 mt-2"
-              >
-                List Your Salon
-              </Link>
-
-              {!user && (
-                <div className="mt-2 flex gap-2 border-t border-line pt-3">
-                  <Link
-                    href="/login"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex-1 rounded-xl border border-line py-2 text-center text-sm font-medium"
-                  >
-                    Log in
-                  </Link>
-                  <Link
-                    href="/register"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex-1 rounded-xl bg-gold-500 py-2 text-center text-sm font-semibold text-gold-950"
-                  >
-                    Sign up
-                  </Link>
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            {/* Services Dropdown */}
+            <div>
+              <button
+                onClick={() =>
+                  setMobileExpanded(mobileExpanded === "services" ? null : "services")
+                }
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Services
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform",
+                    mobileExpanded === "services" && "rotate-180"
+                  )}
+                />
+              </button>
+              {mobileExpanded === "services" && (
+                <div className="overflow-hidden pl-6 animate-fade-in">
+                  {serviceCategories.map((cat) => {
+                    const IconComp = cat.icon ? iconMap[cat.icon] : Sparkles;
+                    return (
+                      <Link
+                        key={cat.slug}
+                        href={`/salons?category=${cat.slug}`}
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
+                      >
+                        {IconComp ? <IconComp className="h-3.5 w-3.5 text-gold" /> : <Sparkles className="h-3.5 w-3.5 text-gold" />}
+                        {cat.name}
+                      </Link>
+                    );
+                  })}
+                  {serviceCategories.length === 0 && (
+                    <p className="px-3 py-2 text-xs text-fg-faint">
+                      No services available yet
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Simple Links */}
+            <Link
+              href="/salons?sort=rating"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
+            >
+              Top Salons
+            </Link>
+            <Link
+              href="/blog"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
+            >
+              Beauty Blog
+            </Link>
+            <Link
+              href="/salons?deals=true"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
+            >
+              Offers
+            </Link>
+            <Link
+              href="/partner"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-xl bg-gold-500 px-4 py-2.5 text-center text-sm font-semibold text-gold-950 hover:bg-gold-400 mt-2"
+            >
+              List Your Salon
+            </Link>
+
+            {!user && (
+              <div className="mt-2 flex gap-2 border-t border-line pt-3">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex-1 rounded-xl border border-line py-2 text-center text-sm font-medium"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex-1 rounded-xl bg-gold-500 py-2 text-center text-sm font-semibold text-gold-950"
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

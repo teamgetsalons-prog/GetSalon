@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -186,11 +186,7 @@ export function BookingWizard({
   // ── Success screen ────────────────────────────────────────
   if (done) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="rounded-3xl border border-line bg-card p-8 text-center sm:p-12"
-      >
+      <div className="animate-scale-in rounded-3xl border border-line bg-card p-8 text-center sm:p-12">
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15">
           <PartyPopper className="h-8 w-8 text-emerald-500" />
         </span>
@@ -229,7 +225,7 @@ export function BookingWizard({
             Back to salon
           </Link>
         </div>
-      </motion.div>
+      </div>
     );
   }
 

@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { api } from "@/lib/api";
 import {
   ArrowLeft,
   BarChart3,
@@ -72,6 +74,26 @@ export function DashboardShell({
   const isActive = (item: NavItem) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
+  // Attention counts (pending bookings, open support messages, ...) keyed
+  // by nav href. Refetched on navigation and every minute so the pills
+  // stay current without a reload.
+  const [badges, setBadges] = useState<Record<string, number>>({});
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      const res = await api<Record<string, number>>("/api/badges");
+      if (alive && res.success && res.data) setBadges(res.data);
+    };
+    void load();
+    const timer = setInterval(load, 60_000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [pathname]);
+
+  const badgeFor = (item: NavItem) => badges[item.href] ?? 0;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <Link
@@ -99,6 +121,7 @@ export function DashboardShell({
             >
               <Icon className="h-3.5 w-3.5" />
               {item.label}
+              {badgeFor(item) > 0 && <CountPill count={badgeFor(item)} />}
             </Link>
           );
         })}
@@ -122,6 +145,11 @@ export function DashboardShell({
               >
                 <Icon className="h-4 w-4" />
                 {item.label}
+                {badgeFor(item) > 0 && (
+                  <span className="ml-auto">
+                    <CountPill count={badgeFor(item)} />
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -130,6 +158,18 @@ export function DashboardShell({
         <div className="min-w-0 flex-1">{children}</div>
       </div>
     </div>
+  );
+}
+
+/** Small attention-count pill shown next to a nav label. */
+function CountPill({ count }: { count: number }) {
+  return (
+    <span
+      aria-label={`${count} needing attention`}
+      className="flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-gold-500 px-1 text-[10px] font-bold leading-none text-gold-950"
+    >
+      {count > 99 ? "99+" : count}
+    </span>
   );
 }
 

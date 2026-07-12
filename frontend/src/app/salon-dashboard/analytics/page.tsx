@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+
 import {
   Eye,
   Calendar,
@@ -84,12 +84,10 @@ export default function AnalyticsPage() {
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat, index) => (
-          <motion.div
+          <div
             key={stat.key}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="rounded-2xl border border-line bg-card p-5"
+            className="animate-fade-in-up rounded-2xl border border-line bg-card p-5"
+            style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -102,17 +100,15 @@ export default function AnalyticsPage() {
                 <stat.icon className="h-5 w-5" />
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* Revenue & Rating */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="rounded-2xl border border-line bg-card p-6"
+        <div
+          className="animate-fade-in-up rounded-2xl border border-line bg-card p-6"
+          style={{ animationDelay: "600ms" }}
         >
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-green-500/10 p-3">
@@ -123,13 +119,11 @@ export default function AnalyticsPage() {
               <p className="text-2xl font-bold text-fg">{formatPKR(analytics.revenue)}</p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="rounded-2xl border border-line bg-card p-6"
+        <div
+          className="animate-fade-in-up rounded-2xl border border-line bg-card p-6"
+          style={{ animationDelay: "700ms" }}
         >
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-gold/10 p-3">
@@ -142,15 +136,13 @@ export default function AnalyticsPage() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Engagement Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="rounded-2xl border border-line bg-card p-6"
+      <div
+        className="animate-fade-in-up rounded-2xl border border-line bg-card p-6"
+        style={{ animationDelay: "800ms" }}
       >
         <h2 className="mb-4 text-lg font-semibold">Engagement Summary</h2>
         <div className="space-y-4">
@@ -213,7 +205,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

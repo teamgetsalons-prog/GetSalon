@@ -235,6 +235,7 @@ router.patch("/support/:id", async (req: Request, res: Response) => {
   if (typeof reply === "string" && reply.trim()) {
     doc.reply = reply.trim().slice(0, 3000);
     doc.repliedAt = new Date();
+    doc.replySeen = false;
   }
   if (status === "open" || status === "resolved") doc.status = status;
   await doc.save();

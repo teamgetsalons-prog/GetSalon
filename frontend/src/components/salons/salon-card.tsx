@@ -12,7 +12,13 @@ const genderLabel = {
   unisex: "Unisex",
 } as const;
 
-export function SalonCard({ salon }: { salon: SalonCardData }) {
+export function SalonCard({
+  salon,
+  priority = false,
+}: {
+  salon: SalonCardData;
+  priority?: boolean;
+}) {
   return (
     <Link
       href={`/salon/${salon.slug}`}
@@ -23,8 +29,11 @@ export function SalonCard({ salon }: { salon: SalonCardData }) {
           src={salon.coverImage ?? ""}
           alt={salon.name}
           fill
+          loading={priority ? "eager" : "lazy"}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMCwsKCwsM EBcQERMRCwsMEBgPEhMSFBITExIYFRYYHB4fHhT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AKwA//9k="
         />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">

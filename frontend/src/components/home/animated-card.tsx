@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useInView } from "@/hooks/use-in-view";
 
 export function AnimatedCard({
   children,
@@ -9,14 +9,15 @@ export function AnimatedCard({
   children: React.ReactNode;
   index?: number;
 }) {
+  const { ref, inView } = useInView({ rootMargin: "-50px" });
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
+    <div
+      ref={ref}
+      className={`animate-fade-in-up ${inView ? "" : "opacity-0"}`}
+      style={{ animationDelay: `${index * 100}ms` }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

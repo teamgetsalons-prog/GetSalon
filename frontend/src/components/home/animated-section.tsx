@@ -1,29 +1,27 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useInView } from "@/hooks/use-in-view";
 
 export function AnimatedSection({
   title,
   subtitle,
   href,
   children,
-  delay = 0,
 }: {
   title: string;
   subtitle: string;
   href?: string;
   children: React.ReactNode;
-  delay?: number;
 }) {
+  const { ref, inView } = useInView({ rootMargin: "-100px" });
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.5, delay, ease: "easeOut" }}
+      <div
+        ref={ref}
+        className={`animate-fade-in-up ${inView ? "" : "opacity-0"}`}
       >
         <div className="mb-7 flex items-end justify-between gap-4">
           <div>
@@ -40,7 +38,7 @@ export function AnimatedSection({
           )}
         </div>
         {children}
-      </motion.div>
+      </div>
     </section>
   );
 }

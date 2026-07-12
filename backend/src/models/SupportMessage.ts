@@ -11,6 +11,8 @@ export interface ISupportMessage {
   status: "open" | "resolved";
   reply?: string;
   repliedAt?: Date;
+  /** false while an admin reply is waiting for the sender to read it */
+  replySeen: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +26,7 @@ const supportMessageSchema = new Schema<ISupportMessage>(
     status: { type: String, enum: ["open", "resolved"], default: "open", index: true },
     reply: { type: String, trim: true, maxlength: 3000 },
     repliedAt: Date,
+    replySeen: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

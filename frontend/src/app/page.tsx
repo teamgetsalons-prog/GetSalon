@@ -5,7 +5,6 @@ import {
   CalendarCheck,
   Quote,
   Search,
-  Sparkles,
   Star,
   Store,
 } from "lucide-react";
@@ -21,8 +20,8 @@ import { SITE, SITE_FAQS, TESTIMONIALS } from "@getsalons/shared/constants";
 import { CategoryIcon } from "@/components/home/category-icon";
 import type { SalonCardData } from "@getsalons/shared/types";
 
-// Data is served fresh per request (falls back gracefully without a DB)
-export const dynamic = "force-dynamic";
+// ISR: revalidate every 60 seconds instead of forcing dynamic on every load
+export const revalidate = 60;
 
 async function loadData(): Promise<HomePageData> {
   return (await getHomePageData()) ?? {
@@ -46,12 +45,14 @@ export default async function HomePage() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <Image
-            src="https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=1920&q=75"
+            src="https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=1280&q=75"
             alt=""
             fill
             priority
             className="object-cover"
             sizes="100vw"
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMCwsKCwsM EBcQERMRCwsMEBgPEhMSFBITExIYFRYYHB4fHhT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AKwA//9k="
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>

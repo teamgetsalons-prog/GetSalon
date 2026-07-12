@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+
 import { Check, Clock, AlertTriangle, Crown, Zap } from "lucide-react";
 import { api } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
@@ -135,11 +135,7 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Current Plan Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-line bg-card p-6"
-      >
+      <div className="animate-fade-in-up rounded-2xl border border-line bg-card p-6">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3">
@@ -188,19 +184,16 @@ export default function SubscriptionPage() {
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Plan Comparison */}
       <div>
         <h2 className="mb-4 text-lg font-semibold">Choose a Plan</h2>
         <div className="grid gap-6 md:grid-cols-2">
           {plans.map((plan) => (
-            <motion.div
+            <div
               key={plan.slug}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className={`relative rounded-2xl border bg-card p-6 ${
+              className={`relative animate-fade-in-up rounded-2xl border bg-card p-6 ${
                 plan.popular
                   ? "border-gold shadow-lg shadow-gold/10"
                   : "border-line"
@@ -253,7 +246,7 @@ export default function SubscriptionPage() {
                   </>
                 )}
               </button>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
