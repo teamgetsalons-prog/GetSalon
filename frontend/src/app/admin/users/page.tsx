@@ -80,6 +80,15 @@ export default function AdminUsersPage() {
     else window.alert(res.message ?? "Could not change role.");
   }
 
+  async function deleteUser(row: UserRow) {
+    if (!window.confirm(`PERMANENTLY delete "${row.name}" (${row.email})?\n\nThis removes the user, their salon, services, staff, bookings and reviews. This cannot be undone.`)) return;
+    setBusy(row._id);
+    const res = await api(`/api/admin/users/${row._id}`, { method: "DELETE" });
+    setBusy(null);
+    if (res.success) void load();
+    else window.alert(res.message ?? "Could not delete user.");
+  }
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -152,6 +161,17 @@ export default function AdminUsersPage() {
                 >
                   {row.isActive ? "Deactivate" : "Reactivate"}
                 </Button>
+                {row.role !== "admin" && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-500"
+                    loading={busy === row._id}
+                    onClick={() => deleteUser(row)}
+                  >
+                    Delete
+                  </Button>
+                )}
               </div>
             </div>
           ))}

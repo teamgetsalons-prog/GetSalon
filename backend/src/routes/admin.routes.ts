@@ -213,6 +213,53 @@ router.patch("/users", async (req: Request, res: Response) => {
   return ok(res, { id: user._id.toString(), isActive: user.isActive, role: user.role });
 });
 
+// Hard delete user
+router.delete("/users/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user) return fail(res, "User not found.", 404);
+  if (user._id.toString() === req.user!.id) {
+    return fail(res, "You cannot delete your own account.", 400);
+  }
+  if (user.role === "admin") {
+    return fail(res, "Cannot delete an admin account.", 400);
+  }
+  if (user.salon) {
+    const salon = await Salon.findById(user.salon);
+    if (salon) {
+      await Promise.all([
+        Service.deleteMany({ salon: salon._id }),
+        Staff.deleteMany({ salon: salon._id }),
+        Appointment.deleteMany({ salon: salon._id }),
+        Review.deleteMany({ salon: salon._id }),
+        Comment.deleteMany({ salon: salon._id }),
+        SalonSubscription.deleteMany({ salon: salon._id }),
+      ]);
+      if (salon.status === "approved") {
+        await City.updateOne({ _id: salon.city }, { $inc: { salonCount: -1 } });
+      }
+      await Salon.deleteOne({ _id: salon._id });
+    }
+  }
+  await User.deleteOne({ _id: user._id });
+  await AuditLog.create({
+    actor: req.user!.id,
+    actorRole: "admin",
+    action: "user.delete",
+    entity: "User",
+    entityId: id,
+  });
+  return ok(res, { deleted: true });
+});
+
+// Delete support message
+router.delete("/support/:id", async (req: Request, res: Response) => {
+  const doc = await SupportMessage.findById(req.params.id);
+  if (!doc) return fail(res, "Message not found.", 404);
+  await SupportMessage.deleteOne({ _id: doc._id });
+  return ok(res, { deleted: true });
+});
+
 // ── Support inbox ──
 
 router.get("/support", async (req: Request, res: Response) => {

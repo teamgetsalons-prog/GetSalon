@@ -17,6 +17,7 @@ import {
 } from "@getsalons/shared/validations/auth";
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label } from "@/components/ui/input";
+import { GoogleSignInButton } from "./google-signin-button";
 
 function AuthShell({
   title,
@@ -141,6 +142,8 @@ export function LoginForm() {
           Log in
         </Button>
       </form>
+
+      <GoogleSignInButton mode="signin" />
     </AuthShell>
   );
 }
@@ -268,8 +271,11 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
         >
           {asOwner ? "Create business account" : "Sign up free"}
         </Button>
+      </form>
 
-        <p className="text-center text-xs text-fg-faint">
+      <GoogleSignInButton mode="signup" />
+
+      <p className="text-center text-xs text-fg-faint">
           {asOwner ? (
             <>
               Booking as a customer instead?{" "}
@@ -286,7 +292,6 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
             </>
           )}
         </p>
-      </form>
     </AuthShell>
   );
 }

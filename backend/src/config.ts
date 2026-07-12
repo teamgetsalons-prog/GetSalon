@@ -6,6 +6,7 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(16, "AUTH_SECRET should be a long random string, not a short/placeholder value"),
   APP_URL: z.string().url().default("http://localhost:3000"),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
+  GOOGLE_CLIENT_ID: z.string().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),

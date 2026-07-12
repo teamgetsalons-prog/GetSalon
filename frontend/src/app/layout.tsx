@@ -61,6 +61,13 @@ export default function RootLayout({
         {/* Preconnect to external image CDN */}
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://res.cloudinary.com" />
+        {/* Google Identity Services — client ID exposed via public env */}
+        {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+          <meta
+            name="google-client-id"
+            content={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+          />
+        )}
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />

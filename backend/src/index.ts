@@ -27,6 +27,7 @@ import { categoryCityRoutes } from "./routes/categories-cities.routes.js";
 import { supportRoutes } from "./routes/support.routes.js";
 import { badgeRoutes } from "./routes/badges.routes.js";
 import { blogRoutes } from "./routes/blog.routes.js";
+import { googleAuthRoutes } from "./routes/google-auth.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -50,6 +51,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/auth", googleAuthRoutes);
 app.use("/admin", adminRoutes);
 app.use("/salons", salonRoutes);
 app.use("/bookings", bookingRoutes);
