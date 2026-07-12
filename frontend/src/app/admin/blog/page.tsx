@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Search, Database } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +30,6 @@ export default function AdminBlogPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
-  const [seeding, setSeeding] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -64,19 +63,6 @@ export default function AdminBlogPage() {
     else window.alert(res.message ?? "Could not delete.");
   }
 
-  async function seedPosts() {
-    if (!window.confirm("Seed 10 blog posts to the database? Existing posts will be skipped.")) return;
-    setSeeding(true);
-    const res = await api<{ created: number; skipped: number; total: number }>("/api/blog/admin/seed", { method: "POST" });
-    setSeeding(false);
-    if (res.success && res.data) {
-      window.alert(`Done! Created: ${res.data.created}, Skipped: ${res.data.skipped} (already existed).`);
-      void load();
-    } else {
-      window.alert(res.message ?? "Seed failed.");
-    }
-  }
-
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -86,22 +72,12 @@ export default function AdminBlogPage() {
             Manage your beauty blog articles
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => void seedPosts()}
-            disabled={seeding}
-            className="inline-flex items-center gap-2 rounded-xl border border-line bg-bg-soft px-4 py-2.5 text-sm font-semibold text-fg-muted transition-colors hover:border-gold-500/50 hover:text-gold disabled:opacity-50"
-          >
-            <Database className="h-4 w-4" />
-            {seeding ? "Seeding..." : "Seed 10 Posts"}
-          </button>
-          <Link
-            href="/admin/blog/new"
-            className="inline-flex items-center gap-2 rounded-xl bg-gold-500 px-4 py-2.5 text-sm font-semibold text-gold-950 transition-colors hover:bg-gold-400"
-          >
-            <Plus className="h-4 w-4" /> New Post
-          </Link>
-        </div>
+        <Link
+          href="/admin/blog/new"
+          className="inline-flex items-center gap-2 rounded-xl bg-gold-500 px-4 py-2.5 text-sm font-semibold text-gold-950 transition-colors hover:bg-gold-400"
+        >
+          <Plus className="h-4 w-4" /> New Post
+        </Link>
       </div>
 
       <div className="mb-4">

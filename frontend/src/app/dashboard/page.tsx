@@ -12,7 +12,7 @@ export default async function CustomerOverviewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-line bg-card p-5">
+      <div className="relative z-10 rounded-2xl border border-line bg-card p-5">
         <p className="font-display text-lg font-bold">
           Welcome back, {session.name?.split(" ")[0] ?? "there"}! 👋
         </p>
@@ -21,7 +21,7 @@ export default async function CustomerOverviewPage() {
         </p>
       </div>
 
-      <div>
+      <div className="relative z-10">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Your appointments</h2>
           <Link
