@@ -34,7 +34,11 @@ router.post("/", authenticate, requireRole("admin"), async (req: Request, res: R
 });
 
 router.get("/cities", async (req: Request, res: Response) => {
-  const cities = await City.find({ isActive: true }).sort({ order: 1 });
+  const filter: Record<string, unknown> = { isActive: true };
+  if (req.query.onlyWithSalons) {
+    filter.salonCount = { $gt: 0 };
+  }
+  const cities = await City.find(filter).sort({ order: 1 });
 
   if (req.query.withAreas) {
     const areas = await Area.find({ isActive: true }).sort({ name: 1 });

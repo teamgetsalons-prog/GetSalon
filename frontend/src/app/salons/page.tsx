@@ -69,7 +69,7 @@ export default async function SalonsPage({
     Awaited<ReturnType<typeof getCategoriesApi>>,
   ] = await Promise.all([
     searchSalonsApi(input),
-    getCitiesApi(),
+    getCitiesApi(false, true),
     getCategoriesApi(),
   ]);
 

@@ -240,7 +240,7 @@ export async function getHomePageData() {
         .limit(8)
         .lean(),
       Category.find({ isActive: true }).sort({ order: 1 }).limit(12).lean(),
-      City.find({ isActive: true }).sort({ order: 1 }).lean(),
+      City.find({ isActive: true, salonCount: { $gt: 0 } }).sort({ order: 1 }).lean(),
       getPlatformStats(),
     ]);
 

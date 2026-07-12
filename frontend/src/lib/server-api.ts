@@ -179,9 +179,13 @@ export interface CategoryOption {
   icon?: string;
 }
 
-export async function getCitiesApi(withAreas = false): Promise<CityOption[]> {
+export async function getCitiesApi(withAreas = false, onlyWithSalons = false): Promise<CityOption[]> {
+  const params = new URLSearchParams();
+  if (withAreas) params.set("withAreas", "1");
+  if (onlyWithSalons) params.set("onlyWithSalons", "1");
+  const qs = params.toString();
   const res = await serverFetch<CityOption[]>(
-    `/categories/cities${withAreas ? "?withAreas=1" : ""}`
+    `/categories/cities${qs ? `?${qs}` : ""}`
   );
   return res.success && res.data ? res.data : [];
 }

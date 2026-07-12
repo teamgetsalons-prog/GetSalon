@@ -87,7 +87,7 @@ export function Navbar() {
     async function loadNavData() {
       try {
         const [citiesRes, catsRes] = await Promise.all([
-          fetch("/api/categories/cities").then((r) => r.json()),
+          fetch("/api/categories/cities?onlyWithSalons=1").then((r) => r.json()),
           fetch("/api/categories").then((r) => r.json()),
         ]);
         if (citiesRes.success && citiesRes.data) {

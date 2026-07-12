@@ -49,7 +49,7 @@ export default async function TopSalonsPage({
   // Top-rated salons (rating ≥ 1 ⇒ at least one review) + city filter list
   const [result, cities] = await Promise.all([
     searchSalonsApi({ sort: "rating", rating: 1, limit: 50, city }),
-    getCitiesApi(),
+    getCitiesApi(false, true),
   ]);
   const salonsData: SalonCardData[] = result.salons;
 
