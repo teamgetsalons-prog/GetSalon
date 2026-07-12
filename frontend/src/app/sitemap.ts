@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE } from "@getsalons/shared/constants";
-import { getCategoriesApi, getCitiesApi, searchSalonsApi } from "@/lib/server-api";
+import { getCategoriesApi, getCitiesApi, searchSalonsApi, getBlogPosts } from "@/lib/server-api";
 
 /**
  * Dynamic sitemap: static pages + approved salons, city landing pages,
@@ -27,10 +27,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [salons, cities, categories] = await Promise.all([
+    const [salons, cities, categories, blogResult] = await Promise.all([
       searchSalonsApi({ limit: 50, sort: "newest" }),
       getCitiesApi(),
       getCategoriesApi(),
+      getBlogPosts({ limit: 100 }),
     ]);
 
     return [
@@ -57,6 +58,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: `${SITE.url}/services/${s}`,
         changeFrequency: "daily" as const,
         priority: 0.7,
+      })),
+      // Blog posts
+      ...blogResult.posts.map((p) => ({
+        url: `${SITE.url}/blog/${p.slug}`,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+        lastModified: p.publishedAt ? new Date(p.publishedAt) : undefined,
       })),
     ];
   } catch {

@@ -30,25 +30,27 @@ import { cn } from "@getsalons/shared/utils";
 import { ThemeToggle } from "./theme-toggle";
 import { Avatar } from "@/components/ui/misc";
 
-const cities = [
-  { name: "Lahore", slug: "lahore" },
-  { name: "Karachi", slug: "karachi" },
-  { name: "Islamabad", slug: "islamabad" },
-  { name: "Rawalpindi", slug: "rawalpindi" },
-  { name: "Faisalabad", slug: "faisalabad" },
-  { name: "Multan", slug: "multan" },
-];
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Scissors,
+  Sparkles,
+  Star,
+  Palette,
+  Flower2,
+  HandMetal,
+  Gem,
+  HeartHandshake,
+};
 
-const serviceCategories = [
-  { name: "Hair", slug: "hair", icon: Scissors },
-  { name: "Makeup", slug: "makeup", icon: Sparkles },
-  { name: "Facial", slug: "facial", icon: Star },
-  { name: "Nails", slug: "nails", icon: Palette },
-  { name: "Bridal", slug: "bridal", icon: Flower2 },
-  { name: "Massage", slug: "massage", icon: HandMetal },
-  { name: "Skin Care", slug: "skin-care", icon: Gem },
-  { name: "Waxing", slug: "waxing", icon: HeartHandshake },
-];
+interface CityItem {
+  name: string;
+  slug: string;
+}
+
+interface CategoryItem {
+  name: string;
+  slug: string;
+  icon?: string;
+}
 
 const navLinks = [
   { href: "/salons", label: "Find Salons", hasDropdown: true },
@@ -56,7 +58,7 @@ const navLinks = [
   { href: "/top-salons", label: "Top Salons" },
   { href: "/blog", label: "Beauty Blog" },
   { href: "/salons?deals=true", label: "Offers" },
-  { href: "/partner", label: "List Your Salon" },
+  { href: "/partner", label: "List Your Salon", isHighlight: true },
 ];
 
 export function Navbar() {
@@ -67,6 +69,8 @@ export function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [cities, setCities] = useState<CityItem[]>([]);
+  const [serviceCategories, setServiceCategories] = useState<CategoryItem[]>([]);
   const dashboardHref =
     user?.role === "admin"
       ? "/admin"
@@ -78,6 +82,27 @@ export function Navbar() {
     return () => {
       if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
     };
+  }, []);
+
+  // Fetch dynamic cities (only those with salons) and categories (only those used)
+  useEffect(() => {
+    async function loadNavData() {
+      try {
+        const [citiesRes, catsRes] = await Promise.all([
+          fetch("/api/categories/cities").then((r) => r.json()),
+          fetch("/api/categories").then((r) => r.json()),
+        ]);
+        if (citiesRes.success && citiesRes.data) {
+          setCities(citiesRes.data);
+        }
+        if (catsRes.success && catsRes.data) {
+          setServiceCategories(catsRes.data);
+        }
+      } catch {
+        // Silently fail — dropdowns will show empty
+      }
+    }
+    loadNavData();
   }, []);
 
   const handleDropdownEnter = (key: string) => {
@@ -109,6 +134,7 @@ export function Navbar() {
             const isActive = pathname.startsWith(link.href);
             const isFindSalons = link.hasDropdown && !link.type;
             const isServices = link.hasDropdown && link.type === "services";
+            const isHighlight = "isHighlight" in link && link.isHighlight;
 
             if (isFindSalons) {
               return (
@@ -162,6 +188,11 @@ export function Navbar() {
                               {city.name}
                             </Link>
                           ))}
+                          {cities.length === 0 && (
+                            <p className="px-3 py-2 text-xs text-fg-faint">
+                              No cities with salons yet
+                            </p>
+                          )}
                         </div>
                       </motion.div>
                     )}
@@ -204,18 +235,26 @@ export function Navbar() {
                         onMouseLeave={handleDropdownLeave}
                       >
                         <div className="p-2">
-                          {serviceCategories.map((cat) => (
-                            <Link
-                              key={cat.slug}
-                              href={`/salons?category=${cat.slug}`}
-                              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
-                            >
-                              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold-500/10 text-gold">
-                                <cat.icon className="h-4 w-4" />
-                              </span>
-                              {cat.name}
-                            </Link>
-                          ))}
+                          {serviceCategories.map((cat) => {
+                            const IconComp = cat.icon ? iconMap[cat.icon] : Sparkles;
+                            return (
+                              <Link
+                                key={cat.slug}
+                                href={`/salons?category=${cat.slug}`}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
+                              >
+                                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold-500/10 text-gold">
+                                  {IconComp ? <IconComp className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                                </span>
+                                {cat.name}
+                              </Link>
+                            );
+                          })}
+                          {serviceCategories.length === 0 && (
+                            <p className="px-3 py-2 text-xs text-fg-faint">
+                              No services available yet
+                            </p>
+                          )}
                         </div>
                         <div className="border-t border-line p-2">
                           <Link
@@ -230,6 +269,20 @@ export function Navbar() {
                     )}
                   </AnimatePresence>
                 </div>
+              );
+            }
+
+            if (isHighlight) {
+              return (
+                <Link
+                  key={link.href + link.label}
+                  href={link.href}
+                  className={cn(
+                    "rounded-xl bg-gold-500 px-4 py-2 text-sm font-semibold text-gold-950 transition-colors hover:bg-gold-400 ml-1"
+                  )}
+                >
+                  {link.label}
+                </Link>
               );
             }
 
@@ -407,6 +460,11 @@ export function Navbar() {
                           {city.name}
                         </Link>
                       ))}
+                      {cities.length === 0 && (
+                        <p className="px-3 py-2 text-xs text-fg-faint">
+                          No cities with salons yet
+                        </p>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -439,17 +497,25 @@ export function Navbar() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden pl-6"
                     >
-                      {serviceCategories.map((cat) => (
-                        <Link
-                          key={cat.slug}
-                          href={`/salons?category=${cat.slug}`}
-                          onClick={() => setMobileOpen(false)}
-                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
-                        >
-                          <cat.icon className="h-3.5 w-3.5 text-gold" />
-                          {cat.name}
-                        </Link>
-                      ))}
+                      {serviceCategories.map((cat) => {
+                        const IconComp = cat.icon ? iconMap[cat.icon] : Sparkles;
+                        return (
+                          <Link
+                            key={cat.slug}
+                            href={`/salons?category=${cat.slug}`}
+                            onClick={() => setMobileOpen(false)}
+                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
+                          >
+                            {IconComp ? <IconComp className="h-3.5 w-3.5 text-gold" /> : <Sparkles className="h-3.5 w-3.5 text-gold" />}
+                            {cat.name}
+                          </Link>
+                        );
+                      })}
+                      {serviceCategories.length === 0 && (
+                        <p className="px-3 py-2 text-xs text-fg-faint">
+                          No services available yet
+                        </p>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -480,7 +546,7 @@ export function Navbar() {
               <Link
                 href="/partner"
                 onClick={() => setMobileOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
+                className="block rounded-xl bg-gold-500 px-4 py-2.5 text-center text-sm font-semibold text-gold-950 hover:bg-gold-400 mt-2"
               >
                 List Your Salon
               </Link>

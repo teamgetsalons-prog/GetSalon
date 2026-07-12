@@ -53,6 +53,17 @@ export default async function TopSalonsPage({
   ]);
   const salonsData: SalonCardData[] = result.salons;
 
+  // If no rated salons, fetch suggested salons (newest/featured) so page isn't empty
+  let suggestedSalons: SalonCardData[] = [];
+  if (salonsData.length === 0) {
+    const suggested = await searchSalonsApi({
+      sort: city ? "newest" : "featured",
+      limit: 12,
+      city,
+    });
+    suggestedSalons = suggested.salons;
+  }
+
   // Get top 3 for hero display
   const topThree = salonsData.slice(0, 3);
   const remaining = salonsData.slice(3);
@@ -220,20 +231,48 @@ export default async function TopSalonsPage({
         </div>
       )}
 
-      {salonsData.length === 0 && (
+      {salonsData.length === 0 && suggestedSalons.length > 0 && (
+        <div>
+          <div className="mb-6 rounded-2xl border border-gold-500/20 bg-gold-500/5 p-6">
+            <div className="flex items-start gap-3">
+              <Trophy className="h-6 w-6 text-gold shrink-0 mt-0.5" />
+              <div>
+                <h2 className="font-semibold">No rated salons yet</h2>
+                <p className="mt-1 text-sm text-fg-muted">
+                  {city
+                    ? `No salons in ${city.charAt(0).toUpperCase() + city.slice(1)} have received reviews yet.`
+                    : "No salons have received reviews yet. Be the first to leave a review!"}
+                </p>
+                <p className="mt-1 text-sm text-fg-muted">
+                  Here are some salons you might like:
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {suggestedSalons.map((salon) => (
+              <div key={salon._id} className="relative">
+                <SalonCard salon={salon} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {salonsData.length === 0 && suggestedSalons.length === 0 && (
         <div className="rounded-2xl border border-line bg-card p-12 text-center">
           <Trophy className="mx-auto h-12 w-12 text-fg-faint" />
-          <h2 className="mt-4 text-lg font-semibold">No rated salons found</h2>
+          <h2 className="mt-4 text-lg font-semibold">No salons found</h2>
           <p className="mt-2 text-sm text-fg-muted">
             {city
-              ? `No salons in ${city.charAt(0).toUpperCase() + city.slice(1)} have received reviews yet.`
-              : "No salons have received reviews yet. Be the first to leave a review!"}
+              ? `No salons in ${city.charAt(0).toUpperCase() + city.slice(1)} yet.`
+              : "No salons have been listed yet. Be the first to list your salon!"}
           </p>
           <Link
-            href="/salons"
+            href="/partner"
             className="mt-6 inline-flex rounded-xl bg-gold-500 px-6 py-2.5 text-sm font-semibold text-gold-950 hover:bg-gold-400"
           >
-            Browse All Salons
+            List Your Salon
           </Link>
         </div>
       )}

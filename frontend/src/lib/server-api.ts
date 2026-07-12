@@ -59,6 +59,7 @@ export interface SalonPublicData {
   areaName?: string;
   address: string;
   coverImage: string;
+  logo?: string;
   description: string;
   about?: string;
   phone: string;
@@ -204,4 +205,56 @@ export async function getManagedSalon(): Promise<ManagedSalon | null> {
   if (!session?.salonId) return null;
   const res = await serverFetch<ManagedSalon>(`/salons/${session.salonId}`);
   return res.success && res.data ? res.data : null;
+}
+
+// ── Blog helpers ────────────────────────────────────────
+
+export interface BlogPostPublic {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  coverImage?: string;
+  author: string;
+  category: string;
+  tags: string[];
+  publishedAt?: Date;
+  views: number;
+  seo?: { title?: string; description?: string };
+}
+
+export async function getBlogPosts(opts: {
+  page?: number;
+  limit?: number;
+  category?: string;
+} = {}): Promise<{
+  posts: BlogPostPublic[];
+  total: number;
+  page: number;
+  totalPages: number;
+}> {
+  const qs = new URLSearchParams();
+  if (opts.page) qs.set("page", String(opts.page));
+  if (opts.limit) qs.set("limit", String(opts.limit));
+  if (opts.category) qs.set("category", opts.category);
+
+  const res = await serverFetch<BlogPostPublic[]>(`/blog?${qs.toString()}`);
+  if (!res.success || !res.data) {
+    return { posts: [], total: 0, page: 1, totalPages: 0 };
+  }
+  return {
+    posts: res.data,
+    total: res.pagination?.total ?? res.data.length,
+    page: res.pagination?.page ?? 1,
+    totalPages: res.pagination?.totalPages ?? 1,
+  };
+}
+
+export async function getBlogPost(
+  slug: string
+): Promise<BlogPostPublic | null> {
+  const res = await serverFetch<BlogPostPublic>(`/blog/${slug}`);
+  if (!res.success || !res.data) return null;
+  return res.data;
 }

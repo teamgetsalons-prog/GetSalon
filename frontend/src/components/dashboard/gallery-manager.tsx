@@ -15,10 +15,12 @@ export function GalleryManager({
   salonId,
   initial,
   initialCover,
+  initialLogo,
 }: {
   salonId: string;
   initial: GalleryItem[];
   initialCover?: string;
+  initialLogo?: string;
 }) {
   const [images, setImages] = useState(initial);
   const [uploading, setUploading] = useState(false);
@@ -27,6 +29,9 @@ export function GalleryManager({
   const [cover, setCover] = useState(initialCover ?? "");
   const [coverUploading, setCoverUploading] = useState(false);
   const coverRef = useRef<HTMLInputElement>(null);
+  const [logo, setLogo] = useState(initialLogo ?? "");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const logoRef = useRef<HTMLInputElement>(null);
 
   async function onCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -60,6 +65,41 @@ export function GalleryManager({
       setMessage("Cover photo updated!");
     } else {
       setMessage(patch.message ?? "Could not save the cover photo.");
+    }
+  }
+
+  async function onLogoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setLogoUploading(true);
+    setMessage(null);
+
+    const form = new FormData();
+    form.append("file", file);
+    form.append("folder", "logos");
+
+    const upload = await api<{ url: string; publicId: string }>("/api/upload", {
+      method: "POST",
+      body: form,
+    });
+    if (!upload.success || !upload.data) {
+      setLogoUploading(false);
+      setMessage(upload.message ?? "Upload failed.");
+      return;
+    }
+
+    const patch = await api(`/api/salons/${salonId}`, {
+      method: "PATCH",
+      json: { logo: upload.data.url },
+    });
+    setLogoUploading(false);
+    if (patch.success) {
+      setLogo(upload.data.url);
+      setMessage("Logo updated!");
+    } else {
+      setMessage(patch.message ?? "Could not save the logo.");
     }
   }
 
@@ -134,6 +174,37 @@ export function GalleryManager({
               No cover photo yet — this is the first thing customers see.
             </p>
           )}
+        </div>
+      </div>
+
+      {/* Logo */}
+      <div className="mb-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Salon logo</h2>
+          <input
+            ref={logoRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/avif"
+            className="hidden"
+            onChange={onLogoFile}
+          />
+          <Button size="sm" variant="outline" loading={logoUploading} onClick={() => logoRef.current?.click()}>
+            <ImagePlus className="h-4 w-4" /> {logo ? "Change logo" : "Upload logo"}
+          </Button>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-line bg-bg-soft">
+            {logo ? (
+              <Image src={logo} alt="Salon logo" fill className="object-cover" sizes="80px" />
+            ) : (
+              <p className="flex h-full items-center justify-center text-xs text-fg-faint">
+                No logo
+              </p>
+            )}
+          </div>
+          <p className="text-sm text-fg-muted">
+            Your logo appears on your salon page and in search results. Square images work best.
+          </p>
         </div>
       </div>
 

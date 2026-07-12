@@ -147,8 +147,21 @@ export default async function SalonPage({ params }: Params) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-4 p-5 sm:p-7">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-end gap-4">
+            {salon.logo && (
+              <div className="hidden sm:block shrink-0">
+                <Image
+                  src={salon.logo}
+                  alt={`${salon.name} logo`}
+                  width={80}
+                  height={80}
+                  className="h-20 w-20 rounded-2xl border-2 border-white/20 bg-white object-cover shadow-lg"
+                  priority
+                />
+              </div>
+            )}
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
               {salon.isVerified && (
                 <Badge variant="gold">
                   <BadgeCheck className="h-3 w-3" /> Verified
@@ -183,6 +196,7 @@ export default async function SalonPage({ params }: Params) {
                 <span className="text-xs text-white/70">New on GetSalons — no reviews yet</span>
               )}
             </div>
+          </div>
           </div>
           <div className="flex gap-2">
             <FavoriteButton salonId={salon._id.toString()} initialFavorited={favorited} />

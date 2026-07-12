@@ -2,22 +2,66 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { buildMetadata } from "@/lib/seo";
+import { getBlogPosts } from "@/lib/server-api";
+import { BlogCard } from "@/components/blog/blog-card";
+import { SITE } from "@getsalons/shared/constants";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbJsonLd } from "@/lib/seo";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Beauty Blog — Tips, Trends & City Guides",
-  description:
-    "Expert beauty tips, hair care guides, skin care routines, bridal trends and salon guides for every city in Pakistan — from the GetSalons team.",
-  path: "/blog",
-});
+export const dynamic = "force-dynamic";
 
-/**
- * The blog is being migrated to the new backend API.
- * Until blog endpoints ship, this renders a friendly placeholder
- * instead of hitting a non-existent data source.
- */
-export default function BlogPage() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+function firstValue(v: string | string[] | undefined): string | undefined {
+  return Array.isArray(v) ? v[0] : v;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const sp = await searchParams;
+  const category = firstValue(sp.category);
+  const categoryName = category
+    ? category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, " ")
+    : undefined;
+
+  return buildMetadata({
+    title: categoryName
+      ? `${categoryName} Articles — Beauty Blog | ${SITE.shortName}`
+      : `Beauty Blog — Tips, Trends & Guides | ${SITE.shortName}`,
+    description: categoryName
+      ? `Read the latest ${categoryName.toLowerCase()} articles, tips and guides from the GetSalons beauty experts.`
+      : "Expert beauty tips, hair care guides, skin care routines, bridal trends and salon guides for every city in Pakistan — from the GetSalons team.",
+    path: "/blog",
+  });
+}
+
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const sp = await searchParams;
+  const category = firstValue(sp.category);
+
+  const { posts, total } = await getBlogPosts({
+    limit: 24,
+    category,
+  });
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Blog", path: "/blog" },
+          ]),
+        ]}
+      />
+
       <div className="text-center">
         <h1 className="font-display text-3xl font-bold sm:text-4xl">
           The GetSalons <span className="text-gold-gradient">Beauty Blog</span>
@@ -28,22 +72,30 @@ export default function BlogPage() {
         </p>
       </div>
 
-      <div className="mx-auto mt-12 flex max-w-lg flex-col items-center gap-4 rounded-2xl border border-dashed border-line py-16 text-center">
-        <BookOpen className="h-10 w-10 text-gold" aria-hidden />
-        <div>
-          <p className="font-semibold text-fg">Articles coming soon</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-fg-muted">
-            Our beauty editors are polishing the first stories. Meanwhile,
-            discover top-rated salons near you.
-          </p>
+      {posts.length > 0 ? (
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <BlogCard key={post._id} post={post} />
+          ))}
         </div>
-        <Link
-          href="/salons"
-          className="rounded-xl bg-gold-500 px-5 py-2.5 text-sm font-semibold text-gold-950 hover:bg-gold-400"
-        >
-          Browse salons
-        </Link>
-      </div>
+      ) : (
+        <div className="mx-auto mt-12 flex max-w-lg flex-col items-center gap-4 rounded-2xl border border-dashed border-line py-16 text-center">
+          <BookOpen className="h-10 w-10 text-gold" aria-hidden />
+          <div>
+            <p className="font-semibold text-fg">Articles coming soon</p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-fg-muted">
+              Our beauty editors are polishing the first stories. Meanwhile,
+              discover top-rated salons near you.
+            </p>
+          </div>
+          <Link
+            href="/salons"
+            className="rounded-xl bg-gold-500 px-5 py-2.5 text-sm font-semibold text-gold-950 hover:bg-gold-400"
+          >
+            Browse salons
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

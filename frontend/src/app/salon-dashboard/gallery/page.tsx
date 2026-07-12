@@ -16,6 +16,7 @@ export default async function SalonGalleryPage() {
     <GalleryManager
       salonId={salon._id}
       initialCover={salon.coverImage}
+      initialLogo={salon.logo}
       initial={(salon.gallery ?? []).map((g) => ({
         _id: (g as { _id?: string })._id,
         url: g.url,
