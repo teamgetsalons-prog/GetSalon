@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Tag, Clock, Sparkles, Percent, ArrowRight } from "lucide-react";
-import { searchSalonsApi, type SearchSalonsResult } from "@/lib/server-api";
+import Image from "next/image";
+import { Tag, Clock, Sparkles, Percent, ArrowRight, MapPin, Star } from "lucide-react";
+import { getDealsApi, type DealPublic } from "@/lib/server-api";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 import { JsonLd } from "@/components/seo/json-ld";
 import { formatPKR } from "@getsalons/shared/utils";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
@@ -20,24 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-interface DealService {
-  name: string;
-  price: number;
-  discountPrice: number;
-  duration: number;
-  salonName: string;
-  salonSlug: string;
-  salonImage: string;
-  cityName: string;
-}
-
 export default async function OffersPage() {
-  // Fetch all salons with deals
-  const result = await searchSalonsApi({ deals: true, limit: 50 });
-
-  // Extract all discounted services from all salons
-  // We need to fetch each salon's services to show actual deals
-  const dealSalons = result.salons;
+  const result = await getDealsApi({ limit: 50 });
+  const deals = result.deals;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -58,11 +43,11 @@ export default async function OffersPage() {
           Deals & <span className="text-gold-gradient">Offers</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm text-fg-muted">
-          Save big on beauty services. These salons are offering exclusive discounts right now.
+          Save big on beauty services. Exclusive discounts from top-rated salons across Pakistan.
         </p>
       </div>
 
-      {dealSalons.length === 0 ? (
+      {deals.length === 0 ? (
         <div className="mx-auto max-w-lg rounded-2xl border border-dashed border-line py-16 text-center">
           <Percent className="mx-auto h-10 w-10 text-gold" aria-hidden />
           <p className="mt-4 font-semibold text-fg">No deals available right now</p>
@@ -81,7 +66,7 @@ export default async function OffersPage() {
           {/* Summary bar */}
           <div className="flex items-center justify-between rounded-2xl border border-line bg-card p-4">
             <p className="text-sm text-fg-muted">
-              <span className="font-semibold text-fg">{dealSalons.length}</span> salon{dealSalons.length !== 1 ? "s" : ""} with active deals
+              <span className="font-semibold text-fg">{deals.length}</span> active deal{deals.length !== 1 ? "s" : ""}
             </p>
             <div className="flex items-center gap-1.5 text-xs text-gold">
               <Sparkles className="h-3.5 w-3.5" />
@@ -89,9 +74,9 @@ export default async function OffersPage() {
             </div>
           </div>
 
-          {/* Deal cards - list layout */}
-          {dealSalons.map((salon, i) => (
-            <DealCard key={salon._id} salon={salon} index={i} />
+          {/* Deal cards */}
+          {deals.map((deal, i) => (
+            <DealCard key={deal._id} deal={deal} index={i} />
           ))}
         </div>
       )}
@@ -99,38 +84,26 @@ export default async function OffersPage() {
   );
 }
 
-function DealCard({
-  salon,
-  index,
-}: {
-  salon: {
-    _id: string;
-    name: string;
-    slug: string;
-    coverImage: string | null;
-    cityName: string;
-    areaName?: string | null;
-    rating: { average: number; count: number };
-    priceRange: { min: number; max: number };
-    categoryNames: string[];
-    isFeatured: boolean;
-    isVerified: boolean;
-  };
-  index: number;
-}) {
-  const discount = salon.priceRange.max > 0
-    ? Math.round(((salon.priceRange.max - salon.priceRange.min) / salon.priceRange.max) * 100)
-    : 0;
+function DealCard({ deal, index }: { deal: DealPublic; index: number }) {
+  const salon = deal.salon;
 
   return (
     <Link
-      href={`/salon/${salon.slug}`}
+      href={`/salon/${salon.slug}?deal=${deal._id}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-card transition-all hover:-translate-y-0.5 hover:border-gold-500/40 hover:shadow-lg sm:flex-row animate-fade-in-up"
       style={{ animationDelay: `${Math.min(index * 60, 300)}ms` }}
     >
-      {/* Image */}
+      {/* Image side */}
       <div className="relative h-48 shrink-0 overflow-hidden sm:h-auto sm:w-56">
-        {salon.coverImage ? (
+        {deal.image ? (
+          <Image
+            src={deal.image}
+            alt={deal.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, 224px"
+          />
+        ) : salon.coverImage ? (
           <Image
             src={salon.coverImage}
             alt={salon.name}
@@ -143,64 +116,74 @@ function DealCard({
             <Tag className="h-8 w-8 text-fg-faint" />
           </div>
         )}
-        {discount > 0 && (
-          <span className="absolute left-3 top-3 rounded-lg bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
-            Up to {discount}% OFF
-          </span>
-        )}
-        {salon.isFeatured && (
+        {/* Discount badge */}
+        <span className="absolute left-3 top-3 rounded-lg bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+          {deal.discountPercent}% OFF
+        </span>
+        {deal.isFeatured && (
           <span className="absolute right-3 top-3">
             <Badge variant="gold">★ Featured</Badge>
           </span>
         )}
       </div>
 
-      {/* Content */}
+      {/* Content side */}
       <div className="flex flex-1 flex-col justify-between p-5">
         <div>
           <div className="flex items-start justify-between gap-2">
             <h2 className="font-display text-lg font-bold group-hover:text-gold">
-              {salon.name}
+              {deal.title}
             </h2>
-            {salon.isVerified && (
-              <Badge variant="gold" className="shrink-0">Verified</Badge>
-            )}
           </div>
 
-          <p className="mt-1 text-sm text-fg-muted">
-            {salon.areaName ? `${salon.areaName}, ` : ""}{salon.cityName}
+          <p className="mt-1 text-sm text-fg-muted line-clamp-2">
+            {deal.description}
           </p>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {salon.categoryNames.slice(0, 3).map((cat) => (
-              <span
-                key={cat}
-                className="rounded-lg bg-bg-soft px-2.5 py-1 text-xs text-fg-muted"
-              >
-                {cat}
+          {/* Price */}
+          <div className="mt-3 flex items-baseline gap-3">
+            <span className="text-xl font-bold text-gold">{formatPKR(deal.dealPrice)}</span>
+            <span className="text-sm text-fg-faint line-through">{formatPKR(deal.originalPrice)}</span>
+          </div>
+
+          {deal.terms && (
+            <p className="mt-2 text-xs text-fg-faint">{deal.terms}</p>
+          )}
+
+          {/* Salon info */}
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-fg-muted">
+            <span className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              {salon.name}
+            </span>
+            <span>{salon.cityName}</span>
+            {salon.rating.count > 0 && (
+              <span className="flex items-center gap-1">
+                <Star className="h-3 w-3 fill-gold text-gold" />
+                {salon.rating.average.toFixed(1)} ({salon.rating.count})
               </span>
-            ))}
+            )}
+            {salon.isVerified && (
+              <Badge variant="gold" className="text-[10px]">Verified</Badge>
+            )}
           </div>
         </div>
 
         <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
-          <div className="flex items-center gap-3 text-sm">
-            {salon.rating.count > 0 ? (
-              <span className="flex items-center gap-1">
-                <span className="font-semibold text-gold">★</span>
-                {salon.rating.average.toFixed(1)}
-                <span className="text-fg-faint">({salon.rating.count})</span>
-              </span>
-            ) : (
-              <span className="text-fg-faint">New salon</span>
-            )}
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-fg-faint">Services from</p>
-            <p className="text-sm font-bold text-gold">
-              {salon.priceRange.min > 0 ? formatPKR(salon.priceRange.min) : "View prices"}
-            </p>
-          </div>
+          {deal.endDate ? (
+            <span className="flex items-center gap-1.5 text-xs text-fg-muted">
+              <Clock className="h-3.5 w-3.5" />
+              Ends {new Date(deal.endDate).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" })}
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-xs text-green-500">
+              <Clock className="h-3.5 w-3.5" />
+              Limited time offer
+            </span>
+          )}
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-gold group-hover:gap-2 transition-all">
+            View deal <ArrowRight className="h-4 w-4" />
+          </span>
         </div>
       </div>
     </Link>

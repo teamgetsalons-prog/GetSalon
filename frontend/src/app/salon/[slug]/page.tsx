@@ -15,8 +15,9 @@ import {
   Music2,
   Phone,
   ShieldCheck,
+  Tag,
 } from "lucide-react";
-import { getSalonPageData, getServerSession } from "@/lib/server-api";
+import { getSalonPageData, getSalonDeals, getServerSession } from "@/lib/server-api";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd, salonJsonLd } from "@/lib/seo";
 import { DAYS } from "@getsalons/shared/constants";
 import { formatPKR, formatTime12h, truncate } from "@getsalons/shared/utils";
@@ -71,6 +72,9 @@ export default async function SalonPage({ params }: Params) {
   if (!data) notFound();
 
   const { salon, services, staff, reviews } = data;
+
+  // Fetch deals for this salon
+  const salonDeals = await getSalonDeals(salon._id.toString());
 
   let favorited = false;
   const session = await getServerSession();
@@ -280,6 +284,49 @@ export default async function SalonPage({ params }: Params) {
               </div>
             )}
           </section>
+
+          {/* Deals & Offers */}
+          {salonDeals.length > 0 && (
+            <section className="animate-fade-in-up delay-150">
+              <div className="flex items-center gap-2">
+                <Tag className="h-5 w-5 text-gold" />
+                <h2 className="font-display text-xl font-bold">Deals & Offers</h2>
+              </div>
+              <div className="mt-4 space-y-3">
+                {salonDeals.map((deal) => (
+                  <div
+                    key={deal._id}
+                    className="flex items-center gap-4 rounded-2xl border border-gold-500/20 bg-gold-500/5 p-4 sm:p-5"
+                  >
+                    {deal.image && (
+                      <div className="hidden h-16 w-16 shrink-0 overflow-hidden rounded-xl sm:block">
+                        <img src={deal.image} alt="" className="h-full w-full object-cover" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-fg">{deal.title}</p>
+                        <span className="rounded-md bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          {deal.discountPercent}% OFF
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-fg-muted line-clamp-1">{deal.description}</p>
+                      <div className="mt-1.5 flex items-baseline gap-2">
+                        <span className="text-base font-bold text-gold">{formatPKR(deal.dealPrice)}</span>
+                        <span className="text-xs text-fg-faint line-through">{formatPKR(deal.originalPrice)}</span>
+                      </div>
+                    </div>
+                    <Link
+                      href={`/book/${salon.slug}?service=${deal.service ?? ""}`}
+                      className="shrink-0 rounded-xl bg-gold-500 px-4 py-2 text-xs font-semibold text-gold-950 transition-colors hover:bg-gold-400"
+                    >
+                      Book this deal
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Team */}
           {staff.length > 0 && (

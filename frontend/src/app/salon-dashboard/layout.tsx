@@ -12,6 +12,7 @@ const items: NavItem[] = [
   { href: "/salon-dashboard", label: "Overview", icon: "layout-dashboard", exact: true },
   { href: "/salon-dashboard/bookings", label: "Bookings", icon: "calendar" },
   { href: "/salon-dashboard/services", label: "Services", icon: "scissors" },
+  { href: "/salon-dashboard/deals", label: "Deals & Offers", icon: "tag" },
   { href: "/salon-dashboard/staff", label: "Staff", icon: "users" },
   { href: "/salon-dashboard/reviews", label: "Reviews", icon: "star" },
   { href: "/salon-dashboard/hours", label: "Working Hours", icon: "clock" },

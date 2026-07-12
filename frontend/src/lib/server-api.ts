@@ -258,3 +258,80 @@ export async function getBlogPost(
   if (!res.success || !res.data) return null;
   return res.data;
 }
+
+// ── Deals ──────────────────────────────────────────────────
+
+export interface DealPublic {
+  _id: string;
+  title: string;
+  description: string;
+  originalPrice: number;
+  dealPrice: number;
+  discountPercent: number;
+  service?: { _id: string; name: string; price: number; discountPrice?: number } | null;
+  serviceName?: string;
+  image?: string;
+  terms?: string;
+  maxRedemptions?: number;
+  redemptionCount: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  startDate?: string;
+  endDate?: string;
+  salon: {
+    _id: string;
+    name: string;
+    slug: string;
+    coverImage: string | null;
+    cityName: string;
+    areaName?: string;
+    address?: string;
+    phone?: string;
+    rating: { average: number; count: number };
+    isVerified: boolean;
+    isFeatured: boolean;
+  };
+}
+
+export interface DealsResult {
+  deals: DealPublic[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function getDealsApi(
+  params: Record<string, string | number | boolean> = {}
+): Promise<DealsResult> {
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== "") q.set(k, String(v));
+  }
+  const res = await serverFetch<{ data: DealPublic[]; pagination?: { page: number; total: number; totalPages: number } }>(
+    `/deals?${q}`
+  );
+  const data = res.data;
+  return {
+    deals: Array.isArray(data) ? data : (data?.data ?? []),
+    total: data?.pagination?.total ?? (Array.isArray(data) ? data.length : 0),
+    page: data?.pagination?.page ?? 1,
+    totalPages: data?.pagination?.totalPages ?? 1,
+  };
+}
+
+export async function getDealById(
+  id: string
+): Promise<DealPublic | null> {
+  const res = await serverFetch<DealPublic>(`/deals/${id}`);
+  if (!res.success || !res.data) return null;
+  return res.data;
+}
+
+export async function getSalonDeals(
+  salonId: string
+): Promise<DealPublic[]> {
+  const res = await serverFetch<DealPublic[]>(`/deals?salonId=${salonId}`);
+  if (!res.success || !res.data) return [];
+  const data = res.data;
+  return Array.isArray(data) ? data : [];
+}

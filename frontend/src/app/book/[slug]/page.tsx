@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Store } from "lucide-react";
-import { getSalonPageData, getServerSession } from "@/lib/server-api";
+import { getSalonPageData, getDealById, getServerSession } from "@/lib/server-api";
 import { BookingWizard } from "@/components/booking/booking-wizard";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ service?: string }>;
+  searchParams: Promise<{ service?: string; deal?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BookPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { service: preselectedService } = await searchParams;
+  const { service: preselectedService, deal: dealId } = await searchParams;
 
   let data: Awaited<ReturnType<typeof getSalonPageData>> = null;
   try {
@@ -34,8 +34,13 @@ export default async function BookPage({ params, searchParams }: Props) {
 
   const { salon, services, staff } = data;
 
-  // Owners/staff can't book their own salon (the API rejects it too) -
-  // show a friendly pointer to their dashboard instead of the wizard.
+  // Fetch deal if provided
+  let dealData = null;
+  if (dealId) {
+    dealData = await getDealById(dealId);
+  }
+
+  // Owners/staff can't book their own salon
   const session = await getServerSession();
   if (session?.salonId === salon._id.toString()) {
     return (
@@ -87,6 +92,20 @@ export default async function BookPage({ params, searchParams }: Props) {
           rating: m.rating,
         }))}
         preselectedServiceId={preselectedService}
+        deal={
+          dealData
+            ? {
+                _id: dealData._id,
+                title: dealData.title,
+                description: dealData.description,
+                originalPrice: dealData.originalPrice,
+                dealPrice: dealData.dealPrice,
+                discountPercent: dealData.discountPercent,
+                serviceId: dealData.service?._id ?? null,
+                terms: dealData.terms,
+              }
+            : null
+        }
       />
     </div>
   );

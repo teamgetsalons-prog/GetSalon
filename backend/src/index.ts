@@ -28,6 +28,7 @@ import { supportRoutes } from "./routes/support.routes.js";
 import { badgeRoutes } from "./routes/badges.routes.js";
 import { blogRoutes } from "./routes/blog.routes.js";
 import { googleAuthRoutes } from "./routes/google-auth.routes.js";
+import { dealRoutes } from "./routes/deals.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -71,6 +72,7 @@ app.use("/cities", categoryCityRoutes);
 app.use("/support", supportRoutes);
 app.use("/badges", badgeRoutes);
 app.use("/blog", blogRoutes);
+app.use("/deals", dealRoutes);
 
 app.use(errorHandler);
 

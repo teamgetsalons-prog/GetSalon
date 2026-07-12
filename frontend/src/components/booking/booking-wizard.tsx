@@ -59,6 +59,17 @@ interface WizardStaff {
   rating: { average: number; count: number };
 }
 
+interface WizardDeal {
+  _id: string;
+  title: string;
+  description: string;
+  originalPrice: number;
+  dealPrice: number;
+  discountPercent: number;
+  serviceId: string | null;
+  terms?: string;
+}
+
 const STEPS = ["Service", "Specialist", "Date & Time", "Confirm"] as const;
 
 export function BookingWizard({
@@ -66,18 +77,25 @@ export function BookingWizard({
   services,
   staff,
   preselectedServiceId,
+  deal,
 }: {
   salon: WizardSalon;
   services: WizardService[];
   staff: WizardStaff[];
   preselectedServiceId?: string;
+  deal?: WizardDeal | null;
 }) {
   const [step, setStep] = useState(0);
-  const [serviceId, setServiceId] = useState<string | null>(
-    preselectedServiceId && services.some((s) => s._id === preselectedServiceId)
-      ? preselectedServiceId
-      : null
-  );
+  const [serviceId, setServiceId] = useState<string | null>(() => {
+    // If deal has a linked service, auto-select it
+    if (deal?.serviceId && services.some((s) => s._id === deal.serviceId)) {
+      return deal.serviceId;
+    }
+    if (preselectedServiceId && services.some((s) => s._id === preselectedServiceId)) {
+      return preselectedServiceId;
+    }
+    return null;
+  });
   const [staffId, setStaffId] = useState<string | null>(null); // null = any
   const [date, setDate] = useState<string>(toDateKey(new Date()));
   const [slot, setSlot] = useState<TimeSlot | null>(null);
@@ -201,12 +219,15 @@ export function BookingWizard({
 
         <div className="mx-auto mt-6 max-w-sm space-y-2 rounded-2xl bg-bg-soft p-5 text-left text-sm">
           <SummaryRow label="Service" value={service?.name ?? ""} />
+          {deal && service && deal.serviceId === service._id && (
+            <SummaryRow label="Deal" value={deal.title} gold />
+          )}
           <SummaryRow label="Specialist" value={member?.name ?? "Any available"} />
           <SummaryRow label="Date" value={formatDateKey(date)} />
           <SummaryRow label="Time" value={slot ? formatTime12h(slot.time) : ""} />
           <SummaryRow
             label="Price"
-            value={formatPKR(effectivePrice(service))}
+            value={formatPKR(effectivePrice(service, deal))}
             gold
           />
         </div>
@@ -249,6 +270,21 @@ export function BookingWizard({
           </p>
         </div>
       </div>
+
+      {/* Deal banner */}
+      {deal && (
+        <div className="mt-4 rounded-2xl border border-gold-500/30 bg-gold-500/10 p-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-gold" />
+            <p className="text-sm font-semibold text-gold">{deal.title}</p>
+            <span className="rounded-md bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+              {deal.discountPercent}% OFF
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-fg-muted">{deal.description}</p>
+          {deal.terms && <p className="mt-1 text-[11px] text-fg-faint">{deal.terms}</p>}
+        </div>
+      )}
 
       {/* Stepper */}
       <ol className="mt-6 flex items-center gap-1.5" aria-label="Booking steps">
@@ -308,7 +344,7 @@ export function BookingWizard({
                     </p>
                   )}
                   <p className="text-sm font-bold text-gold">
-                    {formatPKR(effectivePrice(s))}
+                    {formatPKR(effectivePrice(s, deal))}
                   </p>
                 </div>
               </button>
@@ -444,7 +480,7 @@ export function BookingWizard({
               <div className="border-t border-line pt-2.5">
                 <SummaryRow
                   label="Total (pay at salon)"
-                  value={formatPKR(effectivePrice(service))}
+                  value={formatPKR(effectivePrice(service, deal))}
                   gold
                 />
               </div>
@@ -541,7 +577,10 @@ export function BookingWizard({
   );
 }
 
-function effectivePrice(service: WizardService | null): number {
+function effectivePrice(service: WizardService | null, deal?: WizardDeal | null): number {
+  if (deal && service && deal.serviceId === service._id) {
+    return deal.dealPrice;
+  }
   if (!service) return 0;
   return service.discountPrice && service.discountPrice < service.price
     ? service.discountPrice
