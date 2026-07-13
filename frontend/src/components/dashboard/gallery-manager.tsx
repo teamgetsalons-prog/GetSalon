@@ -24,6 +24,7 @@ export function GalleryManager({
 }) {
   const [images, setImages] = useState(initial);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [cover, setCover] = useState(initialCover ?? "");
@@ -104,39 +105,55 @@ export function GalleryManager({
   }
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const files = e.target.files;
     e.target.value = "";
-    if (!file) return;
+    if (!files || files.length === 0) return;
 
     setUploading(true);
     setMessage(null);
+    setUploadProgress({ done: 0, total: files.length });
 
-    const form = new FormData();
-    form.append("file", file);
-    form.append("folder", "gallery");
+    let currentGallery = images;
 
-    const upload = await api<{ url: string; publicId: string }>("/api/upload", {
-      method: "POST",
-      body: form,
-    });
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setUploadProgress({ done: i, total: files.length });
 
-    if (!upload.success || !upload.data) {
-      setUploading(false);
-      setMessage(upload.message ?? "Upload failed.");
-      return;
+      const form = new FormData();
+      form.append("file", file);
+      form.append("folder", "gallery");
+
+      const upload = await api<{ url: string; publicId: string }>("/api/upload", {
+        method: "POST",
+        body: form,
+      });
+
+      if (!upload.success || !upload.data) {
+        setUploading(false);
+        setUploadProgress(null);
+        setMessage(upload.message ?? `Failed to upload ${file.name}.`);
+        return;
+      }
+
+      const attach = await api<GalleryItem[]>(`/api/salons/${salonId}/gallery`, {
+        method: "POST",
+        json: { url: upload.data.url, publicId: upload.data.publicId },
+      });
+
+      if (!attach.success || !attach.data) {
+        setUploading(false);
+        setUploadProgress(null);
+        setMessage(attach.message ?? `Failed to attach ${file.name}.`);
+        return;
+      }
+
+      currentGallery = attach.data;
+      setImages(currentGallery);
     }
-
-    const attach = await api<GalleryItem[]>(`/api/salons/${salonId}/gallery`, {
-      method: "POST",
-      json: { url: upload.data.url, publicId: upload.data.publicId },
-    });
 
     setUploading(false);
-    if (attach.success && attach.data) {
-      setImages(attach.data);
-    } else {
-      setMessage(attach.message ?? "Could not attach image.");
-    }
+    setUploadProgress(null);
+    setMessage(`${files.length} photo${files.length > 1 ? "s" : ""} uploaded!`);
   }
 
   async function remove(imageId: string | undefined) {
@@ -214,11 +231,12 @@ export function GalleryManager({
           ref={fileRef}
           type="file"
           accept="image/jpeg,image/png,image/webp,image/avif"
+          multiple
           className="hidden"
           onChange={onFile}
         />
         <Button size="sm" loading={uploading} onClick={() => fileRef.current?.click()}>
-          <ImagePlus className="h-4 w-4" /> Upload photo
+          <ImagePlus className="h-4 w-4" /> {uploading && uploadProgress ? `Uploading ${uploadProgress.done + 1}/${uploadProgress.total}…` : "Upload photos"}
         </Button>
       </div>
 
