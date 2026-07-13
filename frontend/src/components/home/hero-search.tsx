@@ -44,7 +44,7 @@ export function HeroSearch({
       className="glass mx-auto flex w-full max-w-2xl flex-col gap-2 rounded-2xl p-2 shadow-2xl shadow-black/20 sm:flex-row"
       role="search"
     >
-      <div className="flex flex-1 items-center gap-2 rounded-xl bg-card px-3">
+      <div className="flex flex-1 items-center gap-2 rounded-xl px-3 dark:bg-[#1a1714]" style={{ backgroundColor: "var(--sh-card)" }}>
         <Search className="h-4.5 w-4.5 shrink-0 text-fg-faint" aria-hidden />
         <input
           value={q}
@@ -55,7 +55,7 @@ export function HeroSearch({
         />
       </div>
 
-      <div ref={ref} className="relative flex items-center gap-2 rounded-xl bg-card px-3 sm:w-44">
+      <div ref={ref} className="relative flex items-center gap-2 rounded-xl px-3 sm:w-44 dark:bg-[#1a1714]" style={{ backgroundColor: "var(--sh-card)" }}>
         <MapPin className="h-4.5 w-4.5 shrink-0 text-fg-faint" aria-hidden />
         <button
           type="button"
@@ -69,13 +69,13 @@ export function HeroSearch({
         </button>
 
         {open && (
-          <div className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-line bg-card shadow-xl">
+          <div className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-line shadow-xl dark:bg-[#1a1714]" style={{ backgroundColor: "var(--sh-card)" }}>
             <button
               type="button"
               onClick={() => { setCity(""); setOpen(false); }}
               className={cn(
-                "w-full px-3 py-2.5 text-left text-sm hover:bg-gold-500/10",
-                !city ? "bg-gold-500/10 font-medium text-gold" : "text-fg"
+                "w-full px-3 py-2.5 text-left text-sm",
+                !city ? "bg-gold-500/15 font-medium text-gold" : "text-fg hover:bg-gold-500/10"
               )}
             >
               All cities
@@ -86,8 +86,8 @@ export function HeroSearch({
                 type="button"
                 onClick={() => { setCity(c.slug); setOpen(false); }}
                 className={cn(
-                  "w-full px-3 py-2.5 text-left text-sm hover:bg-gold-500/10",
-                  city === c.slug ? "bg-gold-500/10 font-medium text-gold" : "text-fg"
+                  "w-full px-3 py-2.5 text-left text-sm",
+                  city === c.slug ? "bg-gold-500/15 font-medium text-gold" : "text-fg hover:bg-gold-500/10"
                 )}
               >
                 {c.name}
