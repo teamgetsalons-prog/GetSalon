@@ -12,11 +12,13 @@ export function CommentSection({
   salonName,
   rating,
   currentUserId,
+  isSalonOwner,
 }: {
   salonId: string;
   salonName: string;
   rating: { average: number; count: number };
   currentUserId?: string;
+  isSalonOwner?: boolean;
 }) {
   const [comments, setComments] = useState<CommentData[]>([]);
   const [page, setPage] = useState(1);
@@ -37,6 +39,7 @@ export function CommentSection({
             customerAvatar: c.customer?.image,
             helpfulCount: c.helpfulVotes?.length || 0,
             isOwner: currentUserId && c.customer?._id === currentUserId,
+            ownerReply: c.ownerReply,
           }));
           if (append) {
             setComments((prev) => [...prev, ...newComments]);
@@ -75,6 +78,12 @@ export function CommentSection({
 
   function handleDelete(id: string) {
     setComments((prev) => prev.filter((c) => c._id !== id));
+  }
+
+  function handleReplyChange(id: string, reply: string | null) {
+    setComments((prev) =>
+      prev.map((c) => (c._id === id ? { ...c, ownerReply: reply ?? undefined } : c))
+    );
   }
 
   // Rating distribution (simplified)
@@ -150,6 +159,8 @@ export function CommentSection({
                 key={comment._id}
                 comment={comment}
                 onDelete={handleDelete}
+                isSalonOwner={isSalonOwner}
+                onReplyChange={handleReplyChange}
               />
             ))}
 

@@ -155,3 +155,53 @@ export async function deleteComment(
 
   return { success: true };
 }
+
+/** Only the owning salon's owner (or an admin) may reply to a review. */
+async function assertCanReply(
+  comment: { salon: mongoose.Types.ObjectId },
+  userId: string,
+  role: string
+): Promise<void> {
+  if (role === "admin") return;
+  const salon = await Salon.findOne({ _id: comment.salon, owner: userId }).select("_id");
+  if (!salon) throw new ApiError("Only the salon owner can reply to reviews.", 403);
+}
+
+/** Add or edit the salon owner's reply to a review (one reply per review). */
+export async function replyToComment(
+  commentId: string,
+  userId: string,
+  role: string,
+  reply: string
+) {
+  await connectDB();
+
+  const comment = await Comment.findById(commentId);
+  if (!comment) throw new ApiError("Comment not found.", 404);
+  await assertCanReply(comment, userId, role);
+
+  comment.ownerReply = reply;
+  comment.ownerReplyCreatedAt = new Date();
+  await comment.save();
+
+  return comment;
+}
+
+/** Remove the salon owner's reply from a review. */
+export async function deleteCommentReply(
+  commentId: string,
+  userId: string,
+  role: string
+) {
+  await connectDB();
+
+  const comment = await Comment.findById(commentId);
+  if (!comment) throw new ApiError("Comment not found.", 404);
+  await assertCanReply(comment, userId, role);
+
+  comment.ownerReply = undefined;
+  comment.ownerReplyCreatedAt = undefined;
+  await comment.save();
+
+  return { success: true };
+}

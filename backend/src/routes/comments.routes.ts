@@ -1,9 +1,16 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { authenticate } from "../middleware/auth.js";
+import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { createComment, getSalonComments, voteHelpful, deleteComment } from "../services/comment.service.js";
+import {
+  createComment,
+  getSalonComments,
+  voteHelpful,
+  deleteComment,
+  replyToComment,
+  deleteCommentReply,
+} from "../services/comment.service.js";
 
 const router = Router();
 
@@ -12,6 +19,10 @@ const createCommentSchema = z.object({
   rating: z.number().min(1).max(5),
   comment: z.string().min(3).max(2000),
   photos: z.array(z.string().url()).max(5).optional(),
+});
+
+const replySchema = z.object({
+  reply: z.string().min(2, "Reply must be at least 2 characters.").max(1000),
 });
 
 router.get("/", async (req: Request, res: Response) => {
@@ -55,6 +66,25 @@ router.post("/:id/helpful", authenticate, async (req: Request, res: Response) =>
 router.delete("/:id", authenticate, async (req: Request, res: Response) => {
   const id = req.params.id as string;
   await deleteComment(id, req.user!.id, req.user!.role || "customer");
+  return ok(res, null);
+});
+
+// Salon owner add/edit reply - same endpoint handles both, since a reply
+// is a single field that either exists or doesn't.
+router.patch("/:id/reply", authenticate, requireRole("owner", "admin"), async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const input = replySchema.parse(req.body);
+  const comment = await replyToComment(id, req.user!.id, req.user!.role || "customer", input.reply);
+
+  return ok(res, {
+    ownerReply: comment.ownerReply,
+    ownerReplyCreatedAt: comment.ownerReplyCreatedAt,
+  });
+});
+
+router.delete("/:id/reply", authenticate, requireRole("owner", "admin"), async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  await deleteCommentReply(id, req.user!.id, req.user!.role || "customer");
   return ok(res, null);
 });
 

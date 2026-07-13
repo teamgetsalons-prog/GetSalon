@@ -9,6 +9,8 @@ export interface IComment {
   comment: string;
   photos: string[];
   helpfulVotes: Types.ObjectId[];
+  ownerReply?: string;
+  ownerReplyCreatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +33,8 @@ const commentSchema = new Schema<IComment>(
     comment: { type: String, required: true, maxlength: 2000 },
     photos: [String],
     helpfulVotes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    ownerReply: { type: String, maxlength: 1000 },
+    ownerReplyCreatedAt: Date,
   },
   { timestamps: true }
 );

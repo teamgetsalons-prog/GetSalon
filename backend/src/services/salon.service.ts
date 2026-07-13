@@ -216,6 +216,7 @@ export async function getSalonPageData(slug: string) {
 
   const [services, staff, reviews] = await Promise.all([
     Service.find({ salon: salonId, isActive: true })
+      .populate("category", "name")
       .sort({ isPopular: -1, price: 1 })
       .lean(),
     Staff.find({ salon: salonId, isActive: true })

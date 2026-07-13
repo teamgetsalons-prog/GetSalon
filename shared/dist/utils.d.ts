@@ -11,4 +11,6 @@ export declare function formatDateKey(date: Date | string): string;
 export declare function generateBookingNumber(): string;
 export declare function truncate(text: string, maxLength: number): string;
 export declare function roundRating(rating: number, decimals?: number): number;
+/** "45" -> "45 min", "60" -> "1 hr", "90" -> "1 hr 30 min" */
+export declare function formatDuration(minutes: number): string;
 export declare function absoluteUrl(path: string): string;

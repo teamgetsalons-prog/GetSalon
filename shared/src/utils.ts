@@ -74,6 +74,14 @@ export function roundRating(rating: number, decimals: number = 1): number {
   return Math.round(rating * 10 ** decimals) / 10 ** decimals;
 }
 
+/** "45" -> "45 min", "60" -> "1 hr", "90" -> "1 hr 30 min" */
+export function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest === 0 ? `${hours} hr` : `${hours} hr ${rest} min`;
+}
+
 export function absoluteUrl(path: string): string {
   const base = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
   return `${base.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;

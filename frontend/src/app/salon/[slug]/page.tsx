@@ -26,6 +26,7 @@ import { StarRating } from "@/components/ui/star-rating";
 import { Badge } from "@/components/ui/badge";
 import { FavoriteButton, ShareButton } from "@/components/salons/favorite-share";
 import { CommentSection } from "@/components/salons/comment-section";
+import { ServicesBrowser } from "@/components/salons/services-browser";
 import { FaqAccordion } from "@/components/home/faq-accordion";
 
 export const dynamic = "force-dynamic";
@@ -78,6 +79,7 @@ export default async function SalonPage({ params }: Params) {
 
   let favorited = false;
   const session = await getServerSession();
+  const isSalonOwner = session?.id === salon.owner;
 
   const todayHours = salon.openingHours.find(
     (h) => h.day === new Date().getDay()
@@ -225,64 +227,19 @@ export default async function SalonPage({ params }: Params) {
             <h2 className="font-display text-xl font-bold">
               Services & Prices
             </h2>
-            {services.length === 0 ? (
-              <p className="mt-3 text-sm text-fg-muted">
-                This salon hasn&apos;t listed services yet.
-              </p>
-            ) : (
-              <div className="mt-4 divide-y divide-line rounded-2xl border border-line bg-card">
-                {services.map((service) => {
-                  const hasDiscount =
-                    service.discountPrice &&
-                    service.discountPrice < service.price;
-                  return (
-                    <div
-                      key={service._id.toString()}
-                      className="flex items-center justify-between gap-4 p-4 sm:p-5"
-                    >
-                      <div className="min-w-0">
-                        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-fg">
-                          {service.name}
-                          {service.isPopular && (
-                            <Badge variant="gold">Popular</Badge>
-                          )}
-                        </p>
-                        {service.description && (
-                          <p className="mt-1 line-clamp-2 text-xs text-fg-muted">
-                            {service.description}
-                          </p>
-                        )}
-                        <p className="mt-1 flex items-center gap-1 text-xs text-fg-faint">
-                          <Clock className="h-3 w-3" /> {service.duration} min
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-4">
-                        <div className="text-right">
-                          {hasDiscount && (
-                            <p className="text-xs text-fg-faint line-through">
-                              {formatPKR(service.price)}
-                            </p>
-                          )}
-                          <p className="text-sm font-bold text-gold">
-                            {formatPKR(
-                              hasDiscount
-                                ? service.discountPrice!
-                                : service.price
-                            )}
-                          </p>
-                        </div>
-                        <Link
-                          href={`/book/${salon.slug}?service=${service._id.toString()}`}
-                          className="rounded-xl bg-gold-500 px-4 py-2 text-xs font-semibold text-gold-950 transition-colors hover:bg-gold-400"
-                        >
-                          Book
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            <ServicesBrowser
+              services={services.map((s) => ({
+                _id: s._id.toString(),
+                name: s.name,
+                description: s.description,
+                duration: s.duration,
+                price: s.price,
+                discountPrice: s.discountPrice,
+                isPopular: s.isPopular,
+                category: s.category,
+              }))}
+              salonSlug={salon.slug}
+            />
           </section>
 
           {/* Deals & Offers */}
@@ -399,6 +356,7 @@ export default async function SalonPage({ params }: Params) {
             salonName={salon.name}
             rating={salon.rating}
             currentUserId={session?.id}
+            isSalonOwner={isSalonOwner}
           />
 
           {/* FAQs */}

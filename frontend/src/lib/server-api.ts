@@ -53,6 +53,7 @@ export async function serverFetch<T = unknown>(
 
 export interface SalonPublicData {
   _id: string;
+  owner: string;
   name: string;
   slug: string;
   cityName: string;
@@ -90,6 +91,7 @@ export interface SalonPageData {
     price: number;
     discountPrice?: number;
     isPopular?: boolean;
+    category?: { _id: string; name: string } | null;
   }[];
   staff: {
     _id: string;
