@@ -50,10 +50,18 @@ router.get("/", async (req: Request, res: Response) => {
 
   if (featured) filter.isFeatured = true;
 
+  // Public listings must only ever show deals from live salons - without
+  // this, deals from pending/suspended/deleted salons leak into /offers.
   if (salonId) {
+    const live = await Salon.exists({ _id: salonId, status: "approved" });
+    if (!live) {
+      return ok(res, [], { pagination: { page: 1, limit, total: 0, totalPages: 0 } });
+    }
     filter.salon = salonId;
-  } else if (city) {
-    const salons = await Salon.find({ cityName: city, status: "approved" }).select("_id");
+  } else {
+    const salonFilter: Record<string, unknown> = { status: "approved" };
+    if (city) salonFilter.cityName = city;
+    const salons = await Salon.find(salonFilter).select("_id");
     filter.salon = { $in: salons.map((s) => s._id) };
   }
 

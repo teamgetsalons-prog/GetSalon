@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import { formatPKR } from "@getsalons/shared/utils";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, Spinner } from "@/components/ui/misc";
-import { Tag, Trash2, Star, Eye, EyeOff } from "lucide-react";
+import { Trash2, Star, Eye, EyeOff } from "lucide-react";
 
 interface AdminDeal {
   _id: string;
@@ -21,7 +21,8 @@ interface AdminDeal {
   maxRedemptions?: number;
   endDate?: string;
   createdAt: string;
-  salon: { _id: string; name: string; slug: string; cityName: string };
+  /** Nullable: the salon may have been deleted after the deal was created */
+  salon?: { _id: string; name: string; slug: string; cityName: string } | null;
 }
 
 export default function AdminDealsPage() {
@@ -91,7 +92,9 @@ export default function AdminDealsPage() {
                   {deal.isFeatured && <Badge variant="gold">Featured</Badge>}
                 </div>
                 <p className="mt-0.5 text-xs text-fg-muted">
-                  {deal.salon.name} · {deal.salon.cityName}
+                  {deal.salon
+                    ? `${deal.salon.name} · ${deal.salon.cityName}`
+                    : "Salon no longer exists — safe to delete this deal"}
                 </p>
                 <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-fg-muted">
                   <span className="font-semibold text-green-500">{deal.discountPercent}% OFF</span>

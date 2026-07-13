@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { User, Salon, Appointment, Review, AuditLog, Service, Staff, Comment, SalonSubscription, City, SupportMessage } from "../models/index.js";
+import { User, Salon, Appointment, Review, AuditLog, Service, Staff, Comment, SalonSubscription, City, SupportMessage, Deal } from "../models/index.js";
 import { notify } from "../services/notification.service.js";
 function toDateKey(date: Date): string {
   const y = date.getFullYear();
@@ -127,6 +127,7 @@ router.delete("/salons/:id", async (req: Request, res: Response) => {
     Review.deleteMany({ salon: salon._id }),
     Comment.deleteMany({ salon: salon._id }),
     SalonSubscription.deleteMany({ salon: salon._id }),
+    Deal.deleteMany({ salon: salon._id }),
     User.updateOne({ _id: salon.owner }, { $unset: { salon: 1 } }),
   ]);
   if (salon.status === "approved") {
