@@ -31,7 +31,7 @@ export declare const createSalonSchema: z.ZodObject<{
     description: z.ZodString;
     about: z.ZodOptional<z.ZodString>;
     phone: z.ZodString;
-    email: z.ZodOptional<z.ZodString>;
+    email: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>;
     website: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
     address: z.ZodString;
     cityId: z.ZodString;
@@ -189,7 +189,7 @@ export declare const updateSalonSchema: z.ZodObject<{
     description: z.ZodOptional<z.ZodString>;
     about: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     phone: z.ZodOptional<z.ZodString>;
-    email: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+    email: z.ZodOptional<z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>>;
     website: z.ZodOptional<z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>>;
     address: z.ZodOptional<z.ZodString>;
     cityId: z.ZodOptional<z.ZodString>;

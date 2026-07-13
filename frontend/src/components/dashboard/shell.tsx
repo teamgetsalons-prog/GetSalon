@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import {
   ArrowLeft,
   BarChart3,
@@ -14,6 +15,7 @@ import {
   Heart,
   Images,
   LayoutDashboard,
+  LogOut,
   MapPin,
   MessageCircle,
   Scissors,
@@ -74,6 +76,13 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { logout } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    await logout();
+  }
 
   const isActive = (item: NavItem) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
@@ -100,12 +109,21 @@ export function DashboardShell({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-      <Link
-        href="/"
-        className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-fg-muted transition-colors hover:text-gold"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to website
-      </Link>
+      <div className="mb-2 flex items-center justify-between">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-fg-muted transition-colors hover:text-gold"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to website
+        </Link>
+        <button
+          onClick={() => void handleLogout()}
+          disabled={loggingOut}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-red-500 transition-colors hover:border-red-500/50 hover:bg-red-500/10 disabled:opacity-50"
+        >
+          <LogOut className="h-3.5 w-3.5" /> {loggingOut ? "Logging out…" : "Log out"}
+        </button>
+      </div>
       <h1 className="font-display mb-5 text-2xl font-bold">{title}</h1>
 
       {/* Mobile tabs */}

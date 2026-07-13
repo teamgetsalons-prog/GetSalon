@@ -153,13 +153,13 @@ export default async function SalonPage({ params }: Params) {
         <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-4 p-5 sm:p-7">
           <div className="flex items-end gap-4">
             {salon.logo && (
-              <div className="hidden sm:block shrink-0">
+              <div className="block shrink-0">
                 <Image
                   src={salon.logo}
                   alt={`${salon.name} logo`}
                   width={80}
                   height={80}
-                  className="h-20 w-20 rounded-2xl border-2 border-white/20 bg-white object-cover shadow-lg"
+                  className="h-12 w-12 rounded-xl border-2 border-white/20 bg-white object-cover shadow-lg sm:h-20 sm:w-20 sm:rounded-2xl"
                   priority
                 />
               </div>
