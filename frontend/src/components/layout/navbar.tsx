@@ -52,12 +52,12 @@ interface CategoryItem {
 }
 
 const navLinks = [
+  { href: "/", label: "Home" },
   { href: "/salons", label: "Find Salons", hasDropdown: true },
   { href: "/salons", label: "Services", hasDropdown: true, type: "services" },
   { href: "/top-salons", label: "Top Salons" },
-  { href: "/blog", label: "Beauty Blog" },
   { href: "/offers", label: "Offers" },
-  { href: "/partner", label: "List Your Salon", isHighlight: true },
+  { href: "/blog", label: "Blogs" },
 ];
 
 export function Navbar() {
@@ -391,6 +391,15 @@ export function Navbar() {
       {mobileOpen && (
         <div className="border-t border-line lg:hidden animate-fade-in">
           <div className="space-y-1 px-4 py-3">
+            {/* Home */}
+            <Link
+              href="/"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
+            >
+              Home
+            </Link>
+
             {/* Find Salons Dropdown */}
             <div>
               <button
@@ -495,7 +504,7 @@ export function Navbar() {
               onClick={() => setMobileOpen(false)}
               className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
             >
-              Beauty Blog
+              Blogs
             </Link>
             <Link
               href="/offers"
@@ -504,14 +513,6 @@ export function Navbar() {
             >
               Offers
             </Link>
-            <Link
-              href="/partner"
-              onClick={() => setMobileOpen(false)}
-              className="block rounded-xl bg-gold-500 px-4 py-2.5 text-center text-sm font-semibold text-gold-950 hover:bg-gold-400 mt-2"
-            >
-              List Your Salon
-            </Link>
-
             {!user && (
               <div className="mt-2 flex gap-2 border-t border-line pt-3">
                 <Link
