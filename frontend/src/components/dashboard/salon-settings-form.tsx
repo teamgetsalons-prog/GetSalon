@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
+import { SALON_AMENITIES } from "@getsalons/shared/constants";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
-import type { GenderServed } from "@getsalons/shared/types";
+import type { GenderServed, SalonAmenity } from "@getsalons/shared/types";
 
 export interface SalonSettingsData {
   name: string;
@@ -18,6 +19,7 @@ export interface SalonSettingsData {
   website: string;
   genderServed: GenderServed;
   homeService: boolean;
+  amenities: SalonAmenity[];
   instagram: string;
   facebook: string;
   tiktok: string;
@@ -54,6 +56,15 @@ export function SalonSettingsForm({
     );
   }
 
+  function toggleAmenity(key: SalonAmenity) {
+    set(
+      "amenities",
+      form.amenities.includes(key)
+        ? form.amenities.filter((a) => a !== key)
+        : [...form.amenities, key]
+    );
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (form.categoryIds.length === 0) {
@@ -75,6 +86,7 @@ export function SalonSettingsForm({
         website: form.website,
         genderServed: form.genderServed,
         homeService: form.homeService,
+        amenities: form.amenities,
         socials: { instagram: form.instagram, facebook: form.facebook, tiktok: form.tiktok },
         policies: { cancellation: form.cancellationPolicy },
         categoryIds: form.categoryIds,
@@ -198,6 +210,30 @@ export function SalonSettingsForm({
               />
               We offer home service
             </label>
+          </div>
+        </div>
+
+        <div>
+          <Label>Salon highlights</Label>
+          <p className="mb-2 text-xs text-fg-muted">
+            Shown as a checklist on your salon page — pick anything that applies.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {SALON_AMENITIES.map((a) => (
+              <button
+                key={a.key}
+                type="button"
+                onClick={() => toggleAmenity(a.key)}
+                className={cn(
+                  "cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
+                  form.amenities.includes(a.key)
+                    ? "border-gold-500 bg-gold-500/15 text-gold"
+                    : "border-line text-fg-muted hover:border-gold-500/40"
+                )}
+              >
+                {a.label}
+              </button>
+            ))}
           </div>
         </div>
 

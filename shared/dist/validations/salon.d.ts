@@ -40,6 +40,7 @@ export declare const createSalonSchema: z.ZodObject<{
     longitude: z.ZodOptional<z.ZodNumber>;
     genderServed: z.ZodDefault<z.ZodEnum<["men", "women", "unisex"]>>;
     homeService: z.ZodDefault<z.ZodBoolean>;
+    amenities: z.ZodOptional<z.ZodArray<z.ZodEnum<["femaleStaff", "parking", "ac", "wifi", "cardAccepted", "bridalSpecialist"]>, "many">>;
     whatsapp: z.ZodOptional<z.ZodString>;
     socials: z.ZodOptional<z.ZodObject<{
         facebook: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
@@ -120,6 +121,7 @@ export declare const createSalonSchema: z.ZodObject<{
     areaId?: string | undefined;
     latitude?: number | undefined;
     longitude?: number | undefined;
+    amenities?: ("femaleStaff" | "parking" | "ac" | "wifi" | "cardAccepted" | "bridalSpecialist")[] | undefined;
     whatsapp?: string | undefined;
     socials?: {
         facebook?: string | undefined;
@@ -158,6 +160,7 @@ export declare const createSalonSchema: z.ZodObject<{
     longitude?: number | undefined;
     genderServed?: "men" | "women" | "unisex" | undefined;
     homeService?: boolean | undefined;
+    amenities?: ("femaleStaff" | "parking" | "ac" | "wifi" | "cardAccepted" | "bridalSpecialist")[] | undefined;
     whatsapp?: string | undefined;
     socials?: {
         facebook?: string | undefined;
@@ -198,6 +201,7 @@ export declare const updateSalonSchema: z.ZodObject<{
     longitude: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
     genderServed: z.ZodOptional<z.ZodDefault<z.ZodEnum<["men", "women", "unisex"]>>>;
     homeService: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
+    amenities: z.ZodOptional<z.ZodOptional<z.ZodArray<z.ZodEnum<["femaleStaff", "parking", "ac", "wifi", "cardAccepted", "bridalSpecialist"]>, "many">>>;
     whatsapp: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     socials: z.ZodOptional<z.ZodOptional<z.ZodObject<{
         facebook: z.ZodUnion<[z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>, z.ZodLiteral<"">]>;
@@ -294,6 +298,7 @@ export declare const updateSalonSchema: z.ZodObject<{
     longitude?: number | undefined;
     genderServed?: "men" | "women" | "unisex" | undefined;
     homeService?: boolean | undefined;
+    amenities?: ("femaleStaff" | "parking" | "ac" | "wifi" | "cardAccepted" | "bridalSpecialist")[] | undefined;
     whatsapp?: string | undefined;
     socials?: {
         facebook?: string | undefined;
@@ -340,6 +345,7 @@ export declare const updateSalonSchema: z.ZodObject<{
     longitude?: number | undefined;
     genderServed?: "men" | "women" | "unisex" | undefined;
     homeService?: boolean | undefined;
+    amenities?: ("femaleStaff" | "parking" | "ac" | "wifi" | "cardAccepted" | "bridalSpecialist")[] | undefined;
     whatsapp?: string | undefined;
     socials?: {
         facebook?: string | undefined;

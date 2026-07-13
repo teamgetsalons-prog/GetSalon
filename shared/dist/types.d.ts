@@ -1,6 +1,7 @@
 export type UserRole = "customer" | "owner" | "staff" | "admin";
 export type SalonStatus = "pending" | "approved" | "rejected" | "suspended";
 export type GenderServed = "men" | "women" | "unisex";
+export type SalonAmenity = "femaleStaff" | "parking" | "ac" | "wifi" | "cardAccepted" | "bridalSpecialist";
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
 export type SubscriptionPlan = "free" | "premium" | "business";
 export type NotificationType = "booking_created" | "booking_confirmed" | "booking_cancelled" | "booking_rescheduled" | "review_received" | "review_reply" | "salon_approved" | "salon_rejected" | "subscription_expiry" | "subscription_expiring" | "trial_expiry_warning" | "support_reply" | "system";

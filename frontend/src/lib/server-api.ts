@@ -69,6 +69,7 @@ export interface SalonPublicData {
   socials?: { facebook?: string; instagram?: string; tiktok?: string };
   genderServed: string;
   homeService: boolean;
+  amenities?: SalonAmenity[];
   isVerified: boolean;
   isFeatured: boolean;
   rating: { average: number; count: number };
@@ -110,7 +111,7 @@ export async function getSalonPageData(slug: string): Promise<SalonPageData | nu
   return res.data;
 }
 
-import type { SalonCardData } from "@getsalons/shared/types";
+import type { SalonCardData, SalonAmenity } from "@getsalons/shared/types";
 
 export interface HomePageData {
   featured: SalonCardData[];

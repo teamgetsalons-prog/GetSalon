@@ -27,6 +27,8 @@ import { Badge } from "@/components/ui/badge";
 import { FavoriteButton, ShareButton } from "@/components/salons/favorite-share";
 import { CommentSection } from "@/components/salons/comment-section";
 import { ServicesBrowser } from "@/components/salons/services-browser";
+import { SalonHighlights } from "@/components/salons/salon-highlights";
+import { StickyBookBar } from "@/components/salons/sticky-book-bar";
 import { FaqAccordion } from "@/components/home/faq-accordion";
 
 export const dynamic = "force-dynamic";
@@ -92,7 +94,7 @@ export default async function SalonPage({ params }: Params) {
     : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:pb-16">
       <JsonLd
         data={[
           salonJsonLd({
@@ -210,6 +212,13 @@ export default async function SalonPage({ params }: Params) {
           </div>
         </div>
       </div>
+
+      {/* Salon Highlights */}
+      <SalonHighlights
+        isVerified={salon.isVerified}
+        homeService={salon.homeService}
+        amenities={salon.amenities}
+      />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_340px]">
         {/* ── Main column ─────────────────────────────── */}
@@ -509,6 +518,8 @@ export default async function SalonPage({ params }: Params) {
           })()}
         </aside>
       </div>
+
+      <StickyBookBar salonSlug={salon.slug} priceRange={salon.priceRange} />
     </div>
   );
 }

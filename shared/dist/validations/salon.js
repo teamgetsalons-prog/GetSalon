@@ -42,6 +42,9 @@ export const createSalonSchema = z.object({
     longitude: z.number().min(-180).max(180).optional(),
     genderServed: z.enum(["men", "women", "unisex"]).default("unisex"),
     homeService: z.boolean().default(false),
+    amenities: z
+        .array(z.enum(["femaleStaff", "parking", "ac", "wifi", "cardAccepted", "bridalSpecialist"]))
+        .optional(),
     whatsapp: z.string().optional(),
     socials: z
         .object({

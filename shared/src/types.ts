@@ -4,6 +4,14 @@ export type SalonStatus = "pending" | "approved" | "rejected" | "suspended";
 
 export type GenderServed = "men" | "women" | "unisex";
 
+export type SalonAmenity =
+  | "femaleStaff"
+  | "parking"
+  | "ac"
+  | "wifi"
+  | "cardAccepted"
+  | "bridalSpecialist";
+
 export type BookingStatus =
   | "pending"
   | "confirmed"

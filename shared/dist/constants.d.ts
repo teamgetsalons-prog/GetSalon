@@ -20,6 +20,26 @@ export declare const SLOT_INTERVAL = 30;
 export declare const MAX_BOOKING_DAYS_AHEAD = 30;
 export declare const MIN_BOOKING_LEAD_MINUTES = 60;
 export declare const PAGE_SIZE = 12;
+/** Owner-selectable salon highlights, shown as a checklist below the hero image */
+export declare const SALON_AMENITIES: readonly [{
+    readonly key: "femaleStaff";
+    readonly label: "Female Staff";
+}, {
+    readonly key: "parking";
+    readonly label: "Parking";
+}, {
+    readonly key: "ac";
+    readonly label: "Air Conditioned";
+}, {
+    readonly key: "wifi";
+    readonly label: "WiFi";
+}, {
+    readonly key: "cardAccepted";
+    readonly label: "Card Accepted";
+}, {
+    readonly key: "bridalSpecialist";
+    readonly label: "Bridal Specialist";
+}];
 export declare const GENDER_OPTIONS: readonly [{
     readonly value: "men";
     readonly label: "Men Only";

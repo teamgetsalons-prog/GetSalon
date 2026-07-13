@@ -10,6 +10,7 @@ import {
   createSalonSchema,
   type CreateSalonInput,
 } from "@getsalons/shared/validations/salon";
+import { SALON_AMENITIES } from "@getsalons/shared/constants";
 import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
 import { Button } from "@/components/ui/button";
@@ -38,18 +39,26 @@ export function SalonRegisterForm({
 
   const form = useForm<CreateSalonInput>({
     resolver: zodResolver(createSalonSchema),
-    defaultValues: { genderServed: "unisex", homeService: false, categoryIds: [] },
+    defaultValues: { genderServed: "unisex", homeService: false, categoryIds: [], amenities: [] },
   });
 
   const cityId = form.watch("cityId");
   const selectedCity = cities.find((c) => c._id === cityId);
   const selectedCategories = form.watch("categoryIds") ?? [];
+  const selectedAmenities = form.watch("amenities") ?? [];
 
   function toggleCategory(id: string) {
     const next = selectedCategories.includes(id)
       ? selectedCategories.filter((c) => c !== id)
       : [...selectedCategories, id];
     form.setValue("categoryIds", next, { shouldValidate: true });
+  }
+
+  function toggleAmenity(key: (typeof SALON_AMENITIES)[number]["key"]) {
+    const next = selectedAmenities.includes(key)
+      ? selectedAmenities.filter((a) => a !== key)
+      : [...selectedAmenities, key];
+    form.setValue("amenities", next, { shouldValidate: true });
   }
 
   async function onSubmit(values: CreateSalonInput) {
@@ -175,6 +184,30 @@ export function SalonRegisterForm({
             />
             We offer home service
           </label>
+        </div>
+      </div>
+
+      <div>
+        <Label>Salon highlights</Label>
+        <p className="mb-2 text-xs text-fg-muted">
+          Shown as a checklist on your salon page — pick anything that applies.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {SALON_AMENITIES.map((a) => (
+            <button
+              key={a.key}
+              type="button"
+              onClick={() => toggleAmenity(a.key)}
+              className={cn(
+                "cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
+                selectedAmenities.includes(a.key)
+                  ? "border-gold-500 bg-gold-500/15 text-gold"
+                  : "border-line text-fg-muted hover:border-gold-500/40"
+              )}
+            >
+              {a.label}
+            </button>
+          ))}
         </div>
       </div>
 

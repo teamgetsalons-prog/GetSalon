@@ -30,6 +30,7 @@ export default async function SalonSettingsPage() {
         website: salon.website ?? "",
         genderServed: salon.genderServed as GenderServed,
         homeService: salon.homeService,
+        amenities: salon.amenities ?? [],
         instagram: salon.socials?.instagram ?? "",
         facebook: salon.socials?.facebook ?? "",
         tiktok: salon.socials?.tiktok ?? "",

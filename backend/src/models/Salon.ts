@@ -6,6 +6,7 @@ import type {
   GenderServed,
   GeoPoint,
   OpeningHour,
+  SalonAmenity,
   SalonStatus,
 } from "../../../shared/dist/types.js";
 
@@ -30,6 +31,7 @@ export interface ISalon {
   socials?: { facebook?: string; instagram?: string; tiktok?: string };
   genderServed: GenderServed;
   homeService: boolean;
+  amenities: SalonAmenity[];
   coverImage: string;
   logo?: string;
   gallery: GalleryImage[];
@@ -94,6 +96,12 @@ const salonSchema = new Schema<ISalon>(
       index: true,
     },
     homeService: { type: Boolean, default: false },
+    amenities: [
+      {
+        type: String,
+        enum: ["femaleStaff", "parking", "ac", "wifi", "cardAccepted", "bridalSpecialist"],
+      },
+    ],
     coverImage: {
       type: String,
       default:

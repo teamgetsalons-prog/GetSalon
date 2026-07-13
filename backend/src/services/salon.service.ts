@@ -380,6 +380,7 @@ export async function createSalon(ownerId: string, input: CreateSalonInput) {
     socials: input.socials,
     genderServed: input.genderServed,
     homeService: input.homeService,
+    amenities: input.amenities ?? [],
     openingHours: DEFAULT_HOURS,
     status: "pending",
     ...(input.latitude !== undefined && input.longitude !== undefined
@@ -438,6 +439,7 @@ export async function updateSalon(
     "website",
     "genderServed",
     "homeService",
+    "amenities",
     "socials",
     "coverImage",
     "logo",
