@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   getCategoriesApi,
   getCitiesApi,
@@ -109,8 +110,10 @@ export default async function SalonsPage({
       </div>
 
       {/* Search Bar */}
-      <div className="mb-6">
-        <SalonSearchBar />
+      <div className="mb-6 animate-fade-in-up delay-75">
+        <Suspense>
+          <SalonSearchBar />
+        </Suspense>
       </div>
 
       {/* Column on mobile (filter bar stacks above results full-width),
