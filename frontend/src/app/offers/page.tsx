@@ -21,8 +21,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function OffersPage() {
-  const result = await getDealsApi({ limit: 50 });
-  const deals = result.deals;
+  let deals: DealPublic[] = [];
+  try {
+    const result = await getDealsApi({ limit: 50 });
+    deals = result.deals ?? [];
+  } catch {
+    // Backend may be unreachable — show empty state
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -86,6 +91,7 @@ export default async function OffersPage() {
 
 function DealCard({ deal, index }: { deal: DealPublic; index: number }) {
   const salon = deal.salon;
+  if (!salon) return null;
 
   return (
     <Link

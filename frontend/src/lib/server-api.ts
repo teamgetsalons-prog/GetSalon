@@ -294,7 +294,7 @@ export interface DealPublic {
     rating: { average: number; count: number };
     isVerified: boolean;
     isFeatured: boolean;
-  };
+  } | null;
 }
 
 export interface DealsResult {

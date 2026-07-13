@@ -93,7 +93,7 @@ const nextConfig: NextConfig = {
       },
       // Static-ish pages: ISR with stale-while-revalidate
       {
-        source: "/(salons|salon|top-salons|blog|partner|services)",
+        source: "/(salons|salon|top-salons|blog|partner|services|offers)",
         headers: [
           { key: "Cache-Control", value: "public, s-maxage=300, stale-while-revalidate=600" },
         ],
