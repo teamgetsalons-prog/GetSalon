@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import {
   CalendarDays,
@@ -63,7 +63,6 @@ const navLinks = [
 export function Navbar() {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -130,14 +129,13 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-1 lg:flex">
           {navLinks.map((link) => {
-            const hasCategory = searchParams.get("category");
             let isActive = false;
             if (link.href === "/") {
               isActive = pathname === "/";
             } else if (link.hasDropdown && link.type === "services") {
-              isActive = !!hasCategory;
+              isActive = false;
             } else if (link.hasDropdown && !link.type) {
-              isActive = (pathname === "/salons" || pathname.startsWith("/salons/")) && !hasCategory;
+              isActive = pathname === "/salons" || pathname.startsWith("/salons/");
             } else {
               isActive = pathname === link.href || pathname.startsWith(link.href + "/");
             }
