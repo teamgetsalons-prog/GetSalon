@@ -9,6 +9,7 @@ import {
 import { searchSalonsSchema } from "@getsalons/shared/validations/salon";
 import { SalonCard } from "@/components/salons/salon-card";
 import { DesktopSort, SalonFilters } from "@/components/salons/filters";
+import { SalonSearchBar } from "@/components/salons/search-bar";
 import { EmptyState } from "@/components/ui/misc";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
@@ -105,6 +106,11 @@ export default async function SalonsPage({
           {result.total} salon{result.total === 1 ? "" : "s"} found
           {input.city ? ` in ${cities.find((c) => c.slug === input.city)?.name ?? input.city}` : ""}
         </p>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <SalonSearchBar />
       </div>
 
       {/* Column on mobile (filter bar stacks above results full-width),

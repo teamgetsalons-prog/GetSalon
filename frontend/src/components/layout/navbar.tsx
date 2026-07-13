@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import {
   CalendarDays,
@@ -63,6 +63,7 @@ const navLinks = [
 export function Navbar() {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -129,7 +130,12 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-1 lg:flex">
           {navLinks.map((link) => {
-            const isActive = pathname.startsWith(link.href);
+            const hasCategory = searchParams.get("category");
+            const isActive = link.hasDropdown && link.type === "services"
+              ? !!hasCategory
+              : link.hasDropdown && !link.type
+                ? pathname.startsWith(link.href) && !hasCategory
+                : pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
             const isFindSalons = link.hasDropdown && !link.type;
             const isServices = link.hasDropdown && link.type === "services";
             const isHighlight = "isHighlight" in link && link.isHighlight;
