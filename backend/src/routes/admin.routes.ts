@@ -287,7 +287,7 @@ router.patch("/support/:id", async (req: Request, res: Response) => {
   if (status === "open" || status === "resolved") doc.status = status;
   await doc.save();
 
-  if (doc.reply) {
+  if (doc.reply && doc.from) {
     await notify({
       userId: doc.from.toString(),
       type: "support_reply",

@@ -4,8 +4,10 @@ const { Schema, model, models } = mongoose;
 /** A message from a salon owner (or any user) to the platform admins. */
 export interface ISupportMessage {
   _id: Types.ObjectId;
-  from: Types.ObjectId;
+  from?: Types.ObjectId;
   salon?: Types.ObjectId;
+  contactName?: string;
+  contactEmail?: string;
   subject: string;
   message: string;
   status: "open" | "resolved";
@@ -19,8 +21,10 @@ export interface ISupportMessage {
 
 const supportMessageSchema = new Schema<ISupportMessage>(
   {
-    from: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    from: { type: Schema.Types.ObjectId, ref: "User", index: true },
     salon: { type: Schema.Types.ObjectId, ref: "Salon" },
+    contactName: { type: String, trim: true, maxlength: 100 },
+    contactEmail: { type: String, trim: true, maxlength: 200 },
     subject: { type: String, required: true, trim: true, maxlength: 150 },
     message: { type: String, required: true, trim: true, maxlength: 3000 },
     status: { type: String, enum: ["open", "resolved"], default: "open", index: true },

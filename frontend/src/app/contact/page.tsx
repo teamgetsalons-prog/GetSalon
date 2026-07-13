@@ -4,10 +4,11 @@ import { Mail, MapPin, MessageCircle, Clock } from "lucide-react";
 import { SITE } from "@getsalons/shared/constants";
 import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/json-ld";
+import { ContactForm } from "@/components/contact-form";
 
 export const metadata: Metadata = buildMetadata({
   title: `Contact Us | ${SITE.shortName}`,
-  description: `Get in touch with the ${SITE.name} team. Reach us by email, phone or visit our office. We'd love to hear from you — whether you're a customer or a salon owner.`,
+  description: `Get in touch with the ${SITE.name} team. Reach us by email, phone or send us a message. We'd love to hear from you — whether you're a customer or a salon owner.`,
   path: "/contact",
 });
 
@@ -72,73 +73,80 @@ export default function ContactPage() {
           Get in <span className="text-gold">touch</span>
         </h1>
         <p className="mt-4 max-w-xl text-lg text-fg-muted">
-          Have a question, suggestion or partnership idea? We&apos;d love to hear
-          from you. Reach out through any of the channels below.
+          Have a question, suggestion or partnership idea? Fill out the form below
+          or reach out through any of the channels.
         </p>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 animate-fade-in-up delay-100">
-        {contactMethods.map((method) => (
-          <div
-            key={method.label}
-            className="rounded-2xl border border-line bg-card p-6"
-          >
-            <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gold-500/12 text-gold">
-              <method.icon className="h-5 w-5" />
-            </span>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-fg-faint">
-              {method.label}
-            </h3>
-            {method.href ? (
-              <a
-                href={method.href}
-                className="mt-2 block text-lg font-semibold text-fg hover:text-gold"
-              >
-                {method.value}
-              </a>
-            ) : (
-              <p className="mt-2 text-lg font-semibold text-fg">{method.value}</p>
-            )}
-            <p className="mt-1 text-sm text-fg-muted">{method.description}</p>
+      <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr] animate-fade-in-up delay-100">
+        {/* Contact methods */}
+        <div className="space-y-4">
+          {contactMethods.map((method) => (
+            <div
+              key={method.label}
+              className="flex items-start gap-4 rounded-2xl border border-line bg-card p-5"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-500/12 text-gold">
+                <method.icon className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-fg-faint">
+                  {method.label}
+                </h3>
+                {method.href ? (
+                  <a
+                    href={method.href}
+                    className="mt-0.5 block text-sm font-semibold text-fg hover:text-gold"
+                  >
+                    {method.value}
+                  </a>
+                ) : (
+                  <p className="mt-0.5 text-sm font-semibold text-fg">{method.value}</p>
+                )}
+                <p className="mt-0.5 text-xs text-fg-muted">{method.description}</p>
+              </div>
+            </div>
+          ))}
+
+          {/* Salon owners */}
+          <div className="rounded-2xl border border-gold-500/30 bg-gold-500/8 p-5">
+            <h3 className="font-semibold text-fg">Already listed on {SITE.name}?</h3>
+            <p className="mt-1 text-sm text-fg-muted">
+              Use the in-dashboard support form for faster assistance.
+            </p>
+            <Link
+              href="/salon-dashboard/support"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-gold hover:underline"
+            >
+              Go to Support →
+            </Link>
           </div>
-        ))}
+        </div>
+
+        {/* Contact form */}
+        <ContactForm />
       </div>
 
-      {/* Support for salon owners */}
-      <section className="mt-14 animate-fade-in-up delay-200">
-        <h2 className="font-display text-2xl font-bold">For Salon Owners</h2>
-        <p className="mt-3 text-fg-muted leading-relaxed">
-          Already listed on {SITE.name}? Use the in-dashboard support form for
-          faster assistance — our team typically responds within a few hours.
-        </p>
-        <Link
-          href="/salon-dashboard/support"
-          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gold-500 px-5 py-2.5 text-sm font-semibold text-gold-950 transition-all hover:bg-gold-400"
-        >
-          Go to Support
-        </Link>
-      </section>
-
       {/* FAQ */}
-      <section className="mt-14 animate-fade-in-up delay-300">
+      <section className="mt-14 animate-fade-in-up delay-200">
         <h2 className="font-display text-2xl font-bold">Frequently Asked</h2>
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {[
             {
-              q: "How do I list my salon on GetSalons?",
-              a: 'Click "List Your Salon" in the top navigation and fill out the registration form. Your listing will be reviewed and approved within 24 hours.',
+              q: "How do I list my salon?",
+              a: 'Click "List Your Salon" in the top nav and fill out the form. Your listing is reviewed within 24 hours.',
             },
             {
-              q: "Is GetSalons free for customers?",
-              a: "Yes! Searching, comparing and booking salons is completely free for customers. You only pay for the services at the salon.",
+              q: "Is it free for customers?",
+              a: "Yes! Searching, comparing and booking is completely free. You only pay the salon directly.",
             },
             {
-              q: "How do I report an issue with a booking?",
-              a: "Contact the salon directly through your booking confirmation or reach out to us at hello@getsalons.pk and we'll help resolve it.",
+              q: "How do I report a booking issue?",
+              a: "Use the form above or email hello@getsalons.pk with your booking number.",
             },
             {
-              q: "Can I change or cancel my booking?",
-              a: "Yes, you can reschedule or cancel bookings from your dashboard. Late cancellations may be subject to the salon's cancellation policy.",
+              q: "Can I cancel a booking?",
+              a: "Yes, from your dashboard. Free cancellation up to 2 hours before the appointment.",
             },
           ].map((item) => (
             <div
@@ -146,7 +154,7 @@ export default function ContactPage() {
               className="rounded-2xl border border-line bg-card p-5"
             >
               <h3 className="font-semibold text-fg">{item.q}</h3>
-              <p className="mt-2 text-sm text-fg-muted">{item.a}</p>
+              <p className="mt-1.5 text-sm text-fg-muted">{item.a}</p>
             </div>
           ))}
         </div>

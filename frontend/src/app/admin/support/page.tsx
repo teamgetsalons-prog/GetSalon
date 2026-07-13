@@ -16,6 +16,8 @@ interface SupportRow {
   reply?: string;
   createdAt: string;
   from?: { name?: string; email?: string; phone?: string; role?: string };
+  contactName?: string;
+  contactEmail?: string;
   salon?: { name?: string; slug?: string };
 }
 
@@ -94,8 +96,9 @@ export default function AdminSupportPage() {
                 </Badge>
               </div>
               <p className="mt-0.5 text-xs text-fg-muted">
-                {row.from?.name ?? "Unknown"} ({row.from?.role ?? "user"})
-                {row.from?.email ? ` · ${row.from.email}` : ""}
+                {row.from?.name ?? row.contactName ?? "Unknown"}
+                {row.from ? ` (${row.from.role ?? "user"})` : " (public)"}
+                {row.from?.email ? ` · ${row.from.email}` : row.contactEmail ? ` · ${row.contactEmail}` : ""}
                 {row.from?.phone ? ` · ${row.from.phone}` : ""}
                 {row.salon?.name ? ` · Salon: ${row.salon.name}` : ""}
               </p>
