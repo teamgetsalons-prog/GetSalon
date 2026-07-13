@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-const items: NavItem[] = [
+const baseItems: NavItem[] = [
   { href: "/salon-dashboard", label: "Overview", icon: "layout-dashboard", exact: true },
   { href: "/salon-dashboard/bookings", label: "Bookings", icon: "calendar" },
   { href: "/salon-dashboard/services", label: "Services", icon: "scissors" },
@@ -32,6 +32,17 @@ export default async function SalonDashboardLayout({
   const session = await getServerSession();
   if (!session) redirect("/login?callbackUrl=/salon-dashboard");
   if (!["owner", "staff", "admin"].includes(session.role)) redirect("/dashboard");
+
+  // Branch management is an owner-account concept - a single staff
+  // member is fixed to the one branch they were added to.
+  const items: NavItem[] =
+    session.role === "staff"
+      ? baseItems
+      : [
+          baseItems[0]!,
+          { href: "/salon-dashboard/branches", label: "Branches", icon: "store" },
+          ...baseItems.slice(1),
+        ];
 
   return (
     <DashboardShell title="Salon Dashboard" items={items}>

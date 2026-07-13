@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { connectDB } from "../db.js";
-import { Salon } from "../models/index.js";
 import { authenticate } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import {
@@ -8,6 +7,7 @@ import {
   upgradeSubscription,
   getSubscriptionStatus,
 } from "../services/subscription.service.js";
+import { getActorSalon } from "../services/salon.service.js";
 
 const router = Router();
 
@@ -15,7 +15,7 @@ const router = Router();
 router.get("/", authenticate, async (req, res, next) => {
   try {
     await connectDB();
-    const salon = await Salon.findOne({ owner: req.user!.id });
+    const salon = await getActorSalon(req.user!);
     if (!salon) return fail(res, "No salon found.", 404);
     const salonId = salon._id.toString();
     const [subscription, status] = await Promise.all([
@@ -34,7 +34,7 @@ router.post("/", authenticate, async (req, res, next) => {
       return fail(res, "Plan must be 'basic' or 'premium'.", 400);
     }
     await connectDB();
-    const salon = await Salon.findOne({ owner: req.user!.id });
+    const salon = await getActorSalon(req.user!);
     if (!salon) return fail(res, "No salon found.", 404);
     const subscription = await upgradeSubscription(salon._id.toString(), plan);
     ok(res, subscription, { message: `Upgraded to ${plan}.` });

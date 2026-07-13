@@ -289,17 +289,50 @@ async function getPlatformStats() {
 }
 
 /** The salon the acting user manages (owner → own salon, staff → assigned) */
+/**
+ * Resolves the salon the actor is currently operating on. Owners can run
+ * multiple branches, so the JWT's salonId - which switchActiveSalon keeps
+ * in sync with the branch they last selected - takes priority over a bare
+ * owner lookup, which would otherwise resolve arbitrarily once an owner
+ * has more than one salon.
+ */
 export async function getActorSalon(actor: {
   id: string;
   role: string;
   salonId?: string;
 }) {
   await connectDB();
-  if (actor.role === "owner") return Salon.findOne({ owner: actor.id });
+  if (actor.role === "owner") {
+    if (actor.salonId) {
+      const active = await Salon.findOne({ _id: actor.salonId, owner: actor.id });
+      if (active) return active;
+    }
+    return Salon.findOne({ owner: actor.id });
+  }
   if ((actor.role === "staff" || actor.role === "admin") && actor.salonId) {
     return Salon.findById(actor.salonId);
   }
   return null;
+}
+
+/** All branches (salons) owned by this user, newest first. */
+export async function listOwnedSalons(ownerId: string) {
+  await connectDB();
+  return Salon.find({ owner: ownerId }).sort({ createdAt: -1 }).lean();
+}
+
+/**
+ * Switches which branch an owner is actively managing: updates the
+ * durable pointer (user.salon, which login also reads) and re-issues the
+ * JWT so the dashboard, middleware, and every getActorSalon-based route
+ * resolve the new branch immediately without a re-login.
+ */
+export async function switchActiveSalon(ownerId: string, salonId: string) {
+  await connectDB();
+  const salon = await Salon.findOne({ _id: salonId, owner: ownerId });
+  if (!salon) throw new ApiError("Salon not found.", 404);
+  await User.updateOne({ _id: ownerId }, { salon: salon._id });
+  return salon;
 }
 
 async function uniqueSlug(name: string, cityName: string): Promise<string> {
@@ -321,14 +354,6 @@ const DEFAULT_HOURS = Array.from({ length: 7 }, (_, day) => ({
 
 export async function createSalon(ownerId: string, input: CreateSalonInput) {
   await connectDB();
-
-  const existing = await Salon.findOne({ owner: ownerId });
-  if (existing) {
-    throw new ApiError(
-      "You already have a salon profile. Multi-branch support is coming soon.",
-      409
-    );
-  }
 
   const city = await City.findById(input.cityId);
   if (!city || !city.isActive) throw new ApiError("Please select a valid city.");

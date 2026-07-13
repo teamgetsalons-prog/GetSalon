@@ -2,10 +2,11 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { authenticate } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { Appointment, Salon, User } from "../models/index.js";
+import { Appointment, User } from "../models/index.js";
 import { createBookingSchema, updateBookingSchema, availabilityQuerySchema } from "../../../shared/dist/validations/booking.js";
 import { createBooking, updateBooking, getAvailability } from "../services/booking.service.js";
 import { toDateKey } from "../../../shared/dist/utils.js";
+import { getActorSalon } from "../services/salon.service.js";
 
 const router = Router();
 
@@ -39,11 +40,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
   if (user.role === "customer") {
     filter.customer = user.id;
   } else if (user.role === "owner" || user.role === "staff") {
-    const salon = user.role === "owner"
-      ? await Salon.findOne({ owner: user.id }).select("_id")
-      : user.salonId
-        ? await Salon.findById(user.salonId).select("_id")
-        : null;
+    const salon = await getActorSalon(user);
     if (!salon) return ok(res, [], { pagination: { page: 1, limit, total: 0, totalPages: 0 } });
     filter.salon = salon._id;
   }
@@ -108,8 +105,8 @@ router.delete("/:id", authenticate, async (req: Request, res: Response) => {
   }
 
   if (user.role === "owner" || user.role === "staff") {
-    const salonId = user.salonId ?? (await Salon.findOne({ owner: user.id }).select("_id"))?._id?.toString();
-    if (!salonId || appointment.salon.toString() !== salonId) {
+    const salon = await getActorSalon(user);
+    if (!salon || appointment.salon.toString() !== salon._id.toString()) {
       return fail(res, "Not allowed.", 403);
     }
   }

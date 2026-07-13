@@ -3,13 +3,13 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { authenticate } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { Salon } from "../models/index.js";
 import { getSalonAnalytics, trackProfileView, trackPhoneClick, trackWhatsAppClick } from "../services/analytics.service.js";
+import { getActorSalon } from "../services/salon.service.js";
 
 const router = Router();
 
 router.get("/", authenticate, async (req: Request, res: Response) => {
-  const salon = await Salon.findOne({ owner: req.user!.id });
+  const salon = await getActorSalon(req.user!);
   if (!salon) return fail(res, "No salon found.", 404);
 
   const analytics = await getSalonAnalytics(salon._id.toString());

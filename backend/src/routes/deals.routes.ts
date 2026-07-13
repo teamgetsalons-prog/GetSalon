@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { Deal, Salon, Service } from "../models/index.js";
+import { getActorSalon } from "../services/salon.service.js";
 
 const router = Router();
 
@@ -95,7 +96,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 // ── Owner: list my salon's deals ───────────────────────────
 
 router.get("/owner/mine", authenticate, requireRole("owner"), async (req: Request, res: Response) => {
-  const salon = await Salon.findOne({ owner: req.user!.id }).select("_id");
+  const salon = await getActorSalon(req.user!);
   if (!salon) return fail(res, "No salon found.", 404);
 
   const deals = await Deal.find({ salon: salon._id })
@@ -110,7 +111,7 @@ router.get("/owner/mine", authenticate, requireRole("owner"), async (req: Reques
 
 router.post("/", authenticate, requireRole("owner"), async (req: Request, res: Response) => {
   const input = createDealSchema.parse(req.body);
-  const salon = await Salon.findOne({ owner: req.user!.id });
+  const salon = await getActorSalon(req.user!);
   if (!salon) return fail(res, "No salon found.", 404);
 
   let serviceName: string | undefined;
@@ -149,7 +150,7 @@ router.patch("/:id", authenticate, requireRole("owner"), async (req: Request, re
   const deal = await Deal.findById(req.params.id);
   if (!deal) return fail(res, "Deal not found.", 404);
 
-  const salon = await Salon.findOne({ owner: req.user!.id });
+  const salon = await getActorSalon(req.user!);
   if (!salon || deal.salon.toString() !== salon._id.toString()) {
     return fail(res, "Not allowed.", 403);
   }
@@ -191,7 +192,7 @@ router.patch("/:id/toggle", authenticate, requireRole("owner"), async (req: Requ
   const deal = await Deal.findById(req.params.id);
   if (!deal) return fail(res, "Deal not found.", 404);
 
-  const salon = await Salon.findOne({ owner: req.user!.id });
+  const salon = await getActorSalon(req.user!);
   if (!salon || deal.salon.toString() !== salon._id.toString()) {
     return fail(res, "Not allowed.", 403);
   }
@@ -211,7 +212,7 @@ router.delete("/:id", authenticate, requireRole("owner"), async (req: Request, r
   const deal = await Deal.findById(req.params.id);
   if (!deal) return fail(res, "Deal not found.", 404);
 
-  const salon = await Salon.findOne({ owner: req.user!.id });
+  const salon = await getActorSalon(req.user!);
   if (!salon || deal.salon.toString() !== salon._id.toString()) {
     return fail(res, "Not allowed.", 403);
   }

@@ -4,6 +4,7 @@ import { authenticate } from "../middleware/auth.js";
 import { ok } from "../middleware/error-handler.js";
 import { Appointment, Salon, SupportMessage } from "../models/index.js";
 import { toDateKey } from "../../../shared/dist/utils.js";
+import { getActorSalon } from "../services/salon.service.js";
 
 const router = Router();
 
@@ -24,12 +25,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
     if (pendingSalons) badges["/admin/salons"] = pendingSalons;
     if (openSupport) badges["/admin/support"] = openSupport;
   } else if (user.role === "owner" || user.role === "staff") {
-    const salon =
-      user.role === "owner"
-        ? await Salon.findOne({ owner: user.id }).select("_id")
-        : user.salonId
-          ? await Salon.findById(user.salonId).select("_id")
-          : null;
+    const salon = await getActorSalon(user);
     const [pendingBookings, unreadReplies] = await Promise.all([
       salon
         ? Appointment.countDocuments({

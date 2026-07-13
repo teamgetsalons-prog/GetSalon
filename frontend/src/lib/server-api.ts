@@ -212,6 +212,25 @@ export async function getManagedSalon(): Promise<ManagedSalon | null> {
   return res.success && res.data ? res.data : null;
 }
 
+/** One branch in an owner's "my branches" list */
+export interface OwnedSalonSummary {
+  id: string;
+  name: string;
+  slug: string;
+  status: "pending" | "approved" | "rejected" | "suspended";
+  cityName: string;
+  areaName?: string;
+  address: string;
+  isFeatured: boolean;
+  createdAt: string;
+}
+
+/** Every branch owned by the logged-in owner, across statuses */
+export async function getMySalonsApi(): Promise<OwnedSalonSummary[]> {
+  const res = await serverFetch<OwnedSalonSummary[]>("/salons/mine");
+  return res.success && res.data ? res.data : [];
+}
+
 // ── Blog helpers ────────────────────────────────────────
 
 export interface BlogPostPublic {

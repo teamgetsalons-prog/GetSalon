@@ -4,7 +4,7 @@ import { authenticate, optionalAuth, requireRole, signToken, authCookieOptions }
 import { ok, fail } from "../middleware/error-handler.js";
 import { Salon } from "../models/index.js";
 import { createSalonSchema, searchSalonsSchema, updateSalonSchema } from "../../../shared/dist/validations/salon.js";
-import { createSalon, getHomePageData, getSalonPageData, searchSalons, updateSalon, moderateSalon } from "../services/salon.service.js";
+import { createSalon, getHomePageData, getSalonPageData, searchSalons, updateSalon, moderateSalon, listOwnedSalons, switchActiveSalon } from "../services/salon.service.js";
 import { deleteImage } from "../services/upload.service.js";
 
 const router = Router();
@@ -52,6 +52,40 @@ router.post("/", authenticate, async (req: Request, res: Response) => {
   res.cookie("getsalons_token", token, authCookieOptions);
 
   return ok(res, { id: salon._id.toString(), slug: salon.slug, status: salon.status }, undefined, 201);
+});
+
+// Must come before GET /:id - otherwise "mine" is captured as an :id param.
+router.get("/mine", authenticate, requireRole("owner"), async (req: Request, res: Response) => {
+  const salons = await listOwnedSalons(req.user!.id);
+  return ok(
+    res,
+    salons.map((s) => ({
+      id: s._id.toString(),
+      name: s.name,
+      slug: s.slug,
+      status: s.status,
+      cityName: s.cityName,
+      areaName: s.areaName,
+      address: s.address,
+      isFeatured: s.isFeatured,
+      createdAt: s.createdAt,
+    }))
+  );
+});
+
+router.post("/:id/switch", authenticate, requireRole("owner"), async (req: Request, res: Response) => {
+  const salon = await switchActiveSalon(req.user!.id, req.params.id as string);
+
+  // Re-issue the session so every getActorSalon-based route and the
+  // dashboard's own salonId lookups resolve to the newly active branch.
+  const token = signToken({
+    id: req.user!.id,
+    role: "owner",
+    salonId: salon._id.toString(),
+  });
+  res.cookie("getsalons_token", token, authCookieOptions);
+
+  return ok(res, { id: salon._id.toString(), slug: salon.slug, status: salon.status });
 });
 
 router.get("/:id", authenticate, async (req: Request, res: Response) => {
