@@ -131,11 +131,16 @@ export function Navbar() {
         <div className="hidden items-center gap-1 lg:flex">
           {navLinks.map((link) => {
             const hasCategory = searchParams.get("category");
-            const isActive = link.hasDropdown && link.type === "services"
-              ? !!hasCategory
-              : link.hasDropdown && !link.type
-                ? pathname.startsWith(link.href) && !hasCategory
-                : pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
+            let isActive = false;
+            if (link.href === "/") {
+              isActive = pathname === "/";
+            } else if (link.hasDropdown && link.type === "services") {
+              isActive = !!hasCategory;
+            } else if (link.hasDropdown && !link.type) {
+              isActive = (pathname === "/salons" || pathname.startsWith("/salons/")) && !hasCategory;
+            } else {
+              isActive = pathname === link.href || pathname.startsWith(link.href + "/");
+            }
             const isFindSalons = link.hasDropdown && !link.type;
             const isServices = link.hasDropdown && link.type === "services";
             const isHighlight = "isHighlight" in link && link.isHighlight;
