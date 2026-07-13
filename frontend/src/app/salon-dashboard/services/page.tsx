@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession, serverFetch } from "@/lib/server-api";
+import { getCategoriesApi, getServerSession, serverFetch } from "@/lib/server-api";
 import {
   ServicesManager,
   type ServiceRow,
@@ -13,14 +13,16 @@ export default async function SalonServicesPage() {
   if (!session) redirect("/login?callbackUrl=/salon-dashboard/services");
   if (!session.salonId) return <NoSalonYet />;
 
-  const res = await serverFetch<ServiceRow[]>(
-    `/services?salonId=${session.salonId}&all=1`
-  );
+  const [res, categories] = await Promise.all([
+    serverFetch<ServiceRow[]>(`/services?salonId=${session.salonId}&all=1`),
+    getCategoriesApi(),
+  ]);
   const rows = res.success && res.data ? res.data : [];
 
   return (
     <ServicesManager
       salonId={session.salonId}
+      categories={categories.map((c) => ({ _id: c._id, name: c.name }))}
       initial={rows.map((s) => ({
         _id: String(s._id),
         name: s.name,
@@ -30,6 +32,7 @@ export default async function SalonServicesPage() {
         discountPrice: s.discountPrice,
         isActive: s.isActive,
         isPopular: s.isPopular,
+        category: s.category,
       }))}
     />
   );

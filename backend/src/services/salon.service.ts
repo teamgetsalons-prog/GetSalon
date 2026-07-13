@@ -72,6 +72,10 @@ export async function searchSalons(input: SearchSalonsInput): Promise<{
   await connectDB();
 
   const filter: FilterQuery<ISalon> = { status: "approved" };
+  // Collected separately (rather than written straight to filter.$or) so the
+  // category match and the text search below can't silently clobber each
+  // other when both are active at once.
+  const andClauses: Record<string, unknown>[] = [];
 
   if (input.city) {
     const city = await City.findOne({ slug: input.city });
@@ -86,20 +90,34 @@ export async function searchSalons(input: SearchSalonsInput): Promise<{
 
   if (input.category) {
     const category = await Category.findOne({ slug: input.category });
-    if (category) filter.categories = category._id;
+    if (!category) return { salons: [], total: 0, page: 1, totalPages: 0 };
+    // A salon matches a category either because the owner tagged the salon
+    // itself with it, or because one of the salon's own services is tagged
+    // with it - a salon offering a "Nail Art" service should show up under
+    // the Nail Art category even if it never explicitly picked that tag.
+    const taggedServiceSalonIds = await Service.distinct("salon", {
+      category: category._id,
+      isActive: true,
+    });
+    andClauses.push({
+      $or: [{ categories: category._id }, { _id: { $in: taggedServiceSalonIds } }],
+    });
   }
 
   if (input.service) {
-    // Find salons that have at least one active service matching this slug
-    const matchingService = await Service.findOne({
-      slug: input.service,
+    // Find every salon with at least one active service whose name matches
+    // (services have no slug field, so we match on name against the
+    // human-readable slug segment instead of a single findOne lookup).
+    const escaped = input.service.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const rx = new RegExp(escaped.replace(/[-_]/g, "[ -]?"), "i");
+    const matchingSalonIds = await Service.distinct("salon", {
+      name: rx,
       isActive: true,
-    }).select("salon");
-    if (matchingService) {
-      filter._id = { $in: [matchingService.salon] };
-    } else {
+    });
+    if (matchingSalonIds.length === 0) {
       return { salons: [], total: 0, page: 1, totalPages: 0 };
     }
+    andClauses.push({ _id: { $in: matchingSalonIds } });
   }
 
   if (input.gender) filter.genderServed = input.gender;
@@ -107,6 +125,9 @@ export async function searchSalons(input: SearchSalonsInput): Promise<{
   if (input.rating) filter["rating.average"] = { $gte: input.rating };
 
   // Deals: only salons with at least one active discounted service.
+  // Pushed as its own $and clause rather than written to filter._id, so it
+  // naturally intersects with the category/service clauses above instead of
+  // needing manual set intersection.
   if (input.deals) {
     const dealSalonIds = await Service.distinct("salon", {
       isActive: true,
@@ -116,16 +137,7 @@ export async function searchSalons(input: SearchSalonsInput): Promise<{
     if (dealSalonIds.length === 0) {
       return { salons: [], total: 0, page: 1, totalPages: 0 };
     }
-    const prior = filter._id as { $in?: { toString(): string }[] } | undefined;
-    if (prior?.$in) {
-      // Intersect with an earlier _id constraint (the service filter).
-      const priorSet = new Set(prior.$in.map((id) => id.toString()));
-      const both = dealSalonIds.filter((id) => priorSet.has(id.toString()));
-      if (both.length === 0) return { salons: [], total: 0, page: 1, totalPages: 0 };
-      filter._id = { $in: both };
-    } else {
-      filter._id = { $in: dealSalonIds };
-    }
+    andClauses.push({ _id: { $in: dealSalonIds } });
   }
 
   // Price overlap: salon range intersects the requested range
@@ -150,8 +162,10 @@ export async function searchSalons(input: SearchSalonsInput): Promise<{
 
   if (input.q) {
     const rx = new RegExp(input.q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-    filter.$or = [{ name: rx }, { description: rx }, { tags: rx }, { areaName: rx }];
+    andClauses.push({ $or: [{ name: rx }, { description: rx }, { tags: rx }, { areaName: rx }] });
   }
+
+  if (andClauses.length) filter.$and = andClauses;
 
   const sortMap: Record<string, Record<string, 1 | -1>> = {
     recommended: { isFeatured: -1, "rating.average": -1, "rating.count": -1 },

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { cn } from "@getsalons/shared/utils";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import type { GenderServed } from "@getsalons/shared/types";
@@ -21,13 +22,16 @@ export interface SalonSettingsData {
   facebook: string;
   tiktok: string;
   cancellationPolicy: string;
+  categoryIds: string[];
 }
 
 export function SalonSettingsForm({
   salonId,
+  categories,
   initial,
 }: {
   salonId: string;
+  categories: { _id: string; name: string }[];
   initial: SalonSettingsData;
 }) {
   const [form, setForm] = useState(initial);
@@ -41,8 +45,21 @@ export function SalonSettingsForm({
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  function toggleCategory(id: string) {
+    set(
+      "categoryIds",
+      form.categoryIds.includes(id)
+        ? form.categoryIds.filter((c) => c !== id)
+        : [...form.categoryIds, id]
+    );
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (form.categoryIds.length === 0) {
+      setMessage("Select at least one category so customers can find you.");
+      return;
+    }
     setSaving(true);
     setMessage(null);
     const res = await api(`/api/salons/${salonId}`, {
@@ -60,6 +77,7 @@ export function SalonSettingsForm({
         homeService: form.homeService,
         socials: { instagram: form.instagram, facebook: form.facebook, tiktok: form.tiktok },
         policies: { cancellation: form.cancellationPolicy },
+        categoryIds: form.categoryIds,
       },
     });
     setSaving(false);
@@ -80,6 +98,29 @@ export function SalonSettingsForm({
         <div>
           <Label required>Salon name</Label>
           <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
+        </div>
+        <div>
+          <Label required>Categories</Label>
+          <p className="mb-2 text-xs text-fg-muted">
+            Customers filter and browse by these — pick every category that matches a service you offer.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <button
+                key={cat._id}
+                type="button"
+                onClick={() => toggleCategory(cat._id)}
+                className={cn(
+                  "cursor-pointer rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
+                  form.categoryIds.includes(cat._id)
+                    ? "border-gold-500 bg-gold-500/15 text-gold"
+                    : "border-line text-fg-muted hover:border-gold-500/40"
+                )}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
         </div>
         <div>
           <Label required>Short description</Label>

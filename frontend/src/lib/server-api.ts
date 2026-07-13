@@ -77,6 +77,7 @@ export interface SalonPublicData {
   faqs?: { question: string; answer: string }[];
   policies?: { cancellation?: string; notes?: string };
   location?: { coordinates: [number, number] };
+  categories?: { _id: string; name: string; slug: string }[];
 }
 
 export interface SalonPageData {

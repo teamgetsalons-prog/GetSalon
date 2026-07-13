@@ -7,7 +7,7 @@ import { formatPKR } from "@getsalons/shared/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
-import { Input, Label, Textarea } from "@/components/ui/input";
+import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/misc";
 
 export interface ServiceRow {
@@ -19,6 +19,7 @@ export interface ServiceRow {
   discountPrice?: number;
   isActive: boolean;
   isPopular: boolean;
+  category?: { _id: string; name: string } | null;
 }
 
 // Numeric fields are kept as STRINGS while editing: binding a number
@@ -33,14 +34,17 @@ const emptyDraft = {
   discountPrice: "",
   isPopular: false,
   isActive: true,
+  categoryId: "",
 };
 
 export function ServicesManager({
   salonId,
   initial,
+  categories,
 }: {
   salonId: string;
   initial: ServiceRow[];
+  categories: { _id: string; name: string }[];
 }) {
   const [rows, setRows] = useState(initial);
   const [editing, setEditing] = useState<ServiceRow | "new" | null>(null);
@@ -68,6 +72,7 @@ export function ServicesManager({
       discountPrice: row.discountPrice ? String(row.discountPrice) : "",
       isPopular: row.isPopular,
       isActive: row.isActive,
+      categoryId: row.category?._id ?? "",
     });
     setEditing(row);
     setError(null);
@@ -109,6 +114,7 @@ export function ServicesManager({
       discountPrice,
       isPopular: draft.isPopular,
       isActive: draft.isActive,
+      categoryId: draft.categoryId || undefined,
     };
     const res =
       editing === "new"
@@ -158,6 +164,7 @@ export function ServicesManager({
                   {row.name}
                   {row.isPopular && <Badge variant="gold">Popular</Badge>}
                   {!row.isActive && <Badge variant="danger">Hidden</Badge>}
+                  {row.category && <Badge variant="neutral">{row.category.name}</Badge>}
                 </p>
                 <p className="mt-0.5 text-xs text-fg-muted">
                   {row.duration} min ·{" "}
@@ -218,6 +225,21 @@ export function ServicesManager({
               rows={2}
               maxLength={500}
             />
+          </div>
+          <div>
+            <Label>Category</Label>
+            <Select
+              value={draft.categoryId}
+              onChange={(e) => setDraft({ ...draft, categoryId: e.target.value })}
+            >
+              <option value="">No category</option>
+              {categories.map((c) => (
+                <option key={c._id} value={c._id}>{c.name}</option>
+              ))}
+            </Select>
+            <p className="mt-1 text-xs text-fg-muted">
+              Helps this service show up when customers browse or filter by category.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div>

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getManagedSalon, getServerSession } from "@/lib/server-api";
+import { getCategoriesApi, getManagedSalon, getServerSession } from "@/lib/server-api";
 import { SalonSettingsForm } from "@/components/dashboard/salon-settings-form";
 import { NoSalonYet } from "@/components/dashboard/no-salon";
 import type { GenderServed } from "@getsalons/shared/types";
@@ -13,9 +13,12 @@ export default async function SalonSettingsPage() {
   const salon = await getManagedSalon();
   if (!salon) return <NoSalonYet />;
 
+  const categories = await getCategoriesApi();
+
   return (
     <SalonSettingsForm
       salonId={salon._id}
+      categories={categories.map((c) => ({ _id: c._id, name: c.name }))}
       initial={{
         name: salon.name,
         description: salon.description,
@@ -31,6 +34,7 @@ export default async function SalonSettingsPage() {
         facebook: salon.socials?.facebook ?? "",
         tiktok: salon.socials?.tiktok ?? "",
         cancellationPolicy: salon.policies?.cancellation ?? "",
+        categoryIds: (salon.categories ?? []).map((c) => c._id),
       }}
     />
   );
