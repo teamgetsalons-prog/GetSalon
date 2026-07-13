@@ -1,1 +1,0 @@
-export * from "@getsalons/shared/types";
