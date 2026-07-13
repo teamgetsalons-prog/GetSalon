@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE } from "./constants";
+import { SITE } from "@getsalons/shared/constants";
 import { absoluteUrl, truncate } from "./utils";
 
 /**
@@ -52,7 +52,11 @@ export function organizationJsonLd() {
     name: SITE.name,
     url: SITE.url,
     logo: absoluteUrl("/icon.svg"),
-    sameAs: [],
+    sameAs: [
+      "https://www.facebook.com/getsalonsPK",
+      "https://www.instagram.com/getsalonsPK",
+      "https://www.tiktok.com/@getsalonsPK",
+    ],
     description: SITE.description,
   };
 }

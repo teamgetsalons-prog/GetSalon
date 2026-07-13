@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Trophy, Star, MapPin, TrendingUp, Award } from "lucide-react";
 import { getCitiesApi, searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
@@ -171,10 +172,12 @@ export default async function TopSalonsPage({
 
                 <Link href={`/salon/${salon.slug}`}>
                   <div className="relative aspect-[16/10] overflow-hidden">
-                    <img
-                      src={salon.coverImage ?? ""}
-                      alt={salon.name}
-                      className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                    <Image
+                      src={salon.coverImage ?? "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80"}
+                      alt={`${salon.name} — top rated salon in ${salon.cityName}`}
+                      fill
+                      className="object-cover transition-transform duration-300 hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3">

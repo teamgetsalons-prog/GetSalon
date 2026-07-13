@@ -11,8 +11,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: SITE.url, changeFrequency: "daily", priority: 1 },
     { url: `${SITE.url}/salons`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE.url}/top-salons`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE.url}/offers`, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE.url}/partner`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE.url}/blog`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${SITE.url}/about`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE.url}/contact`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE.url}/terms`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE.url}/privacy`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const serviceSlugs = [
@@ -28,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const [salons, cities, categories, blogResult] = await Promise.all([
-      searchSalonsApi({ limit: 50, sort: "newest" }),
+      searchSalonsApi({ limit: 200, sort: "newest" }),
       getCitiesApi(),
       getCategoriesApi(),
       getBlogPosts({ limit: 100 }),
@@ -47,18 +52,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "daily" as const,
         priority: 0.8,
       })),
-      // Category search pages
-      ...categories.map((c) => ({
-        url: `${SITE.url}/salons?category=${c.slug}`,
-        changeFrequency: "daily" as const,
-        priority: 0.6,
-      })),
-      // Service landing pages
+      // Service landing pages (path-based, SEO-friendly)
       ...serviceSlugs.map((s) => ({
         url: `${SITE.url}/services/${s}`,
         changeFrequency: "daily" as const,
         priority: 0.7,
       })),
+      // City + service combo pages
+      ...cities.flatMap((c) =>
+        serviceSlugs.slice(0, 4).map((s) => ({
+          url: `${SITE.url}/salons/${c.slug}/${s}`,
+          changeFrequency: "daily" as const,
+          priority: 0.6,
+        }))
+      ),
       // Blog posts
       ...blogResult.posts.map((p) => ({
         url: `${SITE.url}/blog/${p.slug}`,

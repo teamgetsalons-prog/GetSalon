@@ -8,7 +8,7 @@ import {
 } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +74,7 @@ export default async function CitySalonsPage({ params }: Params) {
             description: `Discover and book the best salons in ${cityName} on GetSalons`,
             url: `${SITE.url}/salons/${city}`,
           },
+          faqJsonLd(faqs),
         ]}
       />
 

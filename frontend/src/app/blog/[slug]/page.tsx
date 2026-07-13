@@ -109,7 +109,7 @@ export default async function BlogPostPage({ params }: Params) {
             headline: post.title,
             description: post.excerpt,
             image: post.coverImage,
-            author: { "@type": "Organization", name: post.author },
+            author: { "@type": "Person", name: post.author },
             publisher: {
               "@type": "Organization",
               name: SITE.name,

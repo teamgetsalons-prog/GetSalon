@@ -22,7 +22,7 @@ export function SalonCard({
   return (
     <Link
       href={`/salon/${salon.slug}`}
-      className="group overflow-hidden rounded-2xl border border-line bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold-500/40 hover:shadow-lg hover:shadow-gold-500/5"
+      className="group block overflow-hidden rounded-2xl bg-card ring-1 ring-line shadow-sm transition-all hover:-translate-y-0.5 hover:ring-gold-500/40 hover:shadow-lg hover:shadow-gold-500/5"
     >
       <div className="relative aspect-[16/10] overflow-hidden">
         <Image

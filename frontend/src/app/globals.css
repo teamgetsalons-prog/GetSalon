@@ -261,3 +261,12 @@ body {
   background-size: 200% 200%;
   animation: gradient-shift 6s ease infinite;
 }
+
+/* ── Dark mode select dropdown fix ── */
+.dark select {
+  color-scheme: dark;
+}
+.dark select option {
+  background-color: var(--sh-card);
+  color: var(--sh-fg);
+}

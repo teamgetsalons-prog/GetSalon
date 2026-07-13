@@ -7,6 +7,7 @@ const envSchema = z.object({
   APP_URL: z.string().url().default("http://localhost:3000"),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
   GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
@@ -18,6 +19,7 @@ const envSchema = z.object({
   WHATSAPP_PROVIDER: z.string().default("console"),
   WHATSAPP_API_URL: z.string().optional(),
   WHATSAPP_API_TOKEN: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

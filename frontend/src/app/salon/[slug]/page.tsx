@@ -114,7 +114,7 @@ export default async function SalonPage({ params }: Params) {
           breadcrumbJsonLd([
             { name: "Home", path: "/" },
             { name: "Salons", path: "/salons" },
-            { name: salon.cityName, path: `/salons?city=${salon.cityName.toLowerCase()}` },
+            { name: salon.cityName, path: `/salons/${salon.cityName.toLowerCase()}` },
             { name: salon.name, path: `/salon/${salon.slug}` },
           ]),
           ...(salon.faqs && salon.faqs.length
@@ -300,7 +300,7 @@ export default async function SalonPage({ params }: Params) {
                   >
                     {deal.image && (
                       <div className="hidden h-16 w-16 shrink-0 overflow-hidden rounded-xl sm:block">
-                        <img src={deal.image} alt="" className="h-full w-full object-cover" />
+                        <img src={deal.image} alt={deal.title} className="h-full w-full object-cover" loading="lazy" />
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
@@ -345,6 +345,7 @@ export default async function SalonPage({ params }: Params) {
                           src={member.avatar}
                           alt={member.name}
                           className="h-full w-full object-cover"
+                          loading="lazy"
                         />
                       ) : (
                         <span className="flex h-full w-full items-center justify-center text-lg font-bold text-gold">

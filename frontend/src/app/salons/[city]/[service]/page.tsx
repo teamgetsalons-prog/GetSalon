@@ -4,7 +4,7 @@ import { MapPin, Star, Clock, CheckCircle, Scissors } from "lucide-react";
 import { searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +77,7 @@ export default async function CityServiceSalonsPage({ params }: Params) {
             description: `Find and book the best ${serviceName.toLowerCase()} services in ${cityName} on GetSalons`,
             url: `${SITE.url}/salons/${city}/${service}`,
           },
+          faqJsonLd(faqs),
         ]}
       />
 

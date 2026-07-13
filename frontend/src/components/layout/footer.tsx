@@ -8,10 +8,10 @@ const columns = [
     links: [
       { label: "Find Salons", href: "/salons" },
       { label: "Top Salons", href: "/top-salons" },
-      { label: "Salons in Lahore", href: "/salons?city=lahore" },
-      { label: "Salons in Karachi", href: "/salons?city=karachi" },
-      { label: "Salons in Islamabad", href: "/salons?city=islamabad" },
-      { label: "Beauty Blog", href: "/blog" },
+      { label: "Salons in Lahore", href: "/salons/lahore" },
+      { label: "Salons in Karachi", href: "/salons/karachi" },
+      { label: "Salons in Islamabad", href: "/salons/islamabad" },
+      { label: "Offers", href: "/offers" },
     ],
   },
   {
@@ -27,7 +27,6 @@ const columns = [
     links: [
       { label: "About Us", href: "/about" },
       { label: "Contact Us", href: "/contact" },
-      { label: "FAQs", href: "/#faq" },
       { label: "Beauty Blog", href: "/blog" },
     ],
   },

@@ -22,6 +22,24 @@ import type { SalonCardData } from "@getsalons/shared/types";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata() {
+  return {
+    title: "GetSalons — Book Salons, Barbers & Spas Online in Pakistan",
+    description:
+      "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan. Compare prices, read verified reviews and book appointments online — free.",
+    alternates: { canonical: "https://www.getsalons.com" },
+    openGraph: {
+      title: "GetSalons — Book Salons, Barbers & Spas Online in Pakistan",
+      description:
+        "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan. Compare prices, read verified reviews and book appointments online — free.",
+      url: "https://www.getsalons.com",
+      siteName: "GetSalons",
+      locale: "en_PK",
+      type: "website",
+    },
+  };
+}
+
 async function loadData(): Promise<HomePageData & { popular: SalonCardData[] }> {
   const [home, popularResult] = await Promise.all([
     getHomePageData(),
@@ -50,7 +68,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 -z-10">
           <Image
             src="https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=1280&q=75"
-            alt=""
+            alt="GetSalons — Pakistan's leading salon discovery and booking platform"
             fill
             priority
             className="object-cover"
@@ -61,6 +79,9 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-black/50" />
         </div>
 
+        <h1 className="sr-only">
+          GetSalons — Book Salons, Barbers & Spas Online in Pakistan
+        </h1>
         <AnimatedHero cities={data.cities} stats={data.stats} />
       </section>
 

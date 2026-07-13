@@ -7,10 +7,11 @@ import {
   Star,
   Users,
 } from "lucide-react";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = buildMetadata({
-  title: "List Your Salon — Grow Your Beauty Business",
+  title: "List Your Salon — Grow Your Beauty Business | GetSalons",
   description:
     "Join GetSalons Pakistan as a partner salon. Get discovered by thousands of customers, accept online bookings 24/7, manage staff and build your reputation — completely free.",
   path: "/partner",
@@ -47,6 +48,22 @@ const perks = [
 export default function PartnerPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Partner", path: "/partner" },
+          ]),
+        ]}
+      />
+
+      {/* Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="mb-4 text-xs text-fg-faint">
+        <Link href="/" className="hover:text-gold">Home</Link>
+        <span className="mx-1.5">/</span>
+        <span className="text-fg-muted">Partner</span>
+      </nav>
+
       {/* Hero */}
       <div className="text-center">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-gold">

@@ -1,9 +1,9 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { SITE } from "../../../shared/dist/constants.js";
 
 /**
- * Email delivery via Nodemailer SMTP.
- * Gracefully no-ops (with a log) when SMTP env vars are missing,
+ * Email delivery via Resend API.
+ * Gracefully no-ops (with a log) when RESEND_API_KEY is missing,
  * so development works without an email account.
  */
 
@@ -16,16 +16,14 @@ function escapeHtml(str: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function getTransport() {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) return null;
+let _resend: Resend | null = null;
 
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT || 587),
-    secure: Number(SMTP_PORT) === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  });
+function getResend(): Resend | null {
+  if (_resend) return _resend;
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  _resend = new Resend(apiKey);
+  return _resend;
 }
 
 function baseTemplate(title: string, bodyHtml: string): string {
@@ -65,16 +63,16 @@ export async function sendEmail(opts: {
   title: string;
   html: string;
 }): Promise<void> {
-  const transport = getTransport();
-  if (!transport) {
+  const resend = getResend();
+  if (!resend) {
     console.log(
-      `[email:skipped] to=${opts.to} subject="${opts.subject}" (SMTP not configured)`
+      `[email:skipped] to=${opts.to} subject="${opts.subject}" (RESEND_API_KEY not configured)`
     );
     return;
   }
   try {
-    await transport.sendMail({
-      from: process.env.SMTP_FROM || `"${SITE.name}" <team@getsalons.com>`,
+    await resend.emails.send({
+      from: process.env.SMTP_FROM || `GetSalons <onboarding@resend.dev>`,
       to: opts.to,
       subject: opts.subject,
       html: baseTemplate(opts.title, opts.html),

@@ -187,7 +187,7 @@ export function Navbar() {
                       {cities.map((city) => (
                         <Link
                           key={city.slug}
-                          href={`/salons?city=${city.slug}`}
+                          href={`/salons/${city.slug}`}
                           className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
                         >
                           <MapPin className="h-3.5 w-3.5 text-gold-500/60" />
@@ -440,7 +440,7 @@ export function Navbar() {
                   {cities.map((city) => (
                     <Link
                       key={city.slug}
-                      href={`/salons?city=${city.slug}`}
+                      href={`/salons/${city.slug}`}
                       onClick={() => setMobileOpen(false)}
                       className="block rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
                     >

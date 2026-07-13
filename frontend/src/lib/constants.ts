@@ -6,7 +6,7 @@ export const SITE = {
   tagline: "Pakistan's #1 Salon Discovery & Booking Platform",
   description:
     "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan. Compare prices, read verified reviews and book appointments online — free.",
-  url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://www.getsalons.com",
   locale: "en_PK",
   twitter: "@getsalonsPK",
 } as const;

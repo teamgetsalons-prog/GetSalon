@@ -32,6 +32,27 @@ router.get("/", async (req: Request, res: Response) => {
   });
 });
 
+router.get("/mine", authenticate, async (req: Request, res: Response) => {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(50, Number(req.query.limit) || 20);
+
+  const filter = { customer: req.user!.id };
+
+  const [reviews, total] = await Promise.all([
+    Review.find(filter)
+      .populate("salon", "name slug coverImage")
+      .populate("staff", "name")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    Review.countDocuments(filter),
+  ]);
+
+  return ok(res, reviews, {
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  });
+});
+
 router.post("/", authenticate, async (req: Request, res: Response) => {
   const input = createReviewSchema.parse(req.body);
   const review = await createReview(req.user!.id, input);
