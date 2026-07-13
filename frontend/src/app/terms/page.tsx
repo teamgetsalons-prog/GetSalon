@@ -188,8 +188,8 @@ export default function TermsPage() {
             <h2 className="font-display text-xl font-bold text-fg">13. Contact</h2>
             <p className="mt-3">
               For questions about these Terms, contact us at{" "}
-              <a href="mailto:legal@getsalons.pk" className="text-gold hover:underline">
-                legal@getsalons.pk
+              <a href="mailto:team@getsalons.com" className="text-gold hover:underline">
+                team@getsalons.com
               </a>
               {" "}or visit our{" "}
               <Link href="/contact" className="text-gold hover:underline">

@@ -16,15 +16,15 @@ const contactMethods = [
   {
     icon: Mail,
     label: "Email",
-    value: "hello@getsalons.pk",
-    href: "mailto:hello@getsalons.pk",
+    value: "team@getsalons.com",
+    href: "mailto:team@getsalons.com",
     description: "For general enquiries, partnerships and support.",
   },
   {
     icon: MessageCircle,
     label: "WhatsApp",
-    value: "+92 300 1234567",
-    href: "https://wa.me/923001234567",
+    value: "+92 309 8899061",
+    href: "https://wa.me/923098899061",
     description: "Quick responses during business hours.",
   },
   {
@@ -142,7 +142,7 @@ export default function ContactPage() {
             },
             {
               q: "How do I report a booking issue?",
-              a: "Use the form above or email hello@getsalons.pk with your booking number.",
+              a: "Use the form above or email team@getsalons.com with your booking number.",
             },
             {
               q: "Can I cancel a booking?",

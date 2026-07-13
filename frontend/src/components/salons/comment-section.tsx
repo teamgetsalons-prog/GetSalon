@@ -33,7 +33,7 @@ export function CommentSection({
         if (res.success && res.data) {
           const newComments = res.data.map((c: any) => ({
             ...c,
-            customerName: c.customer?.name || "Anonymous",
+            customerName: c.customer?.name || "User",
             customerAvatar: c.customer?.image,
             helpfulCount: c.helpfulVotes?.length || 0,
             isOwner: currentUserId && c.customer?._id === currentUserId,

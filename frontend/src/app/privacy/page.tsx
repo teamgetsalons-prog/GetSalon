@@ -128,8 +128,8 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               To exercise any of these rights, contact us at{" "}
-              <a href="mailto:privacy@getsalons.pk" className="text-gold hover:underline">
-                privacy@getsalons.pk
+              <a href="mailto:team@getsalons.com" className="text-gold hover:underline">
+                team@getsalons.com
               </a>.
             </p>
           </section>
@@ -162,8 +162,8 @@ export default function PrivacyPage() {
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>Email:{" "}
-                <a href="mailto:privacy@getsalons.pk" className="text-gold hover:underline">
-                  privacy@getsalons.pk
+                <a href="mailto:team@getsalons.com" className="text-gold hover:underline">
+                  team@getsalons.com
                 </a>
               </li>
               <li>Website:{" "}

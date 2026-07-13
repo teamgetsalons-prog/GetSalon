@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Send, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Send, Loader2, LogIn } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { StarPicker } from "@/components/ui/star-rating";
 
@@ -14,6 +16,8 @@ export function CommentForm({
   salonName: string;
   onCommentAdded: () => void;
 }) {
+  const { user } = useAuth();
+  const router = useRouter();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -58,6 +62,30 @@ export function CommentForm({
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (!user) {
+    return (
+      <div className="rounded-2xl border border-line bg-card p-5">
+        <h3 className="text-sm font-semibold text-fg">Write a Review</h3>
+        <p className="mt-1 text-xs text-fg-muted">
+          Share your experience at {salonName}
+        </p>
+        <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-bg-soft p-6 text-center">
+          <LogIn className="h-8 w-8 text-fg-faint" />
+          <p className="text-sm text-fg-muted">
+            Please log in to write a review
+          </p>
+          <button
+            onClick={() => router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`)}
+            className="flex items-center gap-2 rounded-xl bg-gold-500 px-4 py-2 text-sm font-semibold text-gold-950 transition-colors hover:bg-gold-400"
+          >
+            <LogIn className="h-4 w-4" />
+            Log In
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
