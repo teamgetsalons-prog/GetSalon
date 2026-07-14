@@ -356,7 +356,7 @@ export default async function SalonPage({ params }: Params) {
                 {salon.gallery.slice(0, 9).map((img, i) => (
                   <span
                     key={img.url}
-                    className={`relative overflow-hidden rounded-2xl ${i === 0 ? "col-span-2 row-span-2 aspect-square sm:aspect-auto" : "aspect-square"}`}
+                    className="relative aspect-square overflow-hidden rounded-2xl"
                   >
                     <Image
                       src={img.url}

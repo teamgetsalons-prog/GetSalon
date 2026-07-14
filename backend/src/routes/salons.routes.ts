@@ -4,6 +4,7 @@ import { authenticate, optionalAuth, requireRole, signToken, authCookieOptions }
 import { ok, fail } from "../middleware/error-handler.js";
 import { Salon } from "../models/index.js";
 import { createSalonSchema, searchSalonsSchema, updateSalonSchema } from "../../../shared/dist/validations/salon.js";
+import { MAX_GALLERY_IMAGES } from "../../../shared/dist/constants.js";
 import { createSalon, getHomePageData, getSalonPageData, searchSalons, updateSalon, moderateSalon, listOwnedSalons, switchActiveSalon } from "../services/salon.service.js";
 import { deleteImage } from "../services/upload.service.js";
 
@@ -123,6 +124,9 @@ router.post("/:id/gallery", authenticate, requireRole("owner", "admin"), async (
   if (!salon) return fail(res, "Salon not found.", 404);
   if (user.role !== "admin" && salon.owner.toString() !== user.id) {
     return fail(res, "Not allowed.", 403);
+  }
+  if (salon.gallery.length >= MAX_GALLERY_IMAGES) {
+    return fail(res, `You can upload up to ${MAX_GALLERY_IMAGES} gallery photos. Remove one before adding another.`, 422);
   }
 
   const { url, publicId, caption } = req.body;

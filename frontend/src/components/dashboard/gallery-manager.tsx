@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { ImagePlus, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { MAX_GALLERY_IMAGES } from "@getsalons/shared/constants";
 import type { GalleryImage } from "@getsalons/shared/types";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/misc";
@@ -109,9 +110,17 @@ export function GalleryManager({
     // .value - clearing the input's value also empties the FileList
     // reference itself (not just future reads of it), so leaving this as
     // `e.target.files` meant the loop below silently iterated zero items.
-    const files = Array.from(e.target.files ?? []);
+    const selected = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (files.length === 0) return;
+    if (selected.length === 0) return;
+
+    const remaining = MAX_GALLERY_IMAGES - images.length;
+    if (remaining <= 0) {
+      setMessage(`Your gallery is full (${MAX_GALLERY_IMAGES} photos max). Remove one before adding another.`);
+      return;
+    }
+    const files = selected.slice(0, remaining);
+    const skipped = selected.length - files.length;
 
     setUploading(true);
     setMessage(null);
@@ -157,7 +166,12 @@ export function GalleryManager({
 
     setUploading(false);
     setUploadProgress(null);
-    setMessage(`${files.length} photo${files.length > 1 ? "s" : ""} uploaded!`);
+    setMessage(
+      `${files.length} photo${files.length > 1 ? "s" : ""} uploaded!` +
+        (skipped > 0
+          ? ` ${skipped} skipped — gallery is limited to ${MAX_GALLERY_IMAGES} photos.`
+          : "")
+    );
   }
 
   async function remove(imageId: string | undefined) {
@@ -230,7 +244,9 @@ export function GalleryManager({
       </div>
 
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Gallery ({images.length})</h2>
+        <h2 className="text-lg font-semibold">
+          Gallery ({images.length}/{MAX_GALLERY_IMAGES})
+        </h2>
         <input
           ref={fileRef}
           type="file"
@@ -239,8 +255,18 @@ export function GalleryManager({
           className="hidden"
           onChange={onFile}
         />
-        <Button size="sm" loading={uploading} onClick={() => fileRef.current?.click()}>
-          <ImagePlus className="h-4 w-4" /> {uploading && uploadProgress ? `Uploading ${uploadProgress.done + 1}/${uploadProgress.total}…` : "Upload photos"}
+        <Button
+          size="sm"
+          loading={uploading}
+          disabled={images.length >= MAX_GALLERY_IMAGES}
+          onClick={() => fileRef.current?.click()}
+        >
+          <ImagePlus className="h-4 w-4" />{" "}
+          {uploading && uploadProgress
+            ? `Uploading ${uploadProgress.done + 1}/${uploadProgress.total}…`
+            : images.length >= MAX_GALLERY_IMAGES
+              ? "Gallery full"
+              : "Upload photos"}
         </Button>
       </div>
 

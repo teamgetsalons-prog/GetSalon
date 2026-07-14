@@ -36,6 +36,7 @@ export const DAYS = [
     "Friday",
     "Saturday",
 ];
+export const MAX_GALLERY_IMAGES = 10;
 export const SLOT_INTERVAL = 30;
 export const MAX_BOOKING_DAYS_AHEAD = 30;
 export const MIN_BOOKING_LEAD_MINUTES = 60;

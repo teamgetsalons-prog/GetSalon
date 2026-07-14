@@ -16,6 +16,7 @@ export declare const ROLES: {
 export declare const BOOKING_STATUSES: readonly ["pending", "confirmed", "completed", "cancelled", "no_show"];
 export declare const BOOKING_STATUS_LABELS: Record<string, string>;
 export declare const DAYS: readonly ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+export declare const MAX_GALLERY_IMAGES = 10;
 export declare const SLOT_INTERVAL = 30;
 export declare const MAX_BOOKING_DAYS_AHEAD = 30;
 export declare const MIN_BOOKING_LEAD_MINUTES = 60;
