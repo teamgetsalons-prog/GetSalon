@@ -23,7 +23,7 @@ export function BlogCard({ post }: { post: BlogPostPublic }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group overflow-hidden rounded-2xl border border-line bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold-500/40 hover:shadow-lg hover:shadow-gold-500/5"
+      className="group block overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-inset ring-line/60 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-gold-500/5 hover:ring-gold-500/40"
     >
       {post.coverImage && (
         <div className="relative aspect-[16/9] overflow-hidden">
