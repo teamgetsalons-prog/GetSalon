@@ -8,7 +8,7 @@ import { LogoutToast } from "./logout-toast";
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
         {children}
         <LogoutToast />
       </ThemeProvider>
