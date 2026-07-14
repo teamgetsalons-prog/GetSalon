@@ -10,6 +10,9 @@ import {
   deleteComment,
   replyToComment,
   deleteCommentReply,
+  reportComment,
+  adminListPendingComments,
+  adminModerateComment,
 } from "../services/comment.service.js";
 
 const router = Router();
@@ -86,6 +89,30 @@ router.delete("/:id/reply", authenticate, requireRole("owner", "admin"), async (
   const id = req.params.id as string;
   await deleteCommentReply(id, req.user!.id, req.user!.role || "customer");
   return ok(res, null);
+});
+
+// Any logged-in user can flag a review as spam/abusive. Auto-hides once
+// enough distinct users have reported the same one (see REPORT_THRESHOLD).
+router.post("/:id/report", authenticate, async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const result = await reportComment(id, req.user!.id);
+  return ok(res, result);
+});
+
+// ── Admin moderation ────────────────────────────────────────
+
+router.get("/admin/pending", authenticate, requireRole("admin"), async (_req: Request, res: Response) => {
+  const comments = await adminListPendingComments();
+  return ok(res, comments);
+});
+
+const moderateSchema = z.object({ status: z.enum(["approved", "rejected"]) });
+
+router.patch("/:id/moderate", authenticate, requireRole("admin"), async (req: Request, res: Response) => {
+  const id = req.params.id as string;
+  const input = moderateSchema.parse(req.body);
+  const comment = await adminModerateComment(id, input.status);
+  return ok(res, { id: comment._id.toString(), status: comment.status });
 });
 
 export { router as commentRoutes };

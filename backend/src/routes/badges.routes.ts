@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { authenticate } from "../middleware/auth.js";
 import { ok } from "../middleware/error-handler.js";
-import { Appointment, Salon, SupportMessage } from "../models/index.js";
+import { Appointment, Comment, Salon, SupportMessage } from "../models/index.js";
 import { toDateKey } from "../../../shared/dist/utils.js";
 import { getActorSalon } from "../services/salon.service.js";
 
@@ -18,12 +18,14 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
   const badges: Record<string, number> = {};
 
   if (user.role === "admin") {
-    const [pendingSalons, openSupport] = await Promise.all([
+    const [pendingSalons, openSupport, pendingReviews] = await Promise.all([
       Salon.countDocuments({ status: "pending" }),
       SupportMessage.countDocuments({ status: "open" }),
+      Comment.countDocuments({ status: "pending" }),
     ]);
     if (pendingSalons) badges["/admin/salons"] = pendingSalons;
     if (openSupport) badges["/admin/support"] = openSupport;
+    if (pendingReviews) badges["/admin/reviews"] = pendingReviews;
   } else if (user.role === "owner" || user.role === "staff") {
     const salon = await getActorSalon(user);
     const [pendingBookings, unreadReplies] = await Promise.all([

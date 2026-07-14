@@ -7,40 +7,55 @@ import { CommentCard, type CommentData } from "./comment-card";
 import { CommentForm } from "./comment-form";
 import { StarRating } from "@/components/ui/star-rating";
 
+/** Raw shape returned by both the client `/api/comments` fetch and the
+ * server-side `getSalonComments` helper - normalized into CommentData. */
+function toCommentData(raw: any, currentUserId?: string): CommentData {
+  return {
+    ...raw,
+    customerName: raw.customer?.name || "User",
+    customerAvatar: raw.customer?.image,
+    helpfulCount: raw.helpfulVotes?.length || 0,
+    isOwner: !!(currentUserId && raw.customer?._id === currentUserId),
+    ownerReply: raw.ownerReply,
+  };
+}
+
 export function CommentSection({
   salonId,
   salonName,
   rating,
   currentUserId,
   isSalonOwner,
+  initialComments,
+  initialTotalPages,
 }: {
   salonId: string;
   salonName: string;
   rating: { average: number; count: number };
   currentUserId?: string;
   isSalonOwner?: boolean;
+  /** Pre-fetched server-side so review text is present in the initial HTML
+   * instead of only appearing after this component's own client fetch. */
+  initialComments?: unknown[];
+  initialTotalPages?: number;
 }) {
-  const [comments, setComments] = useState<CommentData[]>([]);
+  const [comments, setComments] = useState<CommentData[]>(() =>
+    (initialComments ?? []).map((c) => toCommentData(c, currentUserId))
+  );
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(initialTotalPages ?? 1);
+  // Nothing to load on mount if the server already gave us page 1.
+  const [loading, setLoading] = useState(!initialComments);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const fetchComments = useCallback(
     async (pageNum: number, append = false) => {
       try {
-        const res = await api<CommentData[]>(
+        const res = await api<unknown[]>(
           `/api/comments?salonId=${salonId}&page=${pageNum}&limit=10`
         );
         if (res.success && res.data) {
-          const newComments = res.data.map((c: any) => ({
-            ...c,
-            customerName: c.customer?.name || "User",
-            customerAvatar: c.customer?.image,
-            helpfulCount: c.helpfulVotes?.length || 0,
-            isOwner: currentUserId && c.customer?._id === currentUserId,
-            ownerReply: c.ownerReply,
-          }));
+          const newComments = res.data.map((c) => toCommentData(c, currentUserId));
           if (append) {
             setComments((prev) => [...prev, ...newComments]);
           } else {
@@ -61,8 +76,11 @@ export function CommentSection({
   );
 
   useEffect(() => {
-    fetchComments(1);
-  }, [fetchComments]);
+    if (!initialComments) fetchComments(1);
+    // Only ever runs the initial fetch when the server didn't already seed
+    // the list - intentionally not re-running on prop changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleLoadMore() {
     setLoadingMore(true);

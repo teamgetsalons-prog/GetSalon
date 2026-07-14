@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { MessageSquareReply, Pencil, ThumbsUp, Trash2 } from "lucide-react";
+import { Flag, MessageSquareReply, Pencil, ThumbsUp, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
 import { StarRating } from "@/components/ui/star-rating";
@@ -39,6 +39,14 @@ export function CommentCard({
   const [replying, setReplying] = useState(false);
   const [replyText, setReplyText] = useState(comment.ownerReply ?? "");
   const [savingReply, setSavingReply] = useState(false);
+  const [reported, setReported] = useState(false);
+
+  async function report() {
+    if (reported) return;
+    if (!confirm("Report this review as spam or abusive?")) return;
+    const res = await api(`/api/comments/${comment._id}/report`, { method: "POST" });
+    if (res.success) setReported(true);
+  }
 
   async function voteHelpful() {
     const res = await api<{ helpfulCount: number; voted: boolean }>(
@@ -194,16 +202,31 @@ export function CommentCard({
         )
       )}
 
-      <button
-        onClick={voteHelpful}
-        className={cn(
-          "mt-4 flex cursor-pointer items-center gap-1.5 text-xs font-medium transition-colors",
-          voted ? "text-gold" : "text-fg-faint hover:text-fg-muted"
+      <div className="mt-4 flex items-center gap-4">
+        <button
+          onClick={voteHelpful}
+          className={cn(
+            "flex cursor-pointer items-center gap-1.5 text-xs font-medium transition-colors",
+            voted ? "text-gold" : "text-fg-faint hover:text-fg-muted"
+          )}
+        >
+          <ThumbsUp className="h-3.5 w-3.5" />
+          Helpful{helpful > 0 ? ` (${helpful})` : ""}
+        </button>
+        {!comment.isOwner && (
+          <button
+            onClick={report}
+            disabled={reported}
+            className={cn(
+              "flex cursor-pointer items-center gap-1.5 text-xs font-medium transition-colors disabled:cursor-default",
+              reported ? "text-fg-faint" : "text-fg-faint hover:text-red-500"
+            )}
+          >
+            <Flag className="h-3.5 w-3.5" />
+            {reported ? "Reported" : "Report"}
+          </button>
         )}
-      >
-        <ThumbsUp className="h-3.5 w-3.5" />
-        Helpful{helpful > 0 ? ` (${helpful})` : ""}
-      </button>
+      </div>
     </article>
   );
 }

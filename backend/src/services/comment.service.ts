@@ -13,7 +13,41 @@ export interface CreateCommentInput {
   photos?: string[];
 }
 
-/** Recompute the denormalized rating on a salon from comments */
+// A comment gets auto-hidden once this many distinct users report it, without
+// needing to pre-moderate every review before it can go live.
+const REPORT_THRESHOLD = 3;
+
+const URL_PATTERN = /(https?:\/\/|www\.)\S+/i;
+const PHONE_PATTERN = /(\+?\d[\d\s\-().]{8,}\d)/;
+
+/**
+ * Lightweight, automated first line of defense against spam - deliberately
+ * conservative (a few clear signals, not a full ML classifier) so genuine
+ * reviews are never falsely rejected. Returns a user-facing reason when the
+ * text should be blocked, or null when it's fine to publish immediately.
+ */
+function detectSpam(text: string): string | null {
+  const trimmed = text.trim();
+  if (trimmed.length < 3) return "Please write a bit more about your experience.";
+  if (URL_PATTERN.test(trimmed)) return "Reviews can't contain links.";
+  if (PHONE_PATTERN.test(trimmed)) return "Reviews can't contain phone numbers.";
+
+  // Keyboard-mash / repeated-character spam: one character (or a short
+  // repeating chunk) dominating most of the text.
+  const letters = trimmed.replace(/\s/g, "");
+  if (letters.length >= 6) {
+    const counts = new Map<string, number>();
+    for (const ch of letters.toLowerCase()) counts.set(ch, (counts.get(ch) ?? 0) + 1);
+    const maxCount = Math.max(...counts.values());
+    if (maxCount / letters.length > 0.6) {
+      return "This doesn't look like a real review - please describe your experience.";
+    }
+  }
+
+  return null;
+}
+
+/** Recompute the denormalized rating on a salon from its publicly-visible comments */
 export async function recalcSalonRatingFromComments(salonId: string): Promise<void> {
   const [agg] = await Comment.aggregate<{
     _id: null;
@@ -23,6 +57,7 @@ export async function recalcSalonRatingFromComments(salonId: string): Promise<vo
     {
       $match: {
         salon: new Types.ObjectId(salonId),
+        status: "approved",
       },
     },
     {
@@ -58,12 +93,16 @@ export async function createComment(
     throw new ApiError("You have already reviewed this salon. You can edit your existing review.", 409);
   }
 
+  const spamReason = detectSpam(input.comment);
+  if (spamReason) throw new ApiError(spamReason, 422);
+
   const comment = await Comment.create({
     salon: input.salonId,
     customer: customerId,
     rating: input.rating,
     comment: input.comment,
     photos: input.photos || [],
+    status: "approved",
   });
 
   // Recalculate salon rating
@@ -84,7 +123,7 @@ export async function createComment(
   return comment;
 }
 
-/** Get comments for a salon */
+/** Get publicly-visible comments for a salon */
 export async function getSalonComments(
   salonId: string,
   page: number = 1,
@@ -92,14 +131,15 @@ export async function getSalonComments(
 ) {
   await connectDB();
 
+  const filter = { salon: salonId, status: "approved" as const };
   const [comments, total] = await Promise.all([
-    Comment.find({ salon: salonId })
+    Comment.find(filter)
       .populate("customer", "name image")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
-    Comment.countDocuments({ salon: salonId }),
+    Comment.countDocuments(filter),
   ]);
 
   return {
@@ -108,6 +148,55 @@ export async function getSalonComments(
     page,
     totalPages: Math.ceil(total / limit),
   };
+}
+
+/** A user reports a comment as spam/abusive. Auto-hides it once enough
+ * distinct users have reported the same one, rather than acting on a single
+ * report (which would make the button trivially abusable). */
+export async function reportComment(commentId: string, userId: string) {
+  await connectDB();
+
+  const comment = await Comment.findById(commentId);
+  if (!comment) throw new ApiError("Comment not found.", 404);
+
+  const alreadyReported = comment.reportedBy.some((id) => id.toString() === userId);
+  if (alreadyReported) return { reported: true, hidden: comment.status !== "approved" };
+
+  comment.reportedBy.push(new Types.ObjectId(userId));
+  let hidden = false;
+  if (comment.status === "approved" && comment.reportedBy.length >= REPORT_THRESHOLD) {
+    comment.status = "pending";
+    hidden = true;
+  }
+  await comment.save();
+
+  if (hidden) await recalcSalonRatingFromComments(comment.salon.toString());
+
+  return { reported: true, hidden };
+}
+
+/** Admin: comments awaiting review (hidden by the report threshold above) */
+export async function adminListPendingComments() {
+  await connectDB();
+  return Comment.find({ status: "pending" })
+    .populate("customer", "name email")
+    .populate("salon", "name slug")
+    .sort({ updatedAt: -1 })
+    .lean();
+}
+
+/** Admin: approve or permanently reject a reported comment */
+export async function adminModerateComment(commentId: string, status: "approved" | "rejected") {
+  await connectDB();
+  const comment = await Comment.findById(commentId);
+  if (!comment) throw new ApiError("Comment not found.", 404);
+
+  comment.status = status;
+  if (status === "approved") comment.reportedBy = [];
+  await comment.save();
+  await recalcSalonRatingFromComments(comment.salon.toString());
+
+  return comment;
 }
 
 /** Vote helpful on a comment */

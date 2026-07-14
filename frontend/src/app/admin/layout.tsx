@@ -13,6 +13,7 @@ const items: NavItem[] = [
   { href: "/admin/salons", label: "Salons", icon: "store" },
   { href: "/admin/users", label: "Users", icon: "users" },
   { href: "/admin/deals", label: "All Deals", icon: "tag" },
+  { href: "/admin/reviews", label: "Reported Reviews", icon: "star" },
   { href: "/admin/blog", label: "Blog Posts", icon: "book-open" },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: "credit-card" },
   { href: "/admin/support", label: "Support Inbox", icon: "message-circle" },
