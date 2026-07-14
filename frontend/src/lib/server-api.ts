@@ -17,7 +17,16 @@ const JWT_SECRET = new TextEncoder().encode(process.env.AUTH_SECRET ?? "");
 
 export async function serverFetch<T = unknown>(
   path: string,
-  options?: RequestInit
+  options?: RequestInit & {
+    /**
+     * Opts this specific call into Next.js's Data Cache instead of the default
+     * `no-store`. Public, non-personalized reads (salon/city/service listings)
+     * pass this to cut repeat-request backend load; anything that must always
+     * be fresh (auth, dashboards, availability) omits it and keeps today's
+     * behavior exactly as-is.
+     */
+    revalidate?: number;
+  }
 ): Promise<{
   success: boolean;
   data?: T;
@@ -34,13 +43,14 @@ export async function serverFetch<T = unknown>(
     }
 
     const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+    const { revalidate, ...init } = options ?? {};
     const res = await fetch(url, {
-      cache: "no-store",
-      ...options,
+      ...(revalidate !== undefined ? { next: { revalidate } } : { cache: "no-store" as const }),
+      ...init,
       headers: {
         "Content-Type": "application/json",
         ...(cookieHeader ? { cookie: cookieHeader } : {}),
-        ...options?.headers,
+        ...init.headers,
       },
     });
     const body = await res.json().catch(() => null);
@@ -105,8 +115,11 @@ export interface SalonPageData {
   reviews: Record<string, unknown>[];
 }
 
-export async function getSalonPageData(slug: string): Promise<SalonPageData | null> {
-  const res = await serverFetch<SalonPageData>(`/salons/public/${slug}`);
+export async function getSalonPageData(
+  slug: string,
+  opts?: { revalidate?: number }
+): Promise<SalonPageData | null> {
+  const res = await serverFetch<SalonPageData>(`/salons/public/${slug}`, opts);
   if (!res.success || !res.data) return null;
   return res.data;
 }
@@ -151,13 +164,14 @@ export interface SearchSalonsResult {
 
 /** GET /salons with any subset of the public search filters */
 export async function searchSalonsApi(
-  params: Record<string, string | number | boolean | undefined>
+  params: Record<string, string | number | boolean | undefined>,
+  opts?: { revalidate?: number }
 ): Promise<SearchSalonsResult> {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") qs.set(k, String(v));
   }
-  const res = await serverFetch<SalonCardData[]>(`/salons?${qs.toString()}`);
+  const res = await serverFetch<SalonCardData[]>(`/salons?${qs.toString()}`, opts);
   if (!res.success || !res.data) {
     return { salons: [], total: 0, page: 1, totalPages: 0 };
   }
@@ -183,19 +197,34 @@ export interface CategoryOption {
   icon?: string;
 }
 
-export async function getCitiesApi(withAreas = false, onlyWithSalons = false): Promise<CityOption[]> {
+export async function getCitiesApi(
+  withAreas = false,
+  onlyWithSalons = false,
+  opts?: { revalidate?: number }
+): Promise<CityOption[]> {
   const params = new URLSearchParams();
   if (withAreas) params.set("withAreas", "1");
   if (onlyWithSalons) params.set("onlyWithSalons", "1");
   const qs = params.toString();
   const res = await serverFetch<CityOption[]>(
-    `/categories/cities${qs ? `?${qs}` : ""}`
+    `/categories/cities${qs ? `?${qs}` : ""}`,
+    opts
   );
   return res.success && res.data ? res.data : [];
 }
 
-export async function getCategoriesApi(): Promise<CategoryOption[]> {
-  const res = await serverFetch<CategoryOption[]>("/categories");
+/** Resolves a URL city slug to a real City record, or null if it doesn't exist -
+ * lets a page tell "valid city, no salons yet" apart from "not a real city". */
+export async function getCityBySlug(
+  slug: string,
+  opts?: { revalidate?: number }
+): Promise<CityOption | null> {
+  const cities = await getCitiesApi(false, false, opts);
+  return cities.find((c) => c.slug === slug) ?? null;
+}
+
+export async function getCategoriesApi(opts?: { revalidate?: number }): Promise<CategoryOption[]> {
+  const res = await serverFetch<CategoryOption[]>("/categories", opts);
   return res.success && res.data ? res.data : [];
 }
 
@@ -236,6 +265,16 @@ export async function getMySalonsApi(): Promise<OwnedSalonSummary[]> {
 
 // ── Blog helpers ────────────────────────────────────────
 
+export interface AuthorPublic {
+  _id: string;
+  name: string;
+  slug: string;
+  bio: string;
+  title?: string;
+  avatar?: string;
+  isTeam: boolean;
+}
+
 export interface BlogPostPublic {
   _id: string;
   title: string;
@@ -244,9 +283,12 @@ export interface BlogPostPublic {
   content: string;
   coverImage?: string;
   author: string;
+  /** Present when the post is linked to a real Author record. */
+  authorInfo?: AuthorPublic;
   category: string;
   tags: string[];
   publishedAt?: Date;
+  updatedAt?: Date;
   views: number;
   seo?: { title?: string; description?: string };
 }
@@ -282,6 +324,16 @@ export async function getBlogPost(
   slug: string
 ): Promise<BlogPostPublic | null> {
   const res = await serverFetch<BlogPostPublic>(`/blog/${slug}`);
+  if (!res.success || !res.data) return null;
+  return res.data;
+}
+
+export async function getAuthorBySlug(
+  slug: string
+): Promise<{ author: AuthorPublic; posts: BlogPostPublic[] } | null> {
+  const res = await serverFetch<{ author: AuthorPublic; posts: BlogPostPublic[] }>(
+    `/blog/authors/${slug}`
+  );
   if (!res.success || !res.data) return null;
   return res.data;
 }
@@ -355,10 +407,54 @@ export async function getDealById(
 }
 
 export async function getSalonDeals(
-  salonId: string
+  salonId: string,
+  opts?: { revalidate?: number }
 ): Promise<DealPublic[]> {
-  const res = await serverFetch<DealPublic[]>(`/deals?salonId=${salonId}`);
+  const res = await serverFetch<DealPublic[]>(`/deals?salonId=${salonId}`, opts);
   if (!res.success || !res.data) return [];
   const data = res.data;
   return Array.isArray(data) ? data : [];
+}
+
+// ── Comments (public reviews shown on the salon page) ───────
+
+export interface CommentPublic {
+  _id: string;
+  rating: number;
+  comment: string;
+  photos: string[];
+  customer?: { _id: string; name: string; image?: string };
+  helpfulVotes: string[];
+  ownerReply?: string;
+  ownerReplyCreatedAt?: string;
+  createdAt: string;
+}
+
+export interface SalonCommentsResult {
+  comments: CommentPublic[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+/** First page of a salon's public reviews - used to seed CommentSection server-side
+ * so review text is present in the initial HTML instead of only appearing after a
+ * client-side fetch. */
+export async function getSalonComments(
+  salonId: string,
+  page = 1,
+  limit = 10,
+  opts?: { revalidate?: number }
+): Promise<SalonCommentsResult> {
+  const res = await serverFetch<CommentPublic[]>(
+    `/comments?salonId=${salonId}&page=${page}&limit=${limit}`,
+    opts
+  );
+  if (!res.success || !res.data) return { comments: [], total: 0, page: 1, totalPages: 0 };
+  return {
+    comments: res.data,
+    total: res.pagination?.total ?? res.data.length,
+    page: res.pagination?.page ?? 1,
+    totalPages: res.pagination?.totalPages ?? 1,
+  };
 }

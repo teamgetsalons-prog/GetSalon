@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   Tag,
 } from "lucide-react";
-import { getSalonPageData, getSalonDeals, getServerSession } from "@/lib/server-api";
+import { getSalonPageData, getSalonDeals, getSalonComments, getServerSession } from "@/lib/server-api";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd, salonJsonLd } from "@/lib/seo";
 import { DAYS } from "@getsalons/shared/constants";
 import { formatPKR, formatTime12h, truncate } from "@getsalons/shared/utils";
@@ -31,7 +31,13 @@ import { SalonHighlights } from "@/components/salons/salon-highlights";
 import { StickyBookBar } from "@/components/salons/sticky-book-bar";
 import { FaqAccordion } from "@/components/home/faq-accordion";
 
-export const dynamic = "force-dynamic";
+// See salons/[city]/page.tsx for why this replaces force-dynamic - the route
+// still renders per-request (this page reads the session for the owner/reply
+// UI). Only deals/comments below use the Data Cache; the core salon lookup
+// deliberately stays uncached (see getSalonPageData calls) since approval,
+// edits and suspension must be reflected the instant they happen, not up to
+// 5 minutes later.
+export const revalidate = 300;
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -76,8 +82,13 @@ export default async function SalonPage({ params }: Params) {
 
   const { salon, services, staff, reviews } = data;
 
-  // Fetch deals for this salon
-  const salonDeals = await getSalonDeals(salon._id.toString());
+  // Deals + the first page of reviews, fetched in parallel so review text is
+  // present in the initial server-rendered HTML instead of only appearing
+  // after CommentSection's own client-side fetch runs post-hydration.
+  const [salonDeals, initialComments] = await Promise.all([
+    getSalonDeals(salon._id.toString(), { revalidate: 300 }),
+    getSalonComments(salon._id.toString(), 1, 10, { revalidate: 60 }),
+  ]);
 
   let favorited = false;
   const session = await getServerSession();
@@ -366,6 +377,8 @@ export default async function SalonPage({ params }: Params) {
             rating={salon.rating}
             currentUserId={session?.id}
             isSalonOwner={isSalonOwner}
+            initialComments={initialComments.comments}
+            initialTotalPages={initialComments.totalPages}
           />
 
           {/* FAQs */}

@@ -12,18 +12,31 @@ export function buildMetadata(opts: {
   description: string;
   path: string;
   image?: string;
+  /** Fully blocks indexing AND link-following - for pages that should never surface anywhere. */
   noIndex?: boolean;
+  /**
+   * Explicit `false` = "noindex, follow": the page itself shouldn't rank (e.g. a
+   * thin/empty programmatic page), but crawlers should still follow its links to
+   * discover the rest of the site. Distinct from `noIndex`, which blocks both.
+   */
+  index?: boolean;
   type?: "website" | "article";
 }): Metadata {
   const url = absoluteUrl(opts.path);
   const description = truncate(opts.description, 160);
   const images = opts.image ? [{ url: opts.image }] : undefined;
 
+  const robots = opts.noIndex
+    ? { index: false, follow: false }
+    : opts.index === false
+      ? { index: false, follow: true }
+      : undefined;
+
   return {
     title: opts.title,
     description,
     alternates: { canonical: url },
-    robots: opts.noIndex ? { index: false, follow: false } : undefined,
+    robots,
     openGraph: {
       title: opts.title,
       description,

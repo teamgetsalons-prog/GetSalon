@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cache } from "react";
 import { Scissors, Star, Clock, CheckCircle } from "lucide-react";
 import { searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
@@ -7,7 +8,12 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 
-export const dynamic = "force-dynamic";
+// See salons/[city]/page.tsx for why this replaces force-dynamic.
+export const revalidate = 300;
+
+// Major cities this national page links down into - mirrors the city list
+// already used for cross-linking on the sibling [city]/[service] page.
+const TOP_CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan"];
 
 type Params = { params: Promise<{ service: string }> };
 
@@ -46,17 +52,28 @@ const serviceDescriptions: Record<string, { title: string; description: string }
   },
 };
 
+/** Shared between generateMetadata and the page body - one fetch, not two. */
+const loadServicePage = cache(async (service: string, serviceName: string) => {
+  let result = await searchSalonsApi({ category: service, limit: 50 }, { revalidate: 300 });
+  if (result.salons.length === 0) {
+    result = await searchSalonsApi({ q: serviceName, limit: 50 }, { revalidate: 300 });
+  }
+  return result;
+});
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { service } = await params;
   const serviceName = serviceDescriptions[service]?.title || service.replace(/-/g, " ");
   const description =
     serviceDescriptions[service]?.description ||
     `Find and book the best ${serviceName} salons on GetSalons`;
+  const result = await loadServicePage(service, serviceName);
 
   return buildMetadata({
     title: `Best ${serviceName} Salons — Book Online | ${SITE.shortName}`,
     description: `${description}. Compare prices, read verified reviews and book appointments online for free.`,
     path: `/services/${service}`,
+    index: result.salons.length > 0,
   });
 }
 
@@ -66,11 +83,7 @@ export default async function ServiceSalonsPage({ params }: Params) {
     serviceDescriptions[service]?.title ||
     service.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-  // The service segment maps to a category slug; fall back to text search
-  let result = await searchSalonsApi({ category: service, limit: 50 });
-  if (result.salons.length === 0) {
-    result = await searchSalonsApi({ q: serviceName, limit: 50 });
-  }
+  const result = await loadServicePage(service, serviceName);
 
   const faqs = [
     {
@@ -200,8 +213,24 @@ export default async function ServiceSalonsPage({ params }: Params) {
         </div>
       </section>
 
-      {/* Related Services */}
+      {/* Browse by city */}
       <section className="mt-16 rounded-2xl border border-line bg-card p-8">
+        <h2 className="text-lg font-semibold">{serviceName} by City</h2>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {TOP_CITIES.map((c) => (
+            <Link
+              key={c}
+              href={`/salons/${c.toLowerCase()}/${service}`}
+              className="rounded-full border border-line px-4 py-2 text-sm text-fg-muted transition-colors hover:border-gold-500/50 hover:text-gold"
+            >
+              {serviceName} in {c}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Related Services */}
+      <section className="mt-8 rounded-2xl border border-line bg-card p-8">
         <h2 className="text-lg font-semibold">Explore Other Services</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {Object.keys(serviceDescriptions)

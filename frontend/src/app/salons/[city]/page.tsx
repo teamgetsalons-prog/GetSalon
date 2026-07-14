@@ -1,42 +1,59 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { cache } from "react";
 import { MapPin, Star, Clock, CheckCircle } from "lucide-react";
-import {
-  getCategoriesApi,
-  searchSalonsApi,
-  type SearchSalonsResult,
-} from "@/lib/server-api";
+import { getCategoriesApi, getCityBySlug, searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 
-export const dynamic = "force-dynamic";
+// Data-cache revalidation replaces force-dynamic (see serverFetch's `revalidate`
+// option) - the expensive salon/city/category lookups below are reused across
+// requests instead of hitting the backend every time. This page must NOT sit
+// under a route segment with its own loading.tsx (the sibling `(list)` group
+// holds /salons' loading.tsx) - a loading.tsx ancestor wraps the page in a
+// Suspense boundary, which streams a 200 status before notFound() can run and
+// permanently locks it, so this page returns 200 with 404 content instead of
+// a real 404. See salons/(list)/loading.tsx.
+export const revalidate = 300;
 
 type Params = { params: Promise<{ city: string }> };
 
+/** Shared between generateMetadata and the page body so both use one fetch,
+ * not two, for the same request. */
+const loadCityPage = cache(async (city: string) => {
+  const [cityRecord, result, catDocs] = await Promise.all([
+    getCityBySlug(city, { revalidate: 300 }),
+    searchSalonsApi({ city, limit: 50 }, { revalidate: 300 }),
+    getCategoriesApi({ revalidate: 300 }),
+  ]);
+  return { cityRecord, result, categories: catDocs };
+});
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { city } = await params;
-  const cityName = city.charAt(0).toUpperCase() + city.slice(1);
+  const { cityRecord, result } = await loadCityPage(city);
+  if (!cityRecord) return { title: "City not found" };
+  const cityName = cityRecord.name;
 
   return buildMetadata({
     title: `Best Salons in ${cityName} — Book Online | ${SITE.shortName}`,
     description: `Discover and book the best salons, beauty parlours and spas in ${cityName}. Compare prices, read verified reviews and book appointments online for free.`,
     path: `/salons/${city}`,
+    // No salons yet for a real city is a temporary state, not a dead page -
+    // keep it out of the index until it has something to show, but let
+    // crawlers keep following its links (category chips, other-cities list).
+    index: result.salons.length > 0,
   });
 }
 
 export default async function CitySalonsPage({ params }: Params) {
   const { city } = await params;
-  const cityName = city.charAt(0).toUpperCase() + city.slice(1);
-
-  const [result, catDocs]: [
-    SearchSalonsResult,
-    Awaited<ReturnType<typeof getCategoriesApi>>,
-  ] = await Promise.all([
-    searchSalonsApi({ city, limit: 50 }),
-    getCategoriesApi(),
-  ]);
+  const { cityRecord, result, categories: catDocs } = await loadCityPage(city);
+  if (!cityRecord) notFound();
+  const cityName = cityRecord.name;
   const categories = catDocs.map((c) => ({ name: c.name, slug: c.slug }));
 
   const faqs = [

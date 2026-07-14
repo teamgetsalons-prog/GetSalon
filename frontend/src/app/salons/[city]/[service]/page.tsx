@@ -1,15 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { cache } from "react";
 import { MapPin, Star, Clock, CheckCircle, Scissors } from "lucide-react";
-import { searchSalonsApi } from "@/lib/server-api";
+import { getCityBySlug, searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 
-export const dynamic = "force-dynamic";
+// See salons/[city]/page.tsx for why this stays outside the `(list)` route
+// group (loading.tsx cascade would break notFound()'s HTTP status).
+export const revalidate = 300;
 
 type Params = { params: Promise<{ city: string; service: string }> };
+
+// The fixed set of slugs that actually have a /services/[service] national
+// landing page (see sitemap.ts) - distinct from this page's own `service`
+// segment, which is free-text and covers a wider, more granular vocabulary
+// (e.g. "hair-cut", "beard-trim"). Only link up to the national page when the
+// current slug is one that's guaranteed to exist there.
+const NATIONAL_SERVICE_SLUGS = [
+  "hair",
+  "makeup",
+  "facial",
+  "nails",
+  "bridal",
+  "massage",
+  "skin-care",
+  "waxing",
+];
 
 function formatService(slug: string): string {
   return slug
@@ -18,28 +38,45 @@ function formatService(slug: string): string {
     .join(" ");
 }
 
+/** Shared between generateMetadata and the page body - one fetch, not two.
+ * Only the city segment is validated against real data: the service segment
+ * is intentionally free-text (category match falling back to a text search),
+ * so there's no fixed "valid services" list to check it against. */
+const loadCityServicePage = cache(async (city: string, service: string) => {
+  const cityRecord = await getCityBySlug(city, { revalidate: 300 });
+  if (!cityRecord) return { cityRecord: null, result: { salons: [], total: 0, page: 1, totalPages: 0 } };
+
+  let result = await searchSalonsApi({ city, category: service, limit: 50 }, { revalidate: 300 });
+  if (result.salons.length === 0) {
+    result = await searchSalonsApi(
+      { city, q: formatService(service), limit: 50 },
+      { revalidate: 300 }
+    );
+  }
+  return { cityRecord, result };
+});
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { city, service } = await params;
-  const cityName = city.charAt(0).toUpperCase() + city.slice(1);
+  const { cityRecord, result } = await loadCityServicePage(city, service);
+  if (!cityRecord) return { title: "City not found" };
+  const cityName = cityRecord.name;
   const serviceName = formatService(service);
 
   return buildMetadata({
     title: `Best ${serviceName} in ${cityName} — Book Online | ${SITE.shortName}`,
     description: `Find and book the best ${serviceName.toLowerCase()} services in ${cityName}. Compare prices, read verified reviews and book appointments online for free.`,
     path: `/salons/${city}/${service}`,
+    index: result.salons.length > 0,
   });
 }
 
 export default async function CityServiceSalonsPage({ params }: Params) {
   const { city, service } = await params;
-  const cityName = city.charAt(0).toUpperCase() + city.slice(1);
+  const { cityRecord, result } = await loadCityServicePage(city, service);
+  if (!cityRecord) notFound();
+  const cityName = cityRecord.name;
   const serviceName = formatService(service);
-
-  // The service segment maps to a category slug; fall back to text search
-  let result = await searchSalonsApi({ city, category: service, limit: 50 });
-  if (result.salons.length === 0) {
-    result = await searchSalonsApi({ city, q: serviceName, limit: 50 });
-  }
 
   const faqs = [
     {
@@ -101,6 +138,14 @@ export default async function CityServiceSalonsPage({ params }: Params) {
           Discover {result.total} verified salons offering {serviceName.toLowerCase()} in {cityName}.
           Compare prices, read genuine reviews and book appointments online.
         </p>
+        {NATIONAL_SERVICE_SLUGS.includes(service) && (
+          <p className="mt-2 text-sm text-fg-muted">
+            Looking beyond {cityName}?{" "}
+            <Link href={`/services/${service}`} className="font-medium text-gold hover:underline">
+              Browse {serviceName.toLowerCase()} salons nationwide →
+            </Link>
+          </p>
+        )}
 
         <div className="mt-6 flex flex-wrap gap-4">
           <div className="flex items-center gap-2 rounded-xl border border-line bg-card px-4 py-2">

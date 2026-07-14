@@ -243,7 +243,7 @@ export function Navbar() {
                         return (
                           <Link
                             key={cat.slug}
-                            href={`/salons?category=${cat.slug}`}
+                            href={`/services/${cat.slug}`}
                             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
                           >
                             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold-500/10 text-gold">
@@ -482,7 +482,7 @@ export function Navbar() {
                     return (
                       <Link
                         key={cat.slug}
-                        href={`/salons?category=${cat.slug}`}
+                        href={`/services/${cat.slug}`}
                         onClick={() => setMobileOpen(false)}
                         className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-fg"
                       >
