@@ -20,6 +20,8 @@ const envSchema = z.object({
   WHATSAPP_API_URL: z.string().optional(),
   WHATSAPP_API_TOKEN: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().optional(),
+  ADMIN_EMAIL: z.string().email().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

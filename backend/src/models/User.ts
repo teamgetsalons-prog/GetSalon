@@ -17,6 +17,10 @@ export interface IUser {
   emailVerifiedAt?: Date;
   isActive: boolean;
   lastLoginAt?: Date;
+  /** SHA-256 hash of the current forgot-password reset token - never the raw
+   * token. Cleared after a successful reset or once it expires. */
+  passwordResetTokenHash?: string;
+  passwordResetExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,9 +51,13 @@ const userSchema = new Schema<IUser>(
     emailVerifiedAt: Date,
     isActive: { type: Boolean, default: true },
     lastLoginAt: Date,
+    passwordResetTokenHash: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );
+
+userSchema.index({ passwordResetTokenHash: 1 }, { sparse: true });
 
 export const User: Model<IUser> =
   (models.User as Model<IUser>) || model<IUser>("User", userSchema);

@@ -1,5 +1,6 @@
 import type { FilterQuery } from "mongoose";
 import { connectDB } from "../db.js";
+import { getEnv } from "../config.js";
 import {
   Appointment,
   Area,
@@ -15,6 +16,7 @@ import {
 } from "../models/index.js";
 import { ApiError } from "../middleware/error-handler.js";
 import { slugify } from "../../../shared/dist/utils.js";
+import { SITE } from "../../../shared/dist/constants.js";
 import type {
   CreateSalonInput,
   SearchSalonsInput,
@@ -23,6 +25,7 @@ import type {
 import type { SalonCardData } from "../../../shared/dist/types.js";
 import { notify } from "./notification.service.js";
 import { getSalonSubscription, startFreeTrial } from "./subscription.service.js";
+import { sendEmail, salonSubmittedEmailHtml } from "./email.js";
 
 /** Serialize a salon document to the lean card shape the frontend uses */
 export function toSalonCard(
@@ -397,7 +400,56 @@ export async function createSalon(ownerId: string, input: CreateSalonInput) {
   // resolve the owner's salon through user.salon / the JWT's salonId.
   await User.updateOne({ _id: ownerId }, { role: "owner", salon: salon._id });
 
+  // Awaited (not fire-and-forget) so logs land in request order, but the
+  // outer catch guarantees a mail/DB hiccup here can never fail the listing.
+  await notifyAdminOfNewSalon(salon, ownerId, city, area).catch((err) =>
+    console.error("[email:salon-submitted] unexpected failure:", err)
+  );
+
   return salon;
+}
+
+/** Fire-and-forget: never blocks or fails salon creation if the email
+ * fails or ADMIN_EMAIL isn't configured. */
+async function notifyAdminOfNewSalon(
+  salon: ISalon,
+  ownerId: string,
+  city: { name: string; province?: string },
+  area: { name?: string } | null
+): Promise<void> {
+  const adminEmail = getEnv().ADMIN_EMAIL;
+  if (!adminEmail) {
+    console.log(`[email:salon-submitted] skipped: ADMIN_EMAIL not configured, listingId=${salon._id}`);
+    return;
+  }
+
+  const [owner, categories] = await Promise.all([
+    User.findById(ownerId).select("name email"),
+    Category.find({ _id: { $in: salon.categories } }).select("name"),
+  ]);
+
+  const sent = await sendEmail({
+    to: adminEmail,
+    subject: "New Salon Listing Requires Approval",
+    title: "New salon listing requires approval",
+    html: salonSubmittedEmailHtml({
+      salonName: salon.name,
+      ownerName: owner?.name ?? "Unknown",
+      ownerEmail: owner?.email ?? "Unknown",
+      phone: salon.phone,
+      address: salon.address,
+      city: area?.name ? `${area.name}, ${city.name}` : city.name,
+      province: city.province,
+      services: categories.map((c) => c.name),
+      listingId: salon._id.toString(),
+      submittedAt: salon.createdAt.toLocaleString("en-PK", { dateStyle: "medium", timeStyle: "short" }),
+      reviewUrl: `${SITE.url}/admin/salons`,
+    }),
+  });
+
+  console.log(
+    `[email:salon-submitted] listingId=${salon._id} salonId=${salon._id} adminEmail=${adminEmail} at=${new Date().toISOString()} status=${sent ? "sent" : "failed"}`
+  );
 }
 
 export async function updateSalon(

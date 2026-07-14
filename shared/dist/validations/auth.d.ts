@@ -84,3 +84,33 @@ export declare const updateProfileSchema: z.ZodEffects<z.ZodObject<{
     newPassword?: string | undefined;
 }>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export declare const forgotPasswordSchema: z.ZodObject<{
+    email: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    email: string;
+}, {
+    email: string;
+}>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export declare const resetPasswordSchema: z.ZodEffects<z.ZodObject<{
+    token: z.ZodString;
+    password: z.ZodString;
+    confirmPassword: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    password: string;
+    confirmPassword: string;
+    token: string;
+}, {
+    password: string;
+    confirmPassword: string;
+    token: string;
+}>, {
+    password: string;
+    confirmPassword: string;
+    token: string;
+}, {
+    password: string;
+    confirmPassword: string;
+    token: string;
+}>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

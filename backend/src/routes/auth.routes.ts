@@ -4,7 +4,16 @@ import { User, Salon } from "../models/index.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { authenticate, signToken, authCookieOptions } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rate-limit.js";
-import { registerSchema, loginSchema, updateProfileSchema } from "../../../shared/dist/validations/auth.js";
+import {
+  registerSchema,
+  loginSchema,
+  updateProfileSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "../../../shared/dist/validations/auth.js";
+import { generateResetToken, hashToken } from "../utils/token.js";
+import { sendEmail, passwordResetEmailHtml } from "../services/email.js";
+import { SITE } from "../../../shared/dist/constants.js";
 import type { Request, Response } from "express";
 
 const router = Router();
@@ -90,6 +99,63 @@ router.patch("/session", authenticate, async (req: Request, res: Response) => {
 
   await user.save();
   return ok(res, { name: user.name, phone: user.phone, avatar: user.avatar, city: user.city });
+});
+
+const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const GENERIC_FORGOT_PASSWORD_MESSAGE =
+  "If an account with that email exists, a password reset link has been sent.";
+
+router.post("/forgot-password", authLimiter, async (req: Request, res: Response) => {
+  const input = forgotPasswordSchema.parse(req.body);
+
+  // Never reveal whether an account exists - always return the same
+  // response and take the same amount of visible action either way.
+  const user = await User.findOne({ email: input.email.toLowerCase().trim() });
+  if (user) {
+    const { token, tokenHash } = generateResetToken();
+    await User.updateOne(
+      { _id: user._id },
+      { passwordResetTokenHash: tokenHash, passwordResetExpires: new Date(Date.now() + RESET_TOKEN_TTL_MS) }
+    );
+
+    const resetUrl = `${SITE.url}/reset-password?token=${token}`;
+    const sent = await sendEmail({
+      to: user.email,
+      subject: "Reset Your GetSalons Password",
+      title: "Reset your password",
+      html: passwordResetEmailHtml(resetUrl),
+    });
+    console.log(
+      `[email:password-reset] userId=${user._id} email=${user.email} at=${new Date().toISOString()} status=${sent ? "sent" : "failed"}`
+    );
+  }
+
+  return ok(res, { message: GENERIC_FORGOT_PASSWORD_MESSAGE });
+});
+
+router.post("/reset-password", authLimiter, async (req: Request, res: Response) => {
+  const input = resetPasswordSchema.parse(req.body);
+  const tokenHash = hashToken(input.token);
+
+  const user = await User.findOne({
+    passwordResetTokenHash: tokenHash,
+    passwordResetExpires: { $gt: new Date() },
+  });
+  if (!user) {
+    return fail(res, "This reset link is invalid or has expired. Please request a new one.", 400);
+  }
+
+  const passwordHash = await bcrypt.hash(input.password, 12);
+  // Single-use: clearing the token hash means this exact link can never be
+  // replayed, even if someone intercepts it after the fact.
+  await User.updateOne(
+    { _id: user._id },
+    { passwordHash, $unset: { passwordResetTokenHash: "", passwordResetExpires: "" } }
+  );
+
+  console.log(`[password-reset] userId=${user._id} email=${user.email} at=${new Date().toISOString()} status=success`);
+
+  return ok(res, { message: "Your password has been reset. You can now log in." });
 });
 
 export { router as authRoutes };

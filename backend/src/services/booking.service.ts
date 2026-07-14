@@ -32,7 +32,7 @@ import type {
   CreateBookingInput,
   UpdateBookingInput,
 } from "../../../shared/dist/validations/booking.js";
-import { bookingEmailHtml } from "./email.js";
+import { bookingEmailHtml, ownerBookingNotificationEmailHtml, sendEmail } from "./email.js";
 import { notify } from "./notification.service.js";
 import { isActiveSubscription } from "./subscription.service.js";
 
@@ -351,7 +351,10 @@ export async function createBooking(
     () => undefined
   );
 
-  // Fan out notifications (never blocks the booking)
+  // Fan out notifications (never blocks the booking). In-app + WhatsApp go
+  // through notify(); emails are sent directly here (not via notify()'s
+  // email param) so each send's outcome can be logged with booking/salon
+  // IDs, matching the required audit-log shape for appointment emails.
   const prettyDate = input.date;
   const prettyTime = formatTime12h(input.startTime);
 
@@ -361,23 +364,28 @@ export async function createBooking(
     title: "Booking request sent!",
     message: `${service.name} at ${salon.name} on ${prettyDate}, ${prettyTime}.`,
     link: `/dashboard/bookings`,
-    email: customer.email
-      ? {
-          to: customer.email,
-          subject: `Booking ${appointment.bookingNumber} — ${salon.name}`,
-          html: bookingEmailHtml({
-            bookingNumber: appointment.bookingNumber,
-            salonName: salon.name,
-            serviceName: service.name,
-            staffName: staff?.name,
-            date: prettyDate,
-            time: prettyTime,
-            price,
-            address: salon.address,
-          }),
-        }
-      : undefined,
   });
+
+  if (customer.email) {
+    const sent = await sendEmail({
+      to: customer.email,
+      subject: `Booking ${appointment.bookingNumber} — ${salon.name}`,
+      title: "Booking request sent!",
+      html: bookingEmailHtml({
+        bookingNumber: appointment.bookingNumber,
+        salonName: salon.name,
+        serviceName: service.name,
+        staffName: staff?.name,
+        date: prettyDate,
+        time: prettyTime,
+        price,
+        address: salon.address,
+      }),
+    });
+    console.log(
+      `[email:booking] bookingId=${appointment._id} salonId=${salon._id} to=${customer.email} at=${new Date().toISOString()} status=${sent ? "sent" : "failed"}`
+    );
+  }
 
   const owner = await User.findById(salon.owner).select("email");
   if (owner) {
@@ -385,24 +393,32 @@ export async function createBooking(
       userId: owner._id.toString(),
       type: "booking_created",
       title: "New booking request",
-      message: `${customer.name ?? "A customer"} requested ${service.name} on ${prettyDate}, ${prettyTime}.`,
+      message: `${input.contactName} requested ${service.name} on ${prettyDate}, ${prettyTime}.`,
       link: `/salon-dashboard/bookings`,
-      email: owner.email
-        ? {
-            to: owner.email,
-            subject: `New booking ${appointment.bookingNumber}`,
-            html: bookingEmailHtml({
-              bookingNumber: appointment.bookingNumber,
-              salonName: salon.name,
-              serviceName: service.name,
-              staffName: staff?.name,
-              date: prettyDate,
-              time: prettyTime,
-              price,
-            }),
-          }
-        : undefined,
     });
+
+    if (owner.email) {
+      const sent = await sendEmail({
+        to: owner.email,
+        subject: `New Appointment Booked – ${input.contactName}`,
+        title: "New appointment booked",
+        html: ownerBookingNotificationEmailHtml({
+          bookingId: appointment.bookingNumber,
+          salonName: salon.name,
+          customerName: input.contactName,
+          customerEmail: input.contactEmail || customer.email || undefined,
+          customerPhone: input.contactPhone,
+          serviceName: service.name,
+          staffName: staff?.name,
+          date: prettyDate,
+          time: prettyTime,
+          notes: input.notes || undefined,
+        }),
+      });
+      console.log(
+        `[email:booking] bookingId=${appointment._id} salonId=${salon._id} to=${owner.email} at=${new Date().toISOString()} status=${sent ? "sent" : "failed"}`
+      );
+    }
   }
 
   return appointment;

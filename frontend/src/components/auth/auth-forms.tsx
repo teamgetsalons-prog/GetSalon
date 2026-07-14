@@ -8,12 +8,16 @@ import { login as authLogin } from "@/lib/auth";
 import { useAuth } from "@/lib/auth-context";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Scissors } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Scissors } from "lucide-react";
 import {
   loginSchema,
   registerSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   type LoginInput,
   type RegisterInput,
+  type ForgotPasswordInput,
+  type ResetPasswordInput,
 } from "@getsalons/shared/validations/auth";
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label } from "@/components/ui/input";
@@ -106,7 +110,12 @@ export function LoginForm() {
         </div>
 
         <div>
-          <Label htmlFor="password" required>Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" required>Password</Label>
+            <Link href="/forgot-password" className="text-xs font-medium text-gold hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <div className="relative">
             <Input
               id="password"
@@ -320,6 +329,186 @@ export function RegisterForm({ asOwner = false }: { asOwner?: boolean }) {
           ? "After signing up you'll add your salon details for review."
           : "Free forever for customers — book unlimited appointments."}
       </p>
+    </AuthShell>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const [submitted, setSubmitted] = useState(false);
+
+  const form = useForm<ForgotPasswordInput>({ resolver: zodResolver(forgotPasswordSchema) });
+
+  async function onSubmit(values: ForgotPasswordInput) {
+    // The backend always returns the same generic response regardless of
+    // whether the account exists, so this UI has nothing else to branch on.
+    await api("/api/auth/forgot-password", { method: "POST", json: values });
+    setSubmitted(true);
+  }
+
+  if (submitted) {
+    return (
+      <AuthShell title="Check your email" subtitle="">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500">
+            <CheckCircle2 className="h-6 w-6" />
+          </span>
+          <p className="text-sm text-fg-muted">
+            If an account with that email exists, we&apos;ve sent a password reset link. It expires in 30 minutes.
+          </p>
+          <Link href="/login" className="text-sm font-medium text-gold hover:underline">
+            Back to log in
+          </Link>
+        </div>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell
+      title="Forgot your password?"
+      subtitle="Enter your email and we'll send you a reset link."
+    >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <div>
+          <Label htmlFor="email" required>Email</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            {...form.register("email")}
+          />
+          <FieldError message={form.formState.errors.email?.message} />
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full"
+          size="lg"
+          loading={form.formState.isSubmitting}
+        >
+          Send reset link
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-fg-muted">
+        <Link href="/login" className="font-medium text-gold hover:underline">
+          Back to log in
+        </Link>
+      </p>
+    </AuthShell>
+  );
+}
+
+export function ResetPasswordForm() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const token = params.get("token") ?? "";
+  const [error, setError] = useState<string | null>(null);
+  const [showPw, setShowPw] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const form = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { token },
+  });
+
+  async function onSubmit(values: ResetPasswordInput) {
+    setError(null);
+    const res = await api("/api/auth/reset-password", { method: "POST", json: values });
+    if (!res.success) {
+      setError(res.message ?? "This reset link is invalid or has expired. Please request a new one.");
+      return;
+    }
+    setDone(true);
+  }
+
+  if (!token) {
+    return (
+      <AuthShell title="Invalid reset link" subtitle="">
+        <p className="text-center text-sm text-fg-muted">
+          This password reset link is missing its token. Please request a new one.
+        </p>
+        <Link
+          href="/forgot-password"
+          className="mt-4 block text-center text-sm font-medium text-gold hover:underline"
+        >
+          Request a new link
+        </Link>
+      </AuthShell>
+    );
+  }
+
+  if (done) {
+    return (
+      <AuthShell title="Password reset" subtitle="">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500">
+            <CheckCircle2 className="h-6 w-6" />
+          </span>
+          <p className="text-sm text-fg-muted">Your password has been reset.</p>
+          <Button onClick={() => router.push("/login")} className="mt-1">
+            Log in
+          </Button>
+        </div>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell title="Choose a new password" subtitle="Make it something you'll remember.">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <input type="hidden" {...form.register("token")} />
+
+        <div>
+          <Label htmlFor="password" required>New password</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPw ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
+              {...form.register("password")}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              aria-label={showPw ? "Hide password" : "Show password"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-fg-faint hover:text-fg"
+            >
+              {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+          <FieldError message={form.formState.errors.password?.message} />
+        </div>
+
+        <div>
+          <Label htmlFor="confirmPassword" required>Confirm new password</Label>
+          <Input
+            id="confirmPassword"
+            type={showPw ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder="Re-enter your new password"
+            {...form.register("confirmPassword")}
+          />
+          <FieldError message={form.formState.errors.confirmPassword?.message} />
+        </div>
+
+        {error && (
+          <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-500">
+            {error}
+          </p>
+        )}
+
+        <Button
+          type="submit"
+          className="w-full"
+          size="lg"
+          loading={form.formState.isSubmitting}
+        >
+          Reset password
+        </Button>
+      </form>
     </AuthShell>
   );
 }

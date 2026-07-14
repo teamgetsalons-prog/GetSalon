@@ -52,3 +52,19 @@ export const updateProfileSchema = z.object({
     message: "Current password is required when setting a new password",
     path: ["currentPassword"],
 });
+export const forgotPasswordSchema = z.object({
+    email: z.string().email("Invalid email address"),
+});
+export const resetPasswordSchema = z
+    .object({
+    token: z.string().min(1, "Reset token is required"),
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters")
+        .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one uppercase letter, one lowercase letter, and one number"),
+    confirmPassword: z.string(),
+})
+    .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+});
