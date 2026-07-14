@@ -28,6 +28,7 @@ import { FavoriteButton, ShareButton } from "@/components/salons/favorite-share"
 import { CommentSection } from "@/components/salons/comment-section";
 import { ServicesBrowser } from "@/components/salons/services-browser";
 import { SalonHighlights } from "@/components/salons/salon-highlights";
+import { SalonMap } from "@/components/salons/salon-map";
 import { StickyBookBar } from "@/components/salons/sticky-book-bar";
 import { FaqAccordion } from "@/components/home/faq-accordion";
 
@@ -487,6 +488,15 @@ export default async function SalonPage({ params }: Params) {
               {salon.address}, {salon.areaName ? `${salon.areaName}, ` : ""}
               {salon.cityName}
             </p>
+            {salon.location?.coordinates && (
+              <div className="mt-3">
+                <SalonMap
+                  lat={salon.location.coordinates[1]}
+                  lng={salon.location.coordinates[0]}
+                  name={salon.name}
+                />
+              </div>
+            )}
             <a
               href={mapsUrl}
               target="_blank"

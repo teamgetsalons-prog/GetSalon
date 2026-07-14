@@ -36,6 +36,9 @@ export default async function SalonSettingsPage() {
         tiktok: salon.socials?.tiktok ?? "",
         cancellationPolicy: salon.policies?.cancellation ?? "",
         categoryIds: (salon.categories ?? []).map((c) => c._id),
+        latitude: salon.location?.coordinates ? salon.location.coordinates[1] : undefined,
+        longitude: salon.location?.coordinates ? salon.location.coordinates[0] : undefined,
+        cityName: salon.cityName,
       }}
     />
   );

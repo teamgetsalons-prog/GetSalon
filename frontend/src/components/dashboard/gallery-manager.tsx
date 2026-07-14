@@ -105,9 +105,13 @@ export function GalleryManager({
   }
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files;
+    // Copy the File objects out of the live FileList before resetting
+    // .value - clearing the input's value also empties the FileList
+    // reference itself (not just future reads of it), so leaving this as
+    // `e.target.files` meant the loop below silently iterated zero items.
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!files || files.length === 0) return;
+    if (files.length === 0) return;
 
     setUploading(true);
     setMessage(null);

@@ -6,6 +6,7 @@ import { cn } from "@getsalons/shared/utils";
 import { SALON_AMENITIES } from "@getsalons/shared/constants";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { LocationPicker } from "@/components/dashboard/location-picker";
 import type { GenderServed, SalonAmenity } from "@getsalons/shared/types";
 
 export interface SalonSettingsData {
@@ -25,6 +26,9 @@ export interface SalonSettingsData {
   tiktok: string;
   cancellationPolicy: string;
   categoryIds: string[];
+  latitude?: number;
+  longitude?: number;
+  cityName?: string;
 }
 
 export function SalonSettingsForm({
@@ -90,6 +94,9 @@ export function SalonSettingsForm({
         socials: { instagram: form.instagram, facebook: form.facebook, tiktok: form.tiktok },
         policies: { cancellation: form.cancellationPolicy },
         categoryIds: form.categoryIds,
+        ...(form.latitude !== undefined && form.longitude !== undefined
+          ? { latitude: form.latitude, longitude: form.longitude }
+          : {}),
       },
     });
     setSaving(false);
@@ -151,10 +158,28 @@ export function SalonSettingsForm({
             rows={4}
             maxLength={3000}
           />
+          <p className={cn("mt-1 text-xs", form.about.trim().length >= 40 ? "text-fg-faint" : "text-gold")}>
+            {form.about.trim().length >= 40
+              ? `${form.about.length}/3000`
+              : `Write ${40 - form.about.trim().length} more character${40 - form.about.trim().length === 1 ? "" : "s"} to complete this step on your profile checklist.`}
+          </p>
         </div>
         <div>
           <Label required>Address</Label>
           <Input value={form.address} onChange={(e) => set("address", e.target.value)} />
+        </div>
+
+        <div>
+          <Label>Map location</Label>
+          <p className="mb-2 text-xs text-fg-muted">
+            Pin your salon's exact location so customers can find you and get directions.
+          </p>
+          <LocationPicker
+            cityName={form.cityName}
+            latitude={form.latitude}
+            longitude={form.longitude}
+            onChange={(lat, lng) => setForm((f) => ({ ...f, latitude: lat, longitude: lng }))}
+          />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
