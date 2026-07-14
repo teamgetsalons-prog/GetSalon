@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { MapPin, Star, Clock, CheckCircle } from "lucide-react";
-import { getCategoriesApi, getCityBySlug, searchSalonsApi } from "@/lib/server-api";
+import { getCategoriesApi, getCitiesApi, getCityBySlug, searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
@@ -24,12 +24,13 @@ type Params = { params: Promise<{ city: string }> };
 /** Shared between generateMetadata and the page body so both use one fetch,
  * not two, for the same request. */
 const loadCityPage = cache(async (city: string) => {
-  const [cityRecord, result, catDocs] = await Promise.all([
+  const [cityRecord, result, catDocs, otherCities] = await Promise.all([
     getCityBySlug(city, { revalidate: 300 }),
     searchSalonsApi({ city, limit: 50 }, { revalidate: 300 }),
-    getCategoriesApi({ revalidate: 300 }),
+    getCategoriesApi(false, { revalidate: 300 }),
+    getCitiesApi(false, true, { revalidate: 300 }),
   ]);
-  return { cityRecord, result, categories: catDocs };
+  return { cityRecord, result, categories: catDocs, otherCities };
 });
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function CitySalonsPage({ params }: Params) {
   const { city } = await params;
-  const { cityRecord, result, categories: catDocs } = await loadCityPage(city);
+  const { cityRecord, result, categories: catDocs, otherCities } = await loadCityPage(city);
   if (!cityRecord) notFound();
   const cityName = cityRecord.name;
   const categories = catDocs.map((c) => ({ name: c.name, slug: c.slug }));
@@ -200,23 +201,26 @@ export default async function CitySalonsPage({ params }: Params) {
         </div>
       </section>
 
-      {/* Internal Links */}
-      <section className="mt-16 rounded-2xl border border-line bg-card p-8">
-        <h2 className="text-lg font-semibold">Explore Salons in Other Cities</h2>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan"]
-            .filter((c) => c.toLowerCase() !== city.toLowerCase())
-            .map((c) => (
-              <Link
-                key={c}
-                href={`/salons/${c.toLowerCase()}`}
-                className="rounded-full border border-line px-4 py-2 text-sm text-fg-muted transition-colors hover:border-gold-500/50 hover:text-gold"
-              >
-                Salons in {c}
-              </Link>
-            ))}
-        </div>
-      </section>
+      {/* Internal Links - only cities that currently have live salons, so
+          this never sends customers to another dead-end "0 salons" page. */}
+      {otherCities.filter((c) => c.slug !== city).length > 0 && (
+        <section className="mt-16 rounded-2xl border border-line bg-card p-8">
+          <h2 className="text-lg font-semibold">Explore Salons in Other Cities</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {otherCities
+              .filter((c) => c.slug !== city)
+              .map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/salons/${c.slug}`}
+                  className="rounded-full border border-line px-4 py-2 text-sm text-fg-muted transition-colors hover:border-gold-500/50 hover:text-gold"
+                >
+                  Salons in {c.name}
+                </Link>
+              ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

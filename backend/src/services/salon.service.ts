@@ -557,12 +557,21 @@ export async function moderateSalon(
   const salon = await Salon.findById(salonId);
   if (!salon) throw new ApiError("Salon not found.", 404);
 
+  // salonCount only reflects "currently approved", not "ever approved" -
+  // every transition into/out of "approved" must move it by exactly one,
+  // regardless of which specific action caused the transition (approving
+  // an already-approved salon, or rejecting/suspending one that was never
+  // approved, must both be no-ops for this counter).
+  const wasApproved = salon.status === "approved";
+
   switch (action) {
     case "approve": {
       salon.status = "approved";
       salon.isVerified = true;
       salon.rejectionReason = undefined;
-      await City.updateOne({ _id: salon.city }, { $inc: { salonCount: 1 } });
+      if (!wasApproved) {
+        await City.updateOne({ _id: salon.city }, { $inc: { salonCount: 1 } });
+      }
       // The free trial must actually start at approval, or the salon is
       // visible but unbookable - createBooking enforces an active
       // subscription. Idempotent: re-approving after a suspension must
@@ -574,9 +583,15 @@ export async function moderateSalon(
     case "reject":
       salon.status = "rejected";
       salon.rejectionReason = reason || "Does not meet listing guidelines.";
+      if (wasApproved) {
+        await City.updateOne({ _id: salon.city }, { $inc: { salonCount: -1 } });
+      }
       break;
     case "suspend":
       salon.status = "suspended";
+      if (wasApproved) {
+        await City.updateOne({ _id: salon.city }, { $inc: { salonCount: -1 } });
+      }
       break;
     case "feature":
       salon.isFeatured = true;

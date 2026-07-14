@@ -88,7 +88,7 @@ export function Navbar() {
       try {
         const [citiesRes, catsRes] = await Promise.all([
           fetch("/api/categories/cities?onlyWithSalons=1").then((r) => r.json()),
-          fetch("/api/categories").then((r) => r.json()),
+          fetch("/api/categories?onlyWithSalons=1").then((r) => r.json()),
         ]);
         if (citiesRes.success && citiesRes.data) {
           setCities(citiesRes.data);

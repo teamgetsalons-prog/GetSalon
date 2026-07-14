@@ -3,13 +3,28 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { Category, City, Area, Salon } from "../models/index.js";
+import { Category, City, Area, Salon, Service } from "../models/index.js";
 import { slugify } from "../../../shared/dist/utils.js";
 
 const router = Router();
 
-router.get("/", async (_req: Request, res: Response) => {
-  const categories = await Category.find({ isActive: true }).sort({ order: 1, name: 1 });
+router.get("/", async (req: Request, res: Response) => {
+  const filter: Record<string, unknown> = { isActive: true };
+  if (req.query.onlyWithSalons) {
+    // Live check, not a cached counter - a category "has salons" if an
+    // approved salon is tagged with it directly, or tagged indirectly via
+    // one of its own active services (same either/or rule searchSalons()
+    // uses, so "browse by category" never links to a category that would
+    // immediately show 0 results).
+    const approvedSalonIds = await Salon.distinct("_id", { status: "approved" });
+    const [directCategoryIds, viaServiceCategoryIds] = await Promise.all([
+      Salon.distinct("categories", { _id: { $in: approvedSalonIds } }),
+      Service.distinct("category", { salon: { $in: approvedSalonIds }, isActive: true }),
+    ]);
+    const withSalonIds = [...new Set([...directCategoryIds, ...viaServiceCategoryIds].map(String))];
+    filter._id = { $in: withSalonIds };
+  }
+  const categories = await Category.find(filter).sort({ order: 1, name: 1 });
   return ok(res, categories);
 });
 

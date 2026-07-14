@@ -223,8 +223,12 @@ export async function getCityBySlug(
   return cities.find((c) => c.slug === slug) ?? null;
 }
 
-export async function getCategoriesApi(opts?: { revalidate?: number }): Promise<CategoryOption[]> {
-  const res = await serverFetch<CategoryOption[]>("/categories", opts);
+export async function getCategoriesApi(
+  onlyWithSalons = false,
+  opts?: { revalidate?: number }
+): Promise<CategoryOption[]> {
+  const qs = onlyWithSalons ? "?onlyWithSalons=1" : "";
+  const res = await serverFetch<CategoryOption[]>(`/categories${qs}`, opts);
   return res.success && res.data ? res.data : [];
 }
 
