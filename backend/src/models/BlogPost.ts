@@ -9,7 +9,11 @@ export interface IBlogPost {
   /** Markdown-ish content rendered as paragraphs */
   content: string;
   coverImage?: string;
+  /** Legacy free-text byline - kept as a display fallback for posts that
+   * never get assigned a real Author record, so no existing post breaks. */
   author: string;
+  /** Real author identity for E-E-A-T / Article schema, when assigned. */
+  authorId?: Types.ObjectId;
   category: string;
   tags: string[];
   isPublished: boolean;
@@ -28,6 +32,7 @@ const blogPostSchema = new Schema<IBlogPost>(
     content: { type: String, required: true },
     coverImage: String,
     author: { type: String, default: "GetSalons Team" },
+    authorId: { type: Schema.Types.ObjectId, ref: "Author", index: true },
     category: { type: String, default: "Beauty Tips", index: true },
     tags: [String],
     isPublished: { type: Boolean, default: false, index: true },

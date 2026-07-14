@@ -109,14 +109,18 @@ export default async function BlogPostPage({ params }: Params) {
             headline: post.title,
             description: post.excerpt,
             image: post.coverImage,
-            author: { "@type": "Person", name: post.author },
+            author: {
+              "@type": post.authorInfo && !post.authorInfo.isTeam ? "Person" : "Organization",
+              name: post.author,
+              ...(post.authorInfo ? { url: `${SITE.url}/blog/authors/${post.authorInfo.slug}` } : {}),
+            },
             publisher: {
               "@type": "Organization",
               name: SITE.name,
               logo: { "@type": "ImageObject", url: `${SITE.url}/icon.svg` },
             },
             datePublished: post.publishedAt,
-            dateModified: post.publishedAt,
+            dateModified: post.updatedAt ?? post.publishedAt,
             mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE.url}/blog/${post.slug}` },
           },
         ]}
@@ -150,10 +154,20 @@ export default async function BlogPostPage({ params }: Params) {
             {post.title}
           </h1>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-fg-muted">
-            <span className="flex items-center gap-1.5">
-              <User className="h-4 w-4" />
-              {post.author}
-            </span>
+            {post.authorInfo ? (
+              <Link
+                href={`/blog/authors/${post.authorInfo.slug}`}
+                className="flex items-center gap-1.5 hover:text-gold"
+              >
+                <User className="h-4 w-4" />
+                {post.author}
+              </Link>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <User className="h-4 w-4" />
+                {post.author}
+              </span>
+            )}
             <span className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
               {formatDate(post.publishedAt)}

@@ -1,20 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Upload, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/input";
+import { Input, Select, Textarea } from "@/components/ui/input";
+
+interface AuthorOption {
+  _id: string;
+  name: string;
+}
+
+const NEW_AUTHOR = "__new__";
 
 export default function NewBlogPostPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
-  const [author, setAuthor] = useState("GetSalons Team");
+  const [authors, setAuthors] = useState<AuthorOption[]>([]);
+  const [authorId, setAuthorId] = useState("");
+  const [newAuthorName, setNewAuthorName] = useState("");
+  const [newAuthorBio, setNewAuthorBio] = useState("");
+  const [newAuthorTitle, setNewAuthorTitle] = useState("");
   const [category, setCategory] = useState("Beauty Tips");
   const [tags, setTags] = useState("");
   const [coverImage, setCoverImage] = useState("");
@@ -24,6 +35,16 @@ export default function NewBlogPostPage() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      const res = await api<AuthorOption[]>("/api/blog/admin/authors");
+      if (res.success && res.data) {
+        setAuthors(res.data);
+        if (res.data.length > 0) setAuthorId(res.data[0]._id);
+      }
+    })();
+  }, []);
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -57,14 +78,37 @@ export default function NewBlogPostPage() {
       setError("Content must be at least 50 characters.");
       return;
     }
+    if (authorId === NEW_AUTHOR && newAuthorName.trim().length < 2) {
+      setError("Enter a name for the new author.");
+      return;
+    }
     setError(null);
     setSaving(true);
+
+    let resolvedAuthorId = authorId;
+    let resolvedAuthorName: string | undefined;
+    if (authorId === NEW_AUTHOR) {
+      const authorRes = await api<{ _id: string; name: string }>("/api/blog/admin/authors", {
+        method: "POST",
+        json: {
+          name: newAuthorName.trim(),
+          bio: newAuthorBio.trim() || `${newAuthorName.trim()} writes for the GetSalons blog.`,
+          title: newAuthorTitle.trim() || undefined,
+        },
+      });
+      if (!authorRes.success || !authorRes.data) {
+        setSaving(false);
+        setError(authorRes.message ?? "Could not create the new author.");
+        return;
+      }
+      resolvedAuthorId = authorRes.data._id;
+      resolvedAuthorName = authorRes.data.name;
+    }
 
     const body: Record<string, unknown> = {
       title: title.trim(),
       excerpt: excerpt.trim(),
       content: content.trim(),
-      author: author.trim() || "GetSalons Team",
       category: category.trim() || "Beauty Tips",
       tags: tags
         .split(",")
@@ -72,6 +116,9 @@ export default function NewBlogPostPage() {
         .filter(Boolean),
       isPublished: publish,
     };
+    if (resolvedAuthorId) body.authorId = resolvedAuthorId;
+    const selectedAuthorName = resolvedAuthorName ?? authors.find((a) => a._id === authorId)?.name;
+    if (selectedAuthorName) body.author = selectedAuthorName;
     if (coverImage) body.coverImage = coverImage;
     if (seoTitle.trim()) body.seo = { title: seoTitle.trim(), description: seoDesc.trim() };
 
@@ -180,11 +227,12 @@ export default function NewBlogPostPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-medium">Author</label>
-            <Input
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder="GetSalons Team"
-            />
+            <Select value={authorId} onChange={(e) => setAuthorId(e.target.value)}>
+              {authors.map((a) => (
+                <option key={a._id} value={a._id}>{a.name}</option>
+              ))}
+              <option value={NEW_AUTHOR}>+ Add new author…</option>
+            </Select>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium">Category</label>
@@ -195,6 +243,38 @@ export default function NewBlogPostPage() {
             />
           </div>
         </div>
+
+        {authorId === NEW_AUTHOR && (
+          <div className="space-y-3 rounded-xl border border-line bg-bg-soft p-4">
+            <p className="text-sm font-semibold">New author</p>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-fg-muted">Name</label>
+              <Input
+                value={newAuthorName}
+                onChange={(e) => setNewAuthorName(e.target.value)}
+                placeholder="e.g. Sana Malik"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-fg-muted">Credential (optional)</label>
+              <Input
+                value={newAuthorTitle}
+                onChange={(e) => setNewAuthorTitle(e.target.value)}
+                placeholder="e.g. GetSalons co-founder, 5 years in the beauty industry"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-fg-muted">Bio</label>
+              <Textarea
+                value={newAuthorBio}
+                onChange={(e) => setNewAuthorBio(e.target.value)}
+                placeholder="A short, honest bio - what they actually do and why they're writing this."
+                rows={2}
+                maxLength={1000}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Tags */}
         <div>

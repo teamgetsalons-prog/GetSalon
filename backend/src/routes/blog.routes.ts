@@ -11,7 +11,11 @@ import {
   createBlogPost,
   updateBlogPost,
   deleteBlogPost,
+  getAuthorBySlug,
+  listAuthors,
 } from "../services/blog.service.js";
+import { Author } from "../models/index.js";
+import { slugify } from "../../../shared/dist/utils.js";
 
 const router = Router();
 
@@ -31,6 +35,12 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/categories", async (_req: Request, res: Response) => {
   const categories = await getBlogCategories();
   return ok(res, categories);
+});
+
+router.get("/authors/:slug", async (req: Request, res: Response) => {
+  const result = await getAuthorBySlug(String(req.params.slug));
+  if (!result) return fail(res, "Author not found.", 404);
+  return ok(res, result);
 });
 
 router.get("/:slug", async (req: Request, res: Response) => {
@@ -84,6 +94,7 @@ const createPostSchema = z.object({
   content: z.string().min(50),
   coverImage: z.string().url().optional(),
   author: z.string().max(80).optional(),
+  authorId: z.string().optional(),
   category: z.string().max(50).optional(),
   tags: z.array(z.string().max(30)).optional(),
   isPublished: z.boolean().optional(),
@@ -110,6 +121,43 @@ router.get(
     });
   }
 );
+
+const createAuthorSchema = z.object({
+  name: z.string().min(2).max(100),
+  bio: z.string().min(10).max(1000),
+  title: z.string().max(150).optional(),
+  avatar: z.string().url().optional(),
+  isTeam: z.boolean().optional(),
+});
+
+router.get("/admin/authors", authenticate, requireRole("admin"), async (_req: Request, res: Response) => {
+  const authors = await listAuthors();
+  return ok(res, authors);
+});
+
+router.post("/admin/authors", authenticate, requireRole("admin"), async (req: Request, res: Response) => {
+  const input = createAuthorSchema.parse(req.body);
+  const baseSlug = slugify(input.name);
+  const existing = await Author.findOne({ slug: baseSlug });
+  const author = await Author.create({
+    ...input,
+    slug: existing ? `${baseSlug}-${Date.now()}` : baseSlug,
+  });
+  return ok(
+    res,
+    {
+      _id: author._id.toString(),
+      name: author.name,
+      slug: author.slug,
+      bio: author.bio,
+      title: author.title,
+      avatar: author.avatar,
+      isTeam: author.isTeam,
+    },
+    undefined,
+    201
+  );
+});
 
 router.post(
   "/",

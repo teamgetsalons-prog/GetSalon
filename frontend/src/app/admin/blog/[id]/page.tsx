@@ -7,8 +7,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/input";
+import { Input, Select, Textarea } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/misc";
+
+interface AuthorOption {
+  _id: string;
+  name: string;
+}
+
+const NEW_AUTHOR = "__new__";
 
 interface BlogPost {
   _id: string;
@@ -18,6 +25,7 @@ interface BlogPost {
   content: string;
   coverImage?: string;
   author: string;
+  authorId?: { _id: string; name: string } | string | null;
   category: string;
   tags: string[];
   isPublished: boolean;
@@ -35,7 +43,11 @@ export default function EditBlogPostPage() {
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
-  const [author, setAuthor] = useState("");
+  const [authors, setAuthors] = useState<AuthorOption[]>([]);
+  const [authorId, setAuthorId] = useState("");
+  const [newAuthorName, setNewAuthorName] = useState("");
+  const [newAuthorBio, setNewAuthorBio] = useState("");
+  const [newAuthorTitle, setNewAuthorTitle] = useState("");
   const [category, setCategory] = useState("");
   const [tags, setTags] = useState("");
   const [coverImage, setCoverImage] = useState("");
@@ -47,15 +59,21 @@ export default function EditBlogPostPage() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await api<BlogPost[]>(`/api/blog/admin/all?limit=100`);
-    if (res.success && res.data) {
-      const found = res.data.find((p) => p._id === id);
+    const [postsRes, authorsRes] = await Promise.all([
+      api<BlogPost[]>(`/api/blog/admin/all?limit=100`),
+      api<AuthorOption[]>("/api/blog/admin/authors"),
+    ]);
+    if (authorsRes.success && authorsRes.data) setAuthors(authorsRes.data);
+    if (postsRes.success && postsRes.data) {
+      const found = postsRes.data.find((p) => p._id === id);
       if (found) {
         setPost(found);
         setTitle(found.title);
         setExcerpt(found.excerpt);
         setContent(found.content);
-        setAuthor(found.author);
+        const existingAuthorId =
+          typeof found.authorId === "object" ? found.authorId?._id : found.authorId;
+        setAuthorId(existingAuthorId ?? "");
         setCategory(found.category);
         setTags(found.tags.join(", "));
         setCoverImage(found.coverImage ?? "");
@@ -103,14 +121,37 @@ export default function EditBlogPostPage() {
       setError("Content must be at least 50 characters.");
       return;
     }
+    if (authorId === NEW_AUTHOR && newAuthorName.trim().length < 2) {
+      setError("Enter a name for the new author.");
+      return;
+    }
     setError(null);
     setSaving(true);
+
+    let resolvedAuthorId = authorId;
+    let resolvedAuthorName: string | undefined;
+    if (authorId === NEW_AUTHOR) {
+      const authorRes = await api<{ _id: string; name: string }>("/api/blog/admin/authors", {
+        method: "POST",
+        json: {
+          name: newAuthorName.trim(),
+          bio: newAuthorBio.trim() || `${newAuthorName.trim()} writes for the GetSalons blog.`,
+          title: newAuthorTitle.trim() || undefined,
+        },
+      });
+      if (!authorRes.success || !authorRes.data) {
+        setSaving(false);
+        setError(authorRes.message ?? "Could not create the new author.");
+        return;
+      }
+      resolvedAuthorId = authorRes.data._id;
+      resolvedAuthorName = authorRes.data.name;
+    }
 
     const body: Record<string, unknown> = {
       title: title.trim(),
       excerpt: excerpt.trim(),
       content: content.trim(),
-      author: author.trim() || "GetSalons Team",
       category: category.trim() || "Beauty Tips",
       tags: tags
         .split(",")
@@ -118,6 +159,9 @@ export default function EditBlogPostPage() {
         .filter(Boolean),
       isPublished: publishOverride ?? isPublished,
     };
+    body.authorId = resolvedAuthorId || undefined;
+    const selectedAuthorName = resolvedAuthorName ?? authors.find((a) => a._id === authorId)?.name;
+    if (selectedAuthorName) body.author = selectedAuthorName;
     if (coverImage) body.coverImage = coverImage;
     if (seoTitle.trim() || seoDesc.trim()) {
       body.seo = { title: seoTitle.trim(), description: seoDesc.trim() };
@@ -241,11 +285,13 @@ export default function EditBlogPostPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-medium">Author</label>
-            <Input
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder="GetSalons Team"
-            />
+            <Select value={authorId} onChange={(e) => setAuthorId(e.target.value)}>
+              <option value="">— Legacy byline: {post?.author} —</option>
+              {authors.map((a) => (
+                <option key={a._id} value={a._id}>{a.name}</option>
+              ))}
+              <option value={NEW_AUTHOR}>+ Add new author…</option>
+            </Select>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium">Category</label>
@@ -256,6 +302,38 @@ export default function EditBlogPostPage() {
             />
           </div>
         </div>
+
+        {authorId === NEW_AUTHOR && (
+          <div className="space-y-3 rounded-xl border border-line bg-bg-soft p-4">
+            <p className="text-sm font-semibold">New author</p>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-fg-muted">Name</label>
+              <Input
+                value={newAuthorName}
+                onChange={(e) => setNewAuthorName(e.target.value)}
+                placeholder="e.g. Sana Malik"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-fg-muted">Credential (optional)</label>
+              <Input
+                value={newAuthorTitle}
+                onChange={(e) => setNewAuthorTitle(e.target.value)}
+                placeholder="e.g. GetSalons co-founder, 5 years in the beauty industry"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-fg-muted">Bio</label>
+              <Textarea
+                value={newAuthorBio}
+                onChange={(e) => setNewAuthorBio(e.target.value)}
+                placeholder="A short, honest bio - what they actually do and why they're writing this."
+                rows={2}
+                maxLength={1000}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Tags */}
         <div>
