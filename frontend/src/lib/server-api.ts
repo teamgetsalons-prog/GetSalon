@@ -113,6 +113,7 @@ export interface SalonPageData {
     rating: { average: number; count: number };
   }[];
   reviews: Record<string, unknown>[];
+  branches: SalonCardData[];
 }
 
 export async function getSalonPageData(
@@ -120,6 +121,20 @@ export async function getSalonPageData(
   opts?: { revalidate?: number }
 ): Promise<SalonPageData | null> {
   const res = await serverFetch<SalonPageData>(`/salons/public/${slug}`, opts);
+  if (!res.success || !res.data) return null;
+  return res.data;
+}
+
+export interface SalonBranchesResult {
+  salonName: string;
+  branches: SalonCardData[];
+}
+
+export async function getSalonBranchesApi(
+  slug: string,
+  opts?: { revalidate?: number }
+): Promise<SalonBranchesResult | null> {
+  const res = await serverFetch<SalonBranchesResult>(`/salons/public/${slug}/branches`, opts);
   if (!res.success || !res.data) return null;
   return res.data;
 }

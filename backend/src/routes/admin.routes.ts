@@ -4,6 +4,7 @@ import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { User, Salon, Appointment, Review, AuditLog, Service, Staff, Comment, SalonSubscription, City, SupportMessage, Deal } from "../models/index.js";
 import { notify } from "../services/notification.service.js";
+import { getMultiSalonOwnerIds } from "../services/salon.service.js";
 function toDateKey(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -60,12 +61,22 @@ router.get("/salons", async (req: Request, res: Response) => {
   const limit = Math.min(50, Number(req.query.limit) || 20);
   const status = req.query.status as string | undefined;
   const q = req.query.q as string | undefined;
+  // "Branch" isn't its own entity - it's any salon whose owner has more
+  // than one. branch=true powers the dedicated Branch Requests tab;
+  // branch=false is the regular Salons tab (first-time submissions only).
+  // Omitted entirely: unfiltered, for any other caller that still wants
+  // everything in one list.
+  const branchParam = req.query.branch as string | undefined;
 
   const filter: Record<string, unknown> = {};
   if (status) filter.status = status;
   if (q) {
     const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     filter.$or = [{ name: rx }, { cityName: rx }, { phone: rx }];
+  }
+  if (branchParam === "true" || branchParam === "false") {
+    const branchOwnerIds = await getMultiSalonOwnerIds();
+    filter.owner = branchParam === "true" ? { $in: branchOwnerIds } : { $nin: branchOwnerIds };
   }
 
   const [salons, total] = await Promise.all([
@@ -77,7 +88,36 @@ router.get("/salons", async (req: Request, res: Response) => {
     Salon.countDocuments(filter),
   ]);
 
-  return ok(res, salons, {
+  // Branch rows need "which of this owner's other salons is this a
+  // branch of" context - one extra query per page load, only when the
+  // branch tab actually needs it.
+  let siblingsByOwner: Record<string, { name: string; slug: string; status: string }[]> = {};
+  if (branchParam === "true" && salons.length > 0) {
+    // owner is populated on `salons` above (name/email/phone), so its own
+    // _id - not the populated subdocument itself - is the real ObjectId.
+    const ownerIds = [...new Set(salons.map((s) => (s.owner as unknown as { _id: string })._id.toString()))];
+    const allForOwners = await Salon.find({ owner: { $in: ownerIds } })
+      .select("owner name slug status")
+      .lean();
+    siblingsByOwner = ownerIds.reduce<typeof siblingsByOwner>((acc, ownerId) => {
+      acc[ownerId] = allForOwners
+        .filter((s) => s.owner.toString() === ownerId)
+        .map((s) => ({ name: s.name, slug: s.slug, status: s.status }));
+      return acc;
+    }, {});
+  }
+
+  const data =
+    branchParam === "true"
+      ? salons.map((s) => ({
+          ...s.toJSON(),
+          siblingSalons: (
+            siblingsByOwner[(s.owner as unknown as { _id: string })._id.toString()] ?? []
+          ).filter((sib) => sib.slug !== s.slug),
+        }))
+      : salons;
+
+  return ok(res, data, {
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
   });
 });

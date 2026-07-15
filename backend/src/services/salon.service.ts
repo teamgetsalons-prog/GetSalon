@@ -217,7 +217,7 @@ export async function getSalonPageData(slug: string) {
 
   const salonId = salon._id;
 
-  const [services, staff, reviews] = await Promise.all([
+  const [services, staff, reviews, branchDocs] = await Promise.all([
     Service.find({ salon: salonId, isActive: true })
       .populate("category", "name")
       .sort({ isPopular: -1, price: 1 })
@@ -230,14 +230,22 @@ export async function getSalonPageData(slug: string) {
       .sort({ createdAt: -1 })
       .limit(10)
       .lean(),
+    Salon.find({ owner: salon.owner, status: "approved", _id: { $ne: salonId } })
+      .populate("categories", "name slug")
+      .sort({ createdAt: -1 })
+      .lean(),
   ]);
+
+  const branches = branchDocs.map((b) =>
+    toSalonCard(b as unknown as ISalon & { categories: { name?: string }[] })
+  );
 
   // Fire-and-forget view counter
   Salon.updateOne({ _id: salonId }, { $inc: { views: 1 } }).catch(
     () => undefined
   );
 
-  return { salon, services, staff, reviews };
+  return { salon, services, staff, reviews, branches };
 }
 
 export async function getHomePageData() {
@@ -323,6 +331,47 @@ export async function getActorSalon(actor: {
 export async function listOwnedSalons(ownerId: string) {
   await connectDB();
   return Salon.find({ owner: ownerId }).sort({ createdAt: -1 }).lean();
+}
+
+/**
+ * "Branch" isn't a separate entity - it's any Salon whose owner has more
+ * than one salon document. This resolves that set of owner IDs once so
+ * admin listing/badges can classify a pending salon as a first-time
+ * submission vs an additional branch, without a schema change.
+ */
+export async function getMultiSalonOwnerIds(): Promise<string[]> {
+  await connectDB();
+  const groups = await Salon.aggregate<{ _id: unknown; count: number }>([
+    { $group: { _id: "$owner", count: { $sum: 1 } } },
+    { $match: { count: { $gt: 1 } } },
+  ]);
+  return groups.map((g) => String(g._id));
+}
+
+/** Every OTHER approved location owned by the same person as this salon -
+ * powers the "Branches" section on the public salon page. */
+export async function getSalonBranches(
+  slug: string
+): Promise<{ salonName: string; branches: SalonCardData[] } | null> {
+  await connectDB();
+  const salon = await Salon.findOne({ slug, status: { $in: ["approved", "featured"] } }).select("owner name");
+  if (!salon) return null;
+
+  const branches = await Salon.find({
+    owner: salon.owner,
+    status: "approved",
+    _id: { $ne: salon._id },
+  })
+    .populate("categories", "name slug")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return {
+    salonName: salon.name,
+    branches: branches.map((b) =>
+      toSalonCard(b as unknown as ISalon & { categories: { name?: string }[] })
+    ),
+  };
 }
 
 /**

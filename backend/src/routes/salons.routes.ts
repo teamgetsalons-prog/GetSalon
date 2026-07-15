@@ -5,7 +5,7 @@ import { ok, fail } from "../middleware/error-handler.js";
 import { Salon } from "../models/index.js";
 import { createSalonSchema, searchSalonsSchema, updateSalonSchema } from "../../../shared/dist/validations/salon.js";
 import { MAX_GALLERY_IMAGES } from "../../../shared/dist/constants.js";
-import { createSalon, getHomePageData, getSalonPageData, searchSalons, updateSalon, moderateSalon, listOwnedSalons, switchActiveSalon } from "../services/salon.service.js";
+import { createSalon, getHomePageData, getSalonPageData, getSalonBranches, searchSalons, updateSalon, moderateSalon, listOwnedSalons, switchActiveSalon } from "../services/salon.service.js";
 import { deleteImage } from "../services/upload.service.js";
 
 const router = Router();
@@ -33,6 +33,13 @@ router.get("/homepage", async (_req: Request, res: Response) => {
 router.get("/public/:slug", async (req: Request, res: Response) => {
   const slug = String(req.params.slug);
   const data = await getSalonPageData(slug);
+  if (!data) return fail(res, "Salon not found.", 404);
+  return ok(res, data);
+});
+
+router.get("/public/:slug/branches", async (req: Request, res: Response) => {
+  const slug = String(req.params.slug);
+  const data = await getSalonBranches(slug);
   if (!data) return fail(res, "Salon not found.", 404);
   return ok(res, data);
 });

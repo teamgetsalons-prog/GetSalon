@@ -4,7 +4,7 @@ import { authenticate } from "../middleware/auth.js";
 import { ok } from "../middleware/error-handler.js";
 import { Appointment, Comment, Salon, SupportMessage } from "../models/index.js";
 import { toDateKey } from "../../../shared/dist/utils.js";
-import { getActorSalon } from "../services/salon.service.js";
+import { getActorSalon, getMultiSalonOwnerIds } from "../services/salon.service.js";
 
 const router = Router();
 
@@ -18,12 +18,15 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
   const badges: Record<string, number> = {};
 
   if (user.role === "admin") {
-    const [pendingSalons, openSupport, pendingReviews] = await Promise.all([
-      Salon.countDocuments({ status: "pending" }),
+    const branchOwnerIds = await getMultiSalonOwnerIds();
+    const [pendingSalons, pendingBranches, openSupport, pendingReviews] = await Promise.all([
+      Salon.countDocuments({ status: "pending", owner: { $nin: branchOwnerIds } }),
+      Salon.countDocuments({ status: "pending", owner: { $in: branchOwnerIds } }),
       SupportMessage.countDocuments({ status: "open" }),
       Comment.countDocuments({ status: "pending" }),
     ]);
     if (pendingSalons) badges["/admin/salons"] = pendingSalons;
+    if (pendingBranches) badges["/admin/branches"] = pendingBranches;
     if (openSupport) badges["/admin/support"] = openSupport;
     if (pendingReviews) badges["/admin/reviews"] = pendingReviews;
   } else if (user.role === "owner" || user.role === "staff") {

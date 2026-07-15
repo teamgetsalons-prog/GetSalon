@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { FavoriteButton, ShareButton } from "@/components/salons/favorite-share";
 import { CommentSection } from "@/components/salons/comment-section";
 import { ServicesBrowser } from "@/components/salons/services-browser";
+import { SalonCard } from "@/components/salons/salon-card";
 import { SalonHighlights } from "@/components/salons/salon-highlights";
 import { SalonMap } from "@/components/salons/salon-map";
 import { StickyBookBar } from "@/components/salons/sticky-book-bar";
@@ -81,7 +82,7 @@ export default async function SalonPage({ params }: Params) {
   const data = await getSalonPageData(slug);
   if (!data) notFound();
 
-  const { salon, services, staff, reviews } = data;
+  const { salon, services, staff, reviews, branches } = data;
 
   // Deals + the first page of reviews, fetched in parallel so review text is
   // present in the initial server-rendered HTML instead of only appearing
@@ -366,6 +367,29 @@ export default async function SalonPage({ params }: Params) {
                       sizes="(max-width: 640px) 50vw, 33vw"
                     />
                   </span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Branches - other locations run by the same owner. Absent
+              entirely (not an empty state) when there are none. */}
+          {branches.length > 0 && (
+            <section className="animate-fade-in-up delay-300">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold">Other Branches</h2>
+                {branches.length > 6 && (
+                  <Link
+                    href={`/salon/${salon.slug}/branches`}
+                    className="text-sm font-medium text-gold hover:underline"
+                  >
+                    View all ({branches.length}) →
+                  </Link>
+                )}
+              </div>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {branches.slice(0, 6).map((branch) => (
+                  <SalonCard key={branch._id} salon={branch} />
                 ))}
               </div>
             </section>

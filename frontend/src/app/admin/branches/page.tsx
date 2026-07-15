@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, ExternalLink, Star } from "lucide-react";
+import { BadgeCheck, ExternalLink, GitBranch, Star } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
 import type { SalonStatus } from "@getsalons/shared/types";
@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, Spinner } from "@/components/ui/misc";
 
-interface AdminSalonRow {
+interface SiblingSalon {
+  name: string;
+  slug: string;
+  status: SalonStatus;
+}
+
+interface AdminBranchRow {
   _id: string;
   name: string;
   slug: string;
@@ -21,6 +27,7 @@ interface AdminSalonRow {
   isVerified: boolean;
   createdAt: string;
   owner?: { name?: string; email?: string; phone?: string };
+  siblingSalons: SiblingSalon[];
 }
 
 const statusTabs: { value: string; label: string }[] = [
@@ -38,19 +45,17 @@ const statusVariant = {
   suspended: "neutral",
 } as const;
 
-export default function AdminSalonsPage() {
+export default function AdminBranchesPage() {
   const [status, setStatus] = useState("pending");
-  const [rows, setRows] = useState<AdminSalonRow[]>([]);
+  const [rows, setRows] = useState<AdminBranchRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    // Additional locations for an existing owner are reviewed separately
-    // under Branch Requests - this list is first-time salon submissions only.
-    const params = new URLSearchParams({ limit: "50", branch: "false" });
+    const params = new URLSearchParams({ limit: "50", branch: "true" });
     if (status) params.set("status", status);
-    const res = await api<AdminSalonRow[]>(`/api/admin/salons?${params}`);
+    const res = await api<AdminBranchRow[]>(`/api/admin/salons?${params}`);
     setRows(res.success && res.data ? res.data : []);
     setLoading(false);
   }, [status]);
@@ -64,7 +69,7 @@ export default function AdminSalonsPage() {
   }
 
   async function moderate(
-    row: AdminSalonRow,
+    row: AdminBranchRow,
     action: "approve" | "reject" | "suspend" | "feature" | "unfeature"
   ) {
     let reason: string | undefined;
@@ -81,7 +86,7 @@ export default function AdminSalonsPage() {
     if (res.success) void load();
   }
 
-  async function hardDelete(row: AdminSalonRow) {
+  async function hardDelete(row: AdminBranchRow) {
     if (
       !window.confirm(
         `PERMANENTLY delete "${row.name}"?\n\nThis removes the salon, its services, staff, bookings, reviews and subscription. This cannot be undone.\n\nUse Suspend instead if you might want it back.`
@@ -98,6 +103,12 @@ export default function AdminSalonsPage() {
 
   return (
     <div>
+      <p className="mb-4 max-w-2xl text-sm text-fg-muted">
+        Additional locations submitted by owners who already have at least
+        one salon on GetSalons - reviewed separately from first-time salon
+        submissions.
+      </p>
+
       <div className="mb-4 flex flex-wrap gap-2">
         {statusTabs.map((t) => (
           <button
@@ -118,7 +129,7 @@ export default function AdminSalonsPage() {
       {loading ? (
         <Spinner />
       ) : rows.length === 0 ? (
-        <EmptyState title="No salons in this state" />
+        <EmptyState title="No branch requests in this state" />
       ) : (
         <div className="space-y-3">
           {rows.map((row) => (
@@ -135,6 +146,30 @@ export default function AdminSalonsPage() {
                     {row.cityName} · {row.phone} · Owner: {row.owner?.name ?? "—"}{" "}
                     {row.owner?.email ? `(${row.owner.email})` : ""}
                   </p>
+                  {row.siblingSalons.length > 0 && (
+                    <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-fg-muted">
+                      <GitBranch className="h-3.5 w-3.5 shrink-0 text-gold" />
+                      Branch of:{" "}
+                      {row.siblingSalons.map((sib, i) => (
+                        <span key={sib.slug}>
+                          {i > 0 && ", "}
+                          {sib.status === "approved" ? (
+                            <Link
+                              href={`/salon/${sib.slug}`}
+                              target="_blank"
+                              className="font-medium text-gold hover:underline"
+                            >
+                              {sib.name}
+                            </Link>
+                          ) : (
+                            <span className="font-medium">
+                              {sib.name} ({sib.status})
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </p>
+                  )}
                   <p className="mt-0.5 text-xs text-fg-faint">
                     Submitted{" "}
                     {new Date(row.createdAt).toLocaleDateString("en-PK", {
