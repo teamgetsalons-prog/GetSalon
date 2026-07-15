@@ -146,7 +146,7 @@ export default async function TopSalonsPage({
             <Award className="h-5 w-5 text-gold" />
             Top 3 Salons
           </h2>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
             {topThree.map((salon, i) => (
               <div
                 key={salon._id}
@@ -225,7 +225,7 @@ export default async function TopSalonsPage({
             <TrendingUp className="h-5 w-5 text-gold" />
             More Top-Rated Salons
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
             {remaining.map((salon, i) => (
               <div key={salon._id} className="relative animate-fade-in-up" style={{ animationDelay: `${Math.min(i * 60, 300)}ms` }}>
                 <SalonCard salon={salon} />
@@ -253,7 +253,7 @@ export default async function TopSalonsPage({
               </div>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
             {suggestedSalons.map((salon) => (
               <div key={salon._id} className="relative">
                 <SalonCard salon={salon} />

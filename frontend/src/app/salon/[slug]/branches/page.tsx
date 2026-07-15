@@ -53,7 +53,7 @@ export default async function SalonBranchesPage({ params }: Params) {
         {branches.length} other location{branches.length === 1 ? "" : "s"} on GetSalons.
       </p>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
         {branches.map((branch) => (
           <SalonCard key={branch._id} salon={branch} />
         ))}

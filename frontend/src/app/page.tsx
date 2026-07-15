@@ -285,7 +285,7 @@ export default async function HomePage() {
 
 function SalonGrid({ salons }: { salons: SalonCardData[] }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {salons.map((salon, i) => (
         <AnimatedCard key={salon._id} index={i}>
           <SalonCard salon={salon} />

@@ -30,7 +30,7 @@ export function SalonCardSkeleton() {
 
 export function SalonGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
         <SalonCardSkeleton key={i} />
       ))}
@@ -92,7 +92,7 @@ export function PageSkeleton() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <Skeleton className="h-8 w-64" />
       <Skeleton className="mt-2 h-4 w-96 max-w-full" />
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <SalonCardSkeleton key={i} />
         ))}

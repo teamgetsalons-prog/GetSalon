@@ -193,7 +193,7 @@ export default async function CityServiceSalonsPage({ params }: Params) {
           </div>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
           {result.salons.map((salon) => (
             <SalonCard key={salon._id} salon={salon} />
           ))}
