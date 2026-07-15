@@ -10,10 +10,8 @@ import {
   MessageCircle,
   Star,
   TrendingUp,
-  DollarSign,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { formatPKR } from "@getsalons/shared/utils";
 
 interface Analytics {
   profileViews: number;
@@ -23,7 +21,6 @@ interface Analytics {
   whatsappClicks: number;
   reviewCount: number;
   averageRating: number;
-  revenue: number;
 }
 
 const stats = [
@@ -104,37 +101,20 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      {/* Revenue & Rating */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div
-          className="animate-fade-in-up rounded-2xl border border-line bg-card p-6"
-          style={{ animationDelay: "600ms" }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-green-500/10 p-3">
-              <DollarSign className="h-6 w-6 text-green-500" />
-            </div>
-            <div>
-              <p className="text-sm text-fg-muted">Total Revenue</p>
-              <p className="text-2xl font-bold text-fg">{formatPKR(analytics.revenue)}</p>
-            </div>
+      {/* Average Rating */}
+      <div
+        className="animate-fade-in-up rounded-2xl border border-line bg-card p-6"
+        style={{ animationDelay: "600ms" }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl bg-gold/10 p-3">
+            <Star className="h-6 w-6 text-gold" />
           </div>
-        </div>
-
-        <div
-          className="animate-fade-in-up rounded-2xl border border-line bg-card p-6"
-          style={{ animationDelay: "700ms" }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-gold/10 p-3">
-              <Star className="h-6 w-6 text-gold" />
-            </div>
-            <div>
-              <p className="text-sm text-fg-muted">Average Rating</p>
-              <p className="text-2xl font-bold text-fg">
-                {analytics.averageRating > 0 ? analytics.averageRating.toFixed(1) : "N/A"}
-              </p>
-            </div>
+          <div>
+            <p className="text-sm text-fg-muted">Average Rating</p>
+            <p className="text-2xl font-bold text-fg">
+              {analytics.averageRating > 0 ? analytics.averageRating.toFixed(1) : "N/A"}
+            </p>
           </div>
         </div>
       </div>
@@ -142,7 +122,7 @@ export default function AnalyticsPage() {
       {/* Engagement Summary */}
       <div
         className="animate-fade-in-up rounded-2xl border border-line bg-card p-6"
-        style={{ animationDelay: "800ms" }}
+        style={{ animationDelay: "700ms" }}
       >
         <h2 className="mb-4 text-lg font-semibold">Engagement Summary</h2>
         <div className="space-y-4">
