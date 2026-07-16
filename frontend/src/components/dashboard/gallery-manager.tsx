@@ -8,6 +8,7 @@ import { MAX_GALLERY_IMAGES } from "@getsalons/shared/constants";
 import type { GalleryImage } from "@getsalons/shared/types";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/misc";
+import { ImageCropModal } from "@/components/dashboard/image-crop-modal";
 
 /** Gallery items returned by the API carry their subdocument _id */
 export type GalleryItem = GalleryImage & { _id?: string };
@@ -34,12 +35,39 @@ export function GalleryManager({
   const [logo, setLogo] = useState(initialLogo ?? "");
   const [logoUploading, setLogoUploading] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
+  const [cropTarget, setCropTarget] = useState<"cover" | "logo" | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
-  async function onCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function onCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    setCropTarget("cover");
+    setCropFile(file);
+  }
 
+  function onLogoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setCropTarget("logo");
+    setCropFile(file);
+  }
+
+  function cancelCrop() {
+    setCropTarget(null);
+    setCropFile(null);
+  }
+
+  async function onCropped(file: File) {
+    const target = cropTarget;
+    setCropTarget(null);
+    setCropFile(null);
+    if (target === "cover") await uploadCover(file);
+    else if (target === "logo") await uploadLogo(file);
+  }
+
+  async function uploadCover(file: File) {
     setCoverUploading(true);
     setMessage(null);
 
@@ -70,11 +98,7 @@ export function GalleryManager({
     }
   }
 
-  async function onLogoFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-
+  async function uploadLogo(file: File) {
     setLogoUploading(true);
     setMessage(null);
 
@@ -186,6 +210,16 @@ export function GalleryManager({
 
   return (
     <div>
+      {cropFile && (
+        <ImageCropModal
+          file={cropFile}
+          aspect={cropTarget === "logo" ? 1 : 3 / 1}
+          title={cropTarget === "logo" ? "Crop your logo" : "Crop your cover photo"}
+          onCancel={cancelCrop}
+          onCropped={onCropped}
+        />
+      )}
+
       {/* Cover photo */}
       <div className="mb-6">
         <div className="mb-3 flex items-center justify-between">
