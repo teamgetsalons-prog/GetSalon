@@ -18,7 +18,12 @@ export const serviceSchema = z.object({
   image: z.string().url("Invalid URL").optional().or(z.literal("")),
   isActive: z.boolean().default(true),
   isPopular: z.boolean().default(false),
-  discountPrice: z.coerce.number().min(0).optional(),
+  // null = explicitly clear an existing sale price; undefined = leave as-is
+  // (PATCH omits untouched fields, and plain `undefined` never survives
+  // JSON.stringify, so `null` is the only wire-safe way to signal "clear").
+  // z.null() MUST come first: z.coerce.number() on `null` coerces to 0
+  // instead of failing, so checking it first would swallow every `null`.
+  discountPrice: z.union([z.null(), z.coerce.number().min(0)]).optional(),
 });
 
 export type ServiceInput = z.infer<typeof serviceSchema>;

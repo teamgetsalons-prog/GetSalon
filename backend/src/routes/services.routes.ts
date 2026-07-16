@@ -68,7 +68,9 @@ router.patch("/:id", authenticate, requireRole("owner", "staff", "admin"), async
   if (input.categoryId !== undefined) service.set("category", input.categoryId || undefined);
   if (input.duration !== undefined) service.duration = input.duration;
   if (input.price !== undefined) service.price = input.price;
-  if (input.discountPrice !== undefined) service.discountPrice = input.discountPrice || undefined;
+  if (input.discountPrice !== undefined) {
+    service.discountPrice = input.discountPrice === null ? undefined : input.discountPrice;
+  }
   if (input.image !== undefined) service.image = input.image || undefined;
   if (input.isActive !== undefined) service.isActive = input.isActive;
   if (input.isPopular !== undefined) service.isPopular = input.isPopular;

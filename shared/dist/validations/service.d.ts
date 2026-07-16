@@ -9,7 +9,7 @@ export declare const serviceSchema: z.ZodObject<{
     image: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>;
     isActive: z.ZodDefault<z.ZodBoolean>;
     isPopular: z.ZodDefault<z.ZodBoolean>;
-    discountPrice: z.ZodOptional<z.ZodNumber>;
+    discountPrice: z.ZodOptional<z.ZodUnion<[z.ZodNull, z.ZodNumber]>>;
 }, "strip", z.ZodTypeAny, {
     currency: string;
     name: string;
@@ -20,7 +20,7 @@ export declare const serviceSchema: z.ZodObject<{
     description?: string | undefined;
     categoryId?: string | undefined;
     image?: string | undefined;
-    discountPrice?: number | undefined;
+    discountPrice?: number | null | undefined;
 }, {
     name: string;
     duration: number;
@@ -31,7 +31,7 @@ export declare const serviceSchema: z.ZodObject<{
     image?: string | undefined;
     isActive?: boolean | undefined;
     isPopular?: boolean | undefined;
-    discountPrice?: number | undefined;
+    discountPrice?: number | null | undefined;
 }>;
 export type ServiceInput = z.infer<typeof serviceSchema>;
 export declare const staffSchema: z.ZodObject<{

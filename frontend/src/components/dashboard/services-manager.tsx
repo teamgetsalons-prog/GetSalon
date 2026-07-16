@@ -111,7 +111,10 @@ export function ServicesManager({
       description: draft.description.trim() || undefined,
       duration,
       price,
-      discountPrice,
+      // `null` (not `undefined`) so a cleared sale price actually reaches
+      // the PATCH request - JSON.stringify drops `undefined` keys entirely,
+      // which would leave the old discountPrice untouched server-side.
+      discountPrice: discountPrice ?? null,
       isPopular: draft.isPopular,
       isActive: draft.isActive,
       categoryId: draft.categoryId || undefined,
