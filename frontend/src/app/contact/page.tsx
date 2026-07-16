@@ -16,8 +16,8 @@ const contactMethods = [
   {
     icon: Mail,
     label: "Email",
-    value: "team@getsalons.com",
-    href: "mailto:team@getsalons.com",
+    value: "team.getsalons@gmail.com",
+    href: "mailto:team.getsalons@gmail.com",
     description: "For general enquiries, partnerships and support.",
   },
   {
@@ -142,7 +142,7 @@ export default function ContactPage() {
             },
             {
               q: "How do I report a booking issue?",
-              a: "Use the form above or email team@getsalons.com with your booking number.",
+              a: "Use the form above or email team.getsalons@gmail.com with your booking number.",
             },
             {
               q: "Can I cancel a booking?",
