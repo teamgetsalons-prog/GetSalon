@@ -123,6 +123,77 @@ router.get("/salons", async (req: Request, res: Response) => {
   });
 });
 
+// One consolidated view - every owner with their full salon roster (primary
+// + every branch, any status) grouped together, instead of split across the
+// Salons and Branch Requests tabs. Paginated by owner, not by salon.
+router.get("/salons/directory", async (req: Request, res: Response) => {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(50, Number(req.query.limit) || 20);
+  const q = req.query.q as string | undefined;
+
+  const matchStage: Record<string, unknown> = {};
+  if (q) {
+    const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    matchStage.$or = [
+      { name: rx },
+      { cityName: rx },
+      { phone: rx },
+      { "ownerInfo.name": rx },
+      { "ownerInfo.email": rx },
+    ];
+  }
+
+  const [result] = await Salon.aggregate([
+    { $sort: { createdAt: 1 } },
+    { $lookup: { from: "users", localField: "owner", foreignField: "_id", as: "ownerInfo" } },
+    { $unwind: "$ownerInfo" },
+    ...(q ? [{ $match: matchStage }] : []),
+    {
+      $group: {
+        _id: "$owner",
+        owner: {
+          $first: {
+            _id: "$ownerInfo._id",
+            name: "$ownerInfo.name",
+            email: "$ownerInfo.email",
+            phone: "$ownerInfo.phone",
+          },
+        },
+        salons: {
+          $push: {
+            _id: "$_id",
+            name: "$name",
+            slug: "$slug",
+            status: "$status",
+            cityName: "$cityName",
+            phone: "$phone",
+            isVerified: "$isVerified",
+            isFeatured: "$isFeatured",
+            rating: "$rating",
+            createdAt: "$createdAt",
+          },
+        },
+        salonCount: { $sum: 1 },
+        latestCreatedAt: { $max: "$createdAt" },
+      },
+    },
+    { $sort: { latestCreatedAt: -1 } },
+    {
+      $facet: {
+        data: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+        totalCount: [{ $count: "count" }],
+      },
+    },
+  ]);
+
+  const rows = result?.data ?? [];
+  const total = result?.totalCount?.[0]?.count ?? 0;
+
+  return ok(res, rows, {
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  });
+});
+
 router.post("/salons/:id/moderate", async (req: Request, res: Response) => {
   const { id } = req.params;
   const { action, reason } = req.body;

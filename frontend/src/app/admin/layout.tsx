@@ -12,6 +12,7 @@ const items: NavItem[] = [
   { href: "/admin", label: "Overview", icon: "layout-dashboard", exact: true },
   { href: "/admin/salons", label: "Salons", icon: "store" },
   { href: "/admin/branches", label: "Branch Requests", icon: "git-branch" },
+  { href: "/admin/details", label: "Details", icon: "list-tree" },
   { href: "/admin/users", label: "Users", icon: "users" },
   { href: "/admin/deals", label: "All Deals", icon: "tag" },
   { href: "/admin/reviews", label: "Reviews", icon: "star" },
