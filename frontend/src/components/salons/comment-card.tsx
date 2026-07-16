@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Flag, MessageSquareReply, Pencil, ThumbsUp, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
 import { StarRating } from "@/components/ui/star-rating";
@@ -34,6 +36,8 @@ export function CommentCard({
   isSalonOwner?: boolean;
   onReplyChange?: (id: string, reply: string | null) => void;
 }) {
+  const { user } = useAuth();
+  const router = useRouter();
   const [helpful, setHelpful] = useState(comment.helpfulCount);
   const [voted, setVoted] = useState(false);
   const [replying, setReplying] = useState(false);
@@ -41,14 +45,20 @@ export function CommentCard({
   const [savingReply, setSavingReply] = useState(false);
   const [reported, setReported] = useState(false);
 
+  function requireLogin() {
+    router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
+  }
+
   async function report() {
     if (reported) return;
+    if (!user) return requireLogin();
     if (!confirm("Report this review as spam or abusive?")) return;
     const res = await api(`/api/comments/${comment._id}/report`, { method: "POST" });
     if (res.success) setReported(true);
   }
 
   async function voteHelpful() {
+    if (!user) return requireLogin();
     const res = await api<{ helpfulCount: number; voted: boolean }>(
       `/api/comments/${comment._id}/helpful`,
       { method: "POST" }
