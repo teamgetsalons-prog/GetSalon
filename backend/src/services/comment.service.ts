@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const { Types } = mongoose;
 import { connectDB } from "../db.js";
-import { Comment, Salon } from "../models/index.js";
+import { Comment, Salon, type CommentStatus } from "../models/index.js";
 import { ApiError } from "../middleware/error-handler.js";
 import { roundRating } from "../../../shared/dist/utils.js";
 import { notify } from "./notification.service.js";
@@ -175,14 +175,32 @@ export async function reportComment(commentId: string, userId: string) {
   return { reported: true, hidden };
 }
 
-/** Admin: comments awaiting review (hidden by the report threshold above) */
-export async function adminListPendingComments() {
+/** Admin: browse comments, optionally filtered by status (omit for all statuses) */
+export async function adminListComments(
+  status?: CommentStatus,
+  page: number = 1,
+  limit: number = 20
+) {
   await connectDB();
-  return Comment.find({ status: "pending" })
-    .populate("customer", "name email")
-    .populate("salon", "name slug")
-    .sort({ updatedAt: -1 })
-    .lean();
+
+  const filter = status ? { status } : {};
+  const [comments, total] = await Promise.all([
+    Comment.find(filter)
+      .populate("customer", "name email")
+      .populate("salon", "name slug")
+      .sort({ updatedAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    Comment.countDocuments(filter),
+  ]);
+
+  return {
+    comments,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  };
 }
 
 /** Admin: approve or permanently reject a reported comment */

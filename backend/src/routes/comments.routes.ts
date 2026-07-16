@@ -11,9 +11,10 @@ import {
   replyToComment,
   deleteCommentReply,
   reportComment,
-  adminListPendingComments,
+  adminListComments,
   adminModerateComment,
 } from "../services/comment.service.js";
+import type { CommentStatus } from "../models/index.js";
 
 const router = Router();
 
@@ -101,9 +102,20 @@ router.post("/:id/report", authenticate, async (req: Request, res: Response) => 
 
 // ── Admin moderation ────────────────────────────────────────
 
-router.get("/admin/pending", authenticate, requireRole("admin"), async (_req: Request, res: Response) => {
-  const comments = await adminListPendingComments();
-  return ok(res, comments);
+const VALID_STATUSES = ["approved", "pending", "rejected"] as const;
+
+router.get("/admin/pending", authenticate, requireRole("admin"), async (req: Request, res: Response) => {
+  const statusParam = req.query.status as string | undefined;
+  const status =
+    statusParam && (VALID_STATUSES as readonly string[]).includes(statusParam)
+      ? (statusParam as CommentStatus)
+      : undefined;
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(50, Number(req.query.limit) || 20);
+  const result = await adminListComments(status, page, limit);
+  return ok(res, result.comments, {
+    pagination: { page: result.page, limit, total: result.total, totalPages: result.totalPages },
+  });
 });
 
 const moderateSchema = z.object({ status: z.enum(["approved", "rejected"]) });
