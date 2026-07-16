@@ -18,7 +18,10 @@ const baseItems: NavItem[] = [
   { href: "/salon-dashboard/hours", label: "Working Hours", icon: "clock" },
   { href: "/salon-dashboard/gallery", label: "Gallery", icon: "images" },
   { href: "/salon-dashboard/analytics", label: "Analytics", icon: "bar-chart" },
-  { href: "/salon-dashboard/subscription", label: "Subscription", icon: "credit-card" },
+  // Subscription tab hidden while GetSalons is free for every salon - the
+  // page and its route still exist, just not linked from nav. Re-add this
+  // item once paid plans launch (see booking.service.ts's createBooking
+  // for the matching enforcement toggle).
   { href: "/salon-dashboard/support", label: "Contact Admin", icon: "message-circle" },
   { href: "/salon-dashboard/settings", label: "Settings", icon: "settings" },
 ];

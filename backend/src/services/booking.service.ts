@@ -34,7 +34,6 @@ import type {
 } from "../../../shared/dist/validations/booking.js";
 import { bookingEmailHtml, ownerBookingNotificationEmailHtml, sendEmail } from "./email.js";
 import { notify } from "./notification.service.js";
-import { isActiveSubscription } from "./subscription.service.js";
 
 interface Actor {
   id: string;
@@ -260,14 +259,13 @@ export async function createBooking(
     throw new ApiError("You cannot book an appointment at your own salon.", 403);
   }
 
-  // ── Subscription enforcement ──
-  const hasActiveSubscription = await isActiveSubscription(input.salonId);
-  if (!hasActiveSubscription) {
-    throw new ApiError(
-      "This salon's subscription has expired. Please ask the salon owner to renew their plan.",
-      403
-    );
-  }
+  // ── Subscription enforcement: disabled ──
+  // GetSalons has no paid plans live yet, so every salon is free to use
+  // regardless of trial/subscription status. isActiveSubscription() and
+  // the trial/plan bookkeeping behind it are untouched (still recorded on
+  // approval, still visible to admins) - only the booking-time block is
+  // switched off. Re-enable by restoring the throw below once paid plans
+  // actually launch.
 
   const startMinutes = timeToMinutes(input.startTime);
   const endMinutes = startMinutes + service.duration;
