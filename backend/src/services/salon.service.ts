@@ -334,18 +334,31 @@ export async function listOwnedSalons(ownerId: string) {
 }
 
 /**
- * "Branch" isn't a separate entity - it's any Salon whose owner has more
- * than one salon document. This resolves that set of owner IDs once so
- * admin listing/badges can classify a pending salon as a first-time
- * submission vs an additional branch, without a schema change.
+ * "Branch" isn't a separate entity - it's any Salon that ISN'T its owner's
+ * earliest (first-created) salon. This resolves that set of salon IDs once
+ * so admin listing/badges can classify a salon as a first-time submission
+ * (stays in the main Salons queue even once the owner adds more locations)
+ * vs an additional branch, without a schema change. Owner-level grouping
+ * alone isn't enough here - it would hide an owner's original salon from
+ * the main queue the moment they open a second location.
  */
-export async function getMultiSalonOwnerIds(): Promise<string[]> {
+export async function getBranchSalonIds(): Promise<string[]> {
   await connectDB();
-  const groups = await Salon.aggregate<{ _id: unknown; count: number }>([
-    { $group: { _id: "$owner", count: { $sum: 1 } } },
+  const groups = await Salon.aggregate<{ _id: unknown; count: number; firstId: unknown }>([
+    { $sort: { createdAt: 1 } },
+    { $group: { _id: "$owner", count: { $sum: 1 }, firstId: { $first: "$_id" } } },
     { $match: { count: { $gt: 1 } } },
   ]);
-  return groups.map((g) => String(g._id));
+  if (groups.length === 0) return [];
+
+  const ownerIds = groups.map((g) => g._id);
+  const firstIds = new Set(groups.map((g) => String(g.firstId)));
+  const allForMultiOwners = await Salon.find({ owner: { $in: ownerIds } })
+    .select("_id")
+    .lean();
+  return allForMultiOwners
+    .map((s) => String(s._id))
+    .filter((id) => !firstIds.has(id));
 }
 
 /** Every OTHER approved location owned by the same person as this salon -

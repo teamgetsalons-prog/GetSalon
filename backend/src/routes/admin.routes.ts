@@ -4,7 +4,7 @@ import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { User, Salon, Appointment, Review, AuditLog, Service, Staff, Comment, SalonSubscription, City, SupportMessage, Deal } from "../models/index.js";
 import { notify } from "../services/notification.service.js";
-import { getMultiSalonOwnerIds } from "../services/salon.service.js";
+import { getBranchSalonIds } from "../services/salon.service.js";
 function toDateKey(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -61,11 +61,12 @@ router.get("/salons", async (req: Request, res: Response) => {
   const limit = Math.min(50, Number(req.query.limit) || 20);
   const status = req.query.status as string | undefined;
   const q = req.query.q as string | undefined;
-  // "Branch" isn't its own entity - it's any salon whose owner has more
-  // than one. branch=true powers the dedicated Branch Requests tab;
-  // branch=false is the regular Salons tab (first-time submissions only).
-  // Omitted entirely: unfiltered, for any other caller that still wants
-  // everything in one list.
+  // "Branch" isn't its own entity - it's any salon that isn't its owner's
+  // earliest salon. branch=true powers the dedicated Branch Requests tab;
+  // branch=false is the regular Salons tab (an owner's original salon stays
+  // here even after they open additional locations - only the 2nd+ salons
+  // move to Branch Requests). Omitted entirely: unfiltered, for any other
+  // caller that still wants everything in one list.
   const branchParam = req.query.branch as string | undefined;
 
   const filter: Record<string, unknown> = {};
@@ -75,8 +76,8 @@ router.get("/salons", async (req: Request, res: Response) => {
     filter.$or = [{ name: rx }, { cityName: rx }, { phone: rx }];
   }
   if (branchParam === "true" || branchParam === "false") {
-    const branchOwnerIds = await getMultiSalonOwnerIds();
-    filter.owner = branchParam === "true" ? { $in: branchOwnerIds } : { $nin: branchOwnerIds };
+    const branchSalonIds = await getBranchSalonIds();
+    filter._id = branchParam === "true" ? { $in: branchSalonIds } : { $nin: branchSalonIds };
   }
 
   const [salons, total] = await Promise.all([

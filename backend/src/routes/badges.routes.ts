@@ -4,7 +4,7 @@ import { authenticate } from "../middleware/auth.js";
 import { ok } from "../middleware/error-handler.js";
 import { Appointment, Comment, Salon, SupportMessage } from "../models/index.js";
 import { toDateKey } from "../../../shared/dist/utils.js";
-import { getActorSalon, getMultiSalonOwnerIds } from "../services/salon.service.js";
+import { getActorSalon, getBranchSalonIds } from "../services/salon.service.js";
 
 const router = Router();
 
@@ -18,10 +18,10 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
   const badges: Record<string, number> = {};
 
   if (user.role === "admin") {
-    const branchOwnerIds = await getMultiSalonOwnerIds();
+    const branchSalonIds = await getBranchSalonIds();
     const [pendingSalons, pendingBranches, openSupport, pendingReviews] = await Promise.all([
-      Salon.countDocuments({ status: "pending", owner: { $nin: branchOwnerIds } }),
-      Salon.countDocuments({ status: "pending", owner: { $in: branchOwnerIds } }),
+      Salon.countDocuments({ status: "pending", _id: { $nin: branchSalonIds } }),
+      Salon.countDocuments({ status: "pending", _id: { $in: branchSalonIds } }),
       SupportMessage.countDocuments({ status: "open" }),
       Comment.countDocuments({ status: "pending" }),
     ]);
