@@ -5,9 +5,11 @@ import Link from "next/link";
 import { BadgeCheck, ExternalLink, Star } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
+import { useDebounce } from "@/hooks/use-debounce";
 import type { SalonStatus } from "@getsalons/shared/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { EmptyState, Spinner } from "@/components/ui/misc";
 
 interface AdminSalonRow {
@@ -40,6 +42,8 @@ const statusVariant = {
 
 export default function AdminSalonsPage() {
   const [status, setStatus] = useState("pending");
+  const [q, setQ] = useState("");
+  const debouncedQ = useDebounce(q);
   const [rows, setRows] = useState<AdminSalonRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -50,10 +54,11 @@ export default function AdminSalonsPage() {
     // under Branch Requests - this list is first-time salon submissions only.
     const params = new URLSearchParams({ limit: "50", branch: "false" });
     if (status) params.set("status", status);
+    if (debouncedQ) params.set("q", debouncedQ);
     const res = await api<AdminSalonRow[]>(`/api/admin/salons?${params}`);
     setRows(res.success && res.data ? res.data : []);
     setLoading(false);
-  }, [status]);
+  }, [status, debouncedQ]);
 
   useEffect(() => {
     void load();
@@ -98,7 +103,7 @@ export default function AdminSalonsPage() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         {statusTabs.map((t) => (
           <button
             key={t.value}
@@ -113,6 +118,12 @@ export default function AdminSalonsPage() {
             {t.label}
           </button>
         ))}
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search name, city, phone…"
+          className="ml-auto h-9 w-full sm:w-64"
+        />
       </div>
 
       {loading ? (
