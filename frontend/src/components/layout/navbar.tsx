@@ -301,6 +301,13 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/partner"
+            className="hidden rounded-xl border border-gold-500/40 px-3 py-2 text-sm font-medium text-gold transition-colors hover:bg-gold-500/10 md:block"
+          >
+            List Your Salon
+          </Link>
+
           <ThemeToggle />
 
           {loading ? (
@@ -407,6 +414,14 @@ export function Navbar() {
               className="block rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted hover:bg-bg-soft hover:text-fg"
             >
               Home
+            </Link>
+
+            <Link
+              href="/partner"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg border border-gold-500/40 px-3 py-2.5 text-sm font-medium text-gold hover:bg-gold-500/10"
+            >
+              List Your Salon
             </Link>
 
             {/* Find Salons Dropdown */}
