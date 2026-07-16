@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession, serverFetch } from "@/lib/server-api";
+import { getServerSession, serverFetch, getSalonComments } from "@/lib/server-api";
 import {
   ReviewsManager,
   type SalonReviewRow,
@@ -23,12 +23,18 @@ export default async function SalonReviewsPage() {
   if (!session) redirect("/login?callbackUrl=/salon-dashboard/reviews");
   if (!session.salonId) return <NoSalonYet />;
 
-  const res = await serverFetch<ReviewApiRow[]>(
-    `/reviews?salonId=${session.salonId}&limit=50`
-  );
+  // Two separate review systems feed this page: booking-verified `Review`s
+  // (gated on a completed appointment) and public `Comment`s (the ones shown
+  // on the salon page, left with or without ever booking) - owners want to
+  // see both in one place, not just the booking-verified subset.
+  const [reviewsRes, commentsRes] = await Promise.all([
+    serverFetch<ReviewApiRow[]>(`/reviews?salonId=${session.salonId}&limit=50`),
+    getSalonComments(session.salonId, 1, 50),
+  ]);
 
-  const rows: SalonReviewRow[] = (res.data ?? []).map((r) => ({
+  const reviewRows: SalonReviewRow[] = (reviewsRes.data ?? []).map((r) => ({
     _id: String(r._id),
+    source: "review",
     rating: r.rating,
     comment: r.comment,
     customerName: r.customer?.name ?? "Customer",
@@ -37,6 +43,21 @@ export default async function SalonReviewsPage() {
     reply: r.reply?.text,
     createdAt: r.createdAt,
   }));
+
+  const commentRows: SalonReviewRow[] = commentsRes.comments.map((c) => ({
+    _id: c._id,
+    source: "comment",
+    rating: c.rating,
+    comment: c.comment,
+    customerName: c.customer?.name ?? "Customer",
+    customerAvatar: c.customer?.image,
+    reply: c.ownerReply,
+    createdAt: c.createdAt,
+  }));
+
+  const rows = [...reviewRows, ...commentRows].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 
   return <ReviewsManager initial={rows} />;
 }

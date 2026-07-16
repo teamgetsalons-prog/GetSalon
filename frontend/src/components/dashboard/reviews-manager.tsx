@@ -10,6 +10,10 @@ import { Avatar, EmptyState } from "@/components/ui/misc";
 
 export interface SalonReviewRow {
   _id: string;
+  /** "review" = tied to a completed, verified booking. "comment" = the
+   * public salon-page review, left with or without ever booking through
+   * the platform. Reply/action endpoints differ between the two. */
+  source: "review" | "comment";
   rating: number;
   comment: string;
   customerName: string;
@@ -25,16 +29,22 @@ export function ReviewsManager({ initial }: { initial: SalonReviewRow[] }) {
   const [replyText, setReplyText] = useState("");
   const [saving, setSaving] = useState(false);
 
-  async function sendReply(id: string) {
+  async function sendReply(row: SalonReviewRow) {
     setSaving(true);
-    const res = await api(`/api/reviews/${id}`, {
-      method: "PATCH",
-      json: { action: "reply", reply: replyText },
-    });
+    const res =
+      row.source === "comment"
+        ? await api(`/api/comments/${row._id}/reply`, {
+            method: "PATCH",
+            json: { reply: replyText },
+          })
+        : await api(`/api/reviews/${row._id}`, {
+            method: "PATCH",
+            json: { action: "reply", reply: replyText },
+          });
     setSaving(false);
     if (res.success) {
       setRows((rs) =>
-        rs.map((r) => (r._id === id ? { ...r, reply: replyText } : r))
+        rs.map((r) => (r._id === row._id ? { ...r, reply: replyText } : r))
       );
       setReplyFor(null);
       setReplyText("");
@@ -47,7 +57,7 @@ export function ReviewsManager({ initial }: { initial: SalonReviewRow[] }) {
       {rows.length === 0 ? (
         <EmptyState
           title="No reviews yet"
-          hint="Reviews appear after customers complete verified bookings."
+          hint="Reviews will appear here as soon as customers rate your salon."
         />
       ) : (
         <div className="space-y-3">
@@ -94,7 +104,7 @@ export function ReviewsManager({ initial }: { initial: SalonReviewRow[] }) {
                       size="sm"
                       loading={saving}
                       disabled={replyText.trim().length < 2}
-                      onClick={() => sendReply(row._id)}
+                      onClick={() => sendReply(row)}
                     >
                       Post reply
                     </Button>

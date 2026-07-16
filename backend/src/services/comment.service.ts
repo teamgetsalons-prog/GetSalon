@@ -83,16 +83,8 @@ export async function createComment(
 ) {
   await connectDB();
 
-  // Check if user already commented on this salon
-  const existing = await Comment.findOne({
-    salon: input.salonId,
-    customer: customerId,
-  });
-
-  if (existing) {
-    throw new ApiError("You have already reviewed this salon. You can edit your existing review.", 409);
-  }
-
+  // Customers may leave more than one review for the same salon (e.g. after
+  // separate visits), so there's deliberately no one-per-customer cap here.
   const spamReason = detectSpam(input.comment);
   if (spamReason) throw new ApiError(spamReason, 422);
 
