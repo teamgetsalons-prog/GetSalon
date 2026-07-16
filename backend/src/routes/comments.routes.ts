@@ -102,13 +102,13 @@ router.post("/:id/report", authenticate, async (req: Request, res: Response) => 
 
 // ── Admin moderation ────────────────────────────────────────
 
-const VALID_STATUSES = ["approved", "pending", "rejected"] as const;
+const VALID_STATUSES = ["approved", "pending", "rejected", "reported"] as const;
 
 router.get("/admin/pending", authenticate, requireRole("admin"), async (req: Request, res: Response) => {
   const statusParam = req.query.status as string | undefined;
   const status =
     statusParam && (VALID_STATUSES as readonly string[]).includes(statusParam)
-      ? (statusParam as CommentStatus)
+      ? (statusParam as CommentStatus | "reported")
       : undefined;
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(50, Number(req.query.limit) || 20);

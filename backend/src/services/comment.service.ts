@@ -167,15 +167,22 @@ export async function reportComment(commentId: string, userId: string) {
   return { reported: true, hidden };
 }
 
-/** Admin: browse comments, optionally filtered by status (omit for all statuses) */
+/** Admin: browse comments, optionally filtered by status, or by "reported"
+ * (has at least one report - broader than status "pending", which only
+ * covers comments that crossed the auto-hide threshold). Omit for all. */
 export async function adminListComments(
-  status?: CommentStatus,
+  status?: CommentStatus | "reported",
   page: number = 1,
   limit: number = 20
 ) {
   await connectDB();
 
-  const filter = status ? { status } : {};
+  const filter =
+    status === "reported"
+      ? { "reportedBy.0": { $exists: true } }
+      : status
+        ? { status }
+        : {};
   const [comments, total] = await Promise.all([
     Comment.find(filter)
       .populate("customer", "name email")

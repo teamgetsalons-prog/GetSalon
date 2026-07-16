@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
 import { StarRating } from "@/components/ui/star-rating";
 import { EmptyState, Spinner } from "@/components/ui/misc";
-import { Check, Flag, X } from "lucide-react";
+import { Check, Flag, Trash2, X } from "lucide-react";
 
 interface AdminComment {
   _id: string;
@@ -19,14 +19,14 @@ interface AdminComment {
 }
 
 const statusTabs: { value: string; label: string }[] = [
-  { value: "pending", label: "Reported" },
+  { value: "reported", label: "Reported" },
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Rejected" },
   { value: "", label: "All" },
 ];
 
 export default function AdminReviewsPage() {
-  const [status, setStatus] = useState("pending");
+  const [status, setStatus] = useState("reported");
   const [comments, setComments] = useState<AdminComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -54,14 +54,30 @@ export default function AdminReviewsPage() {
     void load();
   }
 
+  async function remove(comment: AdminComment) {
+    if (
+      !window.confirm(
+        "Permanently delete this review? This removes it everywhere, including the salon's public rating. This cannot be undone."
+      )
+    ) {
+      return;
+    }
+    setBusy(comment._id);
+    const res = await api(`/api/comments/${comment._id}`, { method: "DELETE" });
+    setBusy(null);
+    if (res.success) void load();
+    else window.alert(res.message ?? "Could not delete.");
+  }
+
   return (
     <div>
       <div className="mb-6">
         <h2 className="font-display text-xl font-bold">Reviews</h2>
         <p className="mt-1 text-sm text-fg-muted">
-          Reviews go live the moment a customer posts them. They only land in
-          the Reported tab after enough different users flag one — approve to
-          put it back live, or reject to keep it hidden for good.
+          Reviews go live the moment a customer posts them. Any review a
+          customer reports lands in the Reported tab, whether it's been
+          reported once or many times — approve to confirm it's fine, reject
+          or delete if it's genuinely a problem.
         </p>
       </div>
 
@@ -88,8 +104,8 @@ export default function AdminReviewsPage() {
         <EmptyState
           title="No reviews here"
           hint={
-            status === "pending"
-              ? "Reported reviews will show up here once they cross the report threshold."
+            status === "reported"
+              ? "Reviews reported by customers will show up here."
               : "Nothing in this category yet."
           }
         />
@@ -120,6 +136,7 @@ export default function AdminReviewsPage() {
                     <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-red-500">
                       <Flag className="h-3.5 w-3.5" />
                       Reported by {comment.reportedBy.length} user{comment.reportedBy.length === 1 ? "" : "s"}
+                      {comment.status === "pending" && " · hidden from public"}
                     </p>
                   )}
                 </div>
@@ -144,6 +161,14 @@ export default function AdminReviewsPage() {
                       <X className="h-3.5 w-3.5" />
                     </button>
                   )}
+                  <button
+                    onClick={() => void remove(comment)}
+                    disabled={busy === comment._id}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-fg-muted transition-colors hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50"
+                    title="Delete permanently"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
               <p className="mt-3 text-sm text-fg-muted">{comment.comment}</p>
