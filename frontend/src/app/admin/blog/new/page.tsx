@@ -33,7 +33,8 @@ export default function NewBlogPostPage() {
   const [seoDesc, setSeoDesc] = useState("");
   const [isPublished, setIsPublished] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [savingAction, setSavingAction] = useState<"draft" | "publish" | null>(null);
+  const saving = savingAction !== null;
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,7 +66,7 @@ export default function NewBlogPostPage() {
     }
   }
 
-  async function handleSubmit(publish: boolean) {
+  async function handleSubmit(publish: boolean, action: "draft" | "publish") {
     if (!title.trim() || title.trim().length < 5) {
       setError("Title must be at least 5 characters.");
       return;
@@ -83,7 +84,7 @@ export default function NewBlogPostPage() {
       return;
     }
     setError(null);
-    setSaving(true);
+    setSavingAction(action);
 
     let resolvedAuthorId = authorId;
     let resolvedAuthorName: string | undefined;
@@ -97,7 +98,7 @@ export default function NewBlogPostPage() {
         },
       });
       if (!authorRes.success || !authorRes.data) {
-        setSaving(false);
+        setSavingAction(null);
         setError(authorRes.message ?? "Could not create the new author.");
         return;
       }
@@ -123,7 +124,7 @@ export default function NewBlogPostPage() {
     if (seoTitle.trim()) body.seo = { title: seoTitle.trim(), description: seoDesc.trim() };
 
     const res = await api("/api/blog", { method: "POST", json: body });
-    setSaving(false);
+    setSavingAction(null);
     if (res.success) {
       router.push("/admin/blog");
     } else {
@@ -328,14 +329,16 @@ export default function NewBlogPostPage() {
         <div className="flex gap-3 border-t border-line pt-5">
           <Button
             variant="outline"
-            loading={saving}
-            onClick={() => void handleSubmit(false)}
+            loading={savingAction === "draft"}
+            disabled={saving}
+            onClick={() => void handleSubmit(false, "draft")}
           >
             Save as Draft
           </Button>
           <Button
-            loading={saving}
-            onClick={() => void handleSubmit(true)}
+            loading={savingAction === "publish"}
+            disabled={saving}
+            onClick={() => void handleSubmit(true, "publish")}
           >
             Publish
           </Button>

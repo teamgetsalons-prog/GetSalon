@@ -55,7 +55,8 @@ export default function EditBlogPostPage() {
   const [seoDesc, setSeoDesc] = useState("");
   const [isPublished, setIsPublished] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [savingAction, setSavingAction] = useState<"save" | "publish" | null>(null);
+  const saving = savingAction !== null;
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -108,7 +109,7 @@ export default function EditBlogPostPage() {
     }
   }
 
-  async function handleSave(publishOverride?: boolean) {
+  async function handleSave(nextPublished: boolean, action: "save" | "publish") {
     if (!title.trim() || title.trim().length < 5) {
       setError("Title must be at least 5 characters.");
       return;
@@ -126,7 +127,7 @@ export default function EditBlogPostPage() {
       return;
     }
     setError(null);
-    setSaving(true);
+    setSavingAction(action);
 
     let resolvedAuthorId = authorId;
     let resolvedAuthorName: string | undefined;
@@ -140,7 +141,7 @@ export default function EditBlogPostPage() {
         },
       });
       if (!authorRes.success || !authorRes.data) {
-        setSaving(false);
+        setSavingAction(null);
         setError(authorRes.message ?? "Could not create the new author.");
         return;
       }
@@ -157,7 +158,7 @@ export default function EditBlogPostPage() {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
-      isPublished: publishOverride ?? isPublished,
+      isPublished: nextPublished,
     };
     body.authorId = resolvedAuthorId || undefined;
     const selectedAuthorName = resolvedAuthorName ?? authors.find((a) => a._id === authorId)?.name;
@@ -168,7 +169,7 @@ export default function EditBlogPostPage() {
     }
 
     const res = await api(`/api/blog/${id}`, { method: "PATCH", json: body });
-    setSaving(false);
+    setSavingAction(null);
     if (res.success) {
       router.push("/admin/blog");
     } else {
@@ -387,14 +388,16 @@ export default function EditBlogPostPage() {
         <div className="flex gap-3 border-t border-line pt-5">
           <Button
             variant="outline"
-            loading={saving}
-            onClick={() => void handleSave(false)}
+            loading={savingAction === "save"}
+            disabled={saving}
+            onClick={() => void handleSave(isPublished, "save")}
           >
             Save Changes
           </Button>
           <Button
-            loading={saving}
-            onClick={() => void handleSave(true)}
+            loading={savingAction === "publish"}
+            disabled={saving}
+            onClick={() => void handleSave(true, "publish")}
           >
             {isPublished ? "Update & Publish" : "Publish"}
           </Button>
