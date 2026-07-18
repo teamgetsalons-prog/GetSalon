@@ -286,12 +286,30 @@ router.get("/users", async (req: Request, res: Response) => {
 });
 
 router.patch("/users", async (req: Request, res: Response) => {
-  const { userId, isActive, role } = req.body;
-  if (!userId || (typeof isActive !== "boolean" && role === undefined)) {
-    return fail(res, "userId plus isActive and/or role are required.", 400);
+  const { userId, isActive, role, email } = req.body;
+  if (!userId || (typeof isActive !== "boolean" && role === undefined && email === undefined)) {
+    return fail(res, "userId plus isActive, role and/or email are required.", 400);
   }
   if (role !== undefined && !["customer", "owner", "staff", "admin"].includes(role)) {
     return fail(res, "Invalid role.", 400);
+  }
+
+  // Email handover: login (password + Google, both matched by email) moves
+  // to the new address, while everything tied to the account - the salon,
+  // its bookings, staff, reviews, notifications - stays linked via the user
+  // id and follows automatically. Used to hand an admin-created listing
+  // over to the real salon owner.
+  let newEmail: string | undefined;
+  if (email !== undefined) {
+    if (typeof email !== "string") return fail(res, "Invalid email.", 400);
+    newEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+      return fail(res, "Please enter a valid email address.", 400);
+    }
+    const taken = await User.findOne({ email: newEmail, _id: { $ne: userId } }).select("_id");
+    if (taken) {
+      return fail(res, "That email is already used by another account.", 409);
+    }
   }
 
   const user = await User.findById(userId);
@@ -311,6 +329,10 @@ router.patch("/users", async (req: Request, res: Response) => {
     user.role = role;
     actions.push(`user.role:${role}`);
   }
+  if (newEmail !== undefined && newEmail !== user.email) {
+    user.email = newEmail;
+    actions.push("user.email-change");
+  }
   await user.save();
 
   for (const action of actions) {
@@ -323,7 +345,12 @@ router.patch("/users", async (req: Request, res: Response) => {
     });
   }
 
-  return ok(res, { id: user._id.toString(), isActive: user.isActive, role: user.role });
+  return ok(res, {
+    id: user._id.toString(),
+    isActive: user.isActive,
+    role: user.role,
+    email: user.email,
+  });
 });
 
 // Hard delete user

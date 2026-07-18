@@ -84,6 +84,24 @@ export default function AdminUsersPage() {
     else window.alert(res.message ?? "Could not change role.");
   }
 
+  async function editEmail(row: UserRow) {
+    const input = window.prompt(
+      `New email for ${row.name}?\n\nLogin (password + Google sign-in) moves to the new address, and the account's salon, bookings and reviews follow automatically. The new owner can use "Forgot password" to set their own password.`,
+      row.email
+    );
+    if (input === null) return;
+    const newEmail = input.trim().toLowerCase();
+    if (!newEmail || newEmail === row.email) return;
+    setBusy(busyKey(row._id, "email"));
+    const res = await api("/api/admin/users", {
+      method: "PATCH",
+      json: { userId: row._id, email: newEmail },
+    });
+    setBusy(null);
+    if (res.success) void load();
+    else window.alert(res.message ?? "Could not change the email.");
+  }
+
   async function deleteUser(row: UserRow) {
     if (!window.confirm(`PERMANENTLY delete "${row.name}" (${row.email})?\n\nThis removes the user, their salon, services, staff, bookings and reviews. This cannot be undone.`)) return;
     setBusy(busyKey(row._id, "delete"));
@@ -156,6 +174,14 @@ export default function AdminUsersPage() {
                   <option value="staff">staff</option>
                   <option value="admin">admin</option>
                 </select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  loading={busy === busyKey(row._id, "email")}
+                  onClick={() => editEmail(row)}
+                >
+                  Edit email
+                </Button>
                 <Button
                   size="sm"
                   variant={row.isActive ? "ghost" : "primary"}
