@@ -101,6 +101,7 @@ export interface SalonPageData {
     duration: number;
     price: number;
     discountPrice?: number;
+    priceMax?: number;
     isPopular?: boolean;
     category?: { _id: string; name: string } | null;
   }[];

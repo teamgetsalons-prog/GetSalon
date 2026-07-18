@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Search, X } from "lucide-react";
-import { formatDuration, formatPKR } from "@getsalons/shared/utils";
+import { formatDuration, formatPKR, formatPriceRange } from "@getsalons/shared/utils";
 import { Badge } from "@/components/ui/badge";
 
 export interface BrowsableService {
@@ -13,6 +13,8 @@ export interface BrowsableService {
   duration: number;
   price: number;
   discountPrice?: number;
+  /** Upper end of a price range (e.g. Rs 1,000 - 1,500 by hair length). */
+  priceMax?: number;
   isPopular?: boolean;
   category?: { _id: string; name: string } | null;
 }
@@ -159,9 +161,9 @@ export function ServicesBrowser({
                                 </p>
                               )}
                               <p className="text-sm font-bold text-gold">
-                                {formatPKR(
-                                  hasDiscount ? service.discountPrice! : service.price
-                                )}
+                                {hasDiscount
+                                  ? formatPKR(service.discountPrice!)
+                                  : formatPriceRange(service.price, service.priceMax)}
                               </p>
                             </div>
                             <Link

@@ -19,6 +19,7 @@ import {
   cn,
   formatDateKey,
   formatPKR,
+  formatPriceRange,
   formatTime12h,
   toDateKey,
 } from "@getsalons/shared/utils";
@@ -45,6 +46,8 @@ interface WizardService {
   duration: number;
   price: number;
   discountPrice?: number;
+  /** Upper end of a price range (e.g. Rs 1,000 - 1,500 by hair length). */
+  priceMax?: number;
   isPopular?: boolean;
 }
 
@@ -199,7 +202,7 @@ export function BookingWizard({
           <SummaryRow label="Time" value={slot ? formatTime12h(slot.time) : ""} />
           <SummaryRow
             label="Price"
-            value={formatPKR(effectivePrice(service, deal))}
+            value={effectivePriceLabel(service, deal)}
             gold
           />
         </div>
@@ -315,7 +318,7 @@ export function BookingWizard({
                     </p>
                   )}
                   <p className="text-sm font-bold text-gold">
-                    {formatPKR(effectivePrice(s, deal))}
+                    {effectivePriceLabel(s, deal)}
                   </p>
                 </div>
               </button>
@@ -403,7 +406,7 @@ export function BookingWizard({
               <div className="border-t border-line pt-2.5">
                 <SummaryRow
                   label="Total (pay at salon)"
-                  value={formatPKR(effectivePrice(service, deal))}
+                  value={effectivePriceLabel(service, deal)}
                   gold
                 />
               </div>
@@ -500,14 +503,17 @@ export function BookingWizard({
   );
 }
 
-function effectivePrice(service: WizardService | null, deal?: WizardDeal | null): number {
+/** Formatted price to display for a service: a deal's fixed price, a sale
+ * price, or a range ("Rs 1,000 - 1,500") when the service has one. */
+function effectivePriceLabel(service: WizardService | null, deal?: WizardDeal | null): string {
   if (deal && service && deal.serviceId === service._id) {
-    return deal.dealPrice;
+    return formatPKR(deal.dealPrice);
   }
-  if (!service) return 0;
-  return service.discountPrice && service.discountPrice < service.price
-    ? service.discountPrice
-    : service.price;
+  if (!service) return formatPKR(0);
+  if (service.discountPrice && service.discountPrice < service.price) {
+    return formatPKR(service.discountPrice);
+  }
+  return formatPriceRange(service.price, service.priceMax);
 }
 
 function SummaryRow({

@@ -24,6 +24,11 @@ export const serviceSchema = z.object({
   // z.null() MUST come first: z.coerce.number() on `null` coerces to 0
   // instead of failing, so checking it first would swallow every `null`.
   discountPrice: z.union([z.null(), z.coerce.number().min(0)]).optional(),
+  // Upper end of a price range (e.g. a haircut priced 1000-1500 depending on
+  // hair length). Same null/undefined "clear vs leave as-is" semantics as
+  // discountPrice above. Cross-field check (must exceed price) happens in
+  // the route, since a partial PATCH may not always carry both fields.
+  priceMax: z.union([z.null(), z.coerce.number().min(0)]).optional(),
 });
 
 export type ServiceInput = z.infer<typeof serviceSchema>;

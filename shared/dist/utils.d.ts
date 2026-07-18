@@ -2,6 +2,9 @@ import { type ClassValue } from "clsx";
 export declare function cn(...inputs: ClassValue[]): string;
 export declare function slugify(text: string): string;
 export declare function formatPKR(amount: number): string;
+/** A service's price as a single amount, or "Rs 1,000 - Rs 1,500" when a
+ * higher end (priceMax) is set - e.g. a haircut priced by hair length. */
+export declare function formatPriceRange(price: number, priceMax?: number): string;
 export declare function timeToMinutes(time: string): number;
 export declare function minutesToTime(minutes: number): string;
 export declare function formatTime12h(time: string | undefined | null): string;

@@ -257,6 +257,7 @@ export default async function SalonPage({ params }: Params) {
                 duration: s.duration,
                 price: s.price,
                 discountPrice: s.discountPrice,
+                priceMax: s.priceMax,
                 isPopular: s.isPopular,
                 category: s.category,
               }))}

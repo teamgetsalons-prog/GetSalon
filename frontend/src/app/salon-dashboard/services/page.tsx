@@ -30,6 +30,7 @@ export default async function SalonServicesPage() {
         duration: s.duration,
         price: s.price,
         discountPrice: s.discountPrice,
+        priceMax: s.priceMax,
         isActive: s.isActive,
         isPopular: s.isPopular,
         category: s.category,

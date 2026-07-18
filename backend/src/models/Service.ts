@@ -10,6 +10,8 @@ export interface IService {
   duration: number; // minutes
   price: number; // PKR
   discountPrice?: number;
+  /** Upper end of a price range (e.g. a haircut priced by hair length). */
+  priceMax?: number;
   image?: string;
   isActive: boolean;
   isPopular: boolean;
@@ -33,6 +35,7 @@ const serviceSchema = new Schema<IService>(
     duration: { type: Number, required: true, min: 10, max: 480 },
     price: { type: Number, required: true, min: 0 },
     discountPrice: { type: Number, min: 0 },
+    priceMax: { type: Number, min: 0 },
     image: String,
     isActive: { type: Boolean, default: true },
     isPopular: { type: Boolean, default: false },

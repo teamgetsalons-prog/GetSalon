@@ -81,6 +81,7 @@ export default async function BookPage({ params, searchParams }: Props) {
           duration: s.duration,
           price: s.price,
           discountPrice: s.discountPrice,
+          priceMax: s.priceMax,
           isPopular: s.isPopular,
         }))}
         preselectedServiceId={preselectedService}

@@ -35,6 +35,10 @@ router.post("/", authenticate, requireRole("owner", "staff", "admin"), async (re
   if (!salon) return fail(res, "Create your salon profile first.", 404);
 
   const input = serviceSchema.parse(req.body);
+  const priceMax = input.priceMax || undefined;
+  if (priceMax !== undefined && priceMax <= input.price) {
+    return fail(res, "The upper price must be higher than the starting price.", 422);
+  }
 
   const service = await Service.create({
     salon: salon._id,
@@ -44,6 +48,7 @@ router.post("/", authenticate, requireRole("owner", "staff", "admin"), async (re
     duration: input.duration,
     price: input.price,
     discountPrice: input.discountPrice || undefined,
+    priceMax,
     image: input.image || undefined,
     isActive: input.isActive,
     isPopular: input.isPopular,
@@ -63,6 +68,19 @@ router.patch("/:id", authenticate, requireRole("owner", "staff", "admin"), async
 
   const input = serviceSchema.partial().parse(req.body);
 
+  // Validate the resulting price/priceMax pair, not just whichever of the
+  // two happens to be in this particular request.
+  const finalPrice = input.price ?? service.price;
+  const finalPriceMax =
+    input.priceMax === undefined
+      ? service.priceMax
+      : input.priceMax === null
+        ? undefined
+        : input.priceMax;
+  if (finalPriceMax !== undefined && finalPriceMax <= finalPrice) {
+    return fail(res, "The upper price must be higher than the starting price.", 422);
+  }
+
   if (input.name !== undefined) service.name = input.name;
   if (input.description !== undefined) service.description = input.description || undefined;
   if (input.categoryId !== undefined) service.set("category", input.categoryId || undefined);
@@ -70,6 +88,9 @@ router.patch("/:id", authenticate, requireRole("owner", "staff", "admin"), async
   if (input.price !== undefined) service.price = input.price;
   if (input.discountPrice !== undefined) {
     service.discountPrice = input.discountPrice === null ? undefined : input.discountPrice;
+  }
+  if (input.priceMax !== undefined) {
+    service.priceMax = input.priceMax === null ? undefined : input.priceMax;
   }
   if (input.image !== undefined) service.image = input.image || undefined;
   if (input.isActive !== undefined) service.isActive = input.isActive;

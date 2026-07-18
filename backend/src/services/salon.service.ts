@@ -600,7 +600,7 @@ export async function recalcPriceRange(salonId: string): Promise<void> {
   const services = await Service.find({
     salon: salonId,
     isActive: true,
-  }).select("price discountPrice");
+  }).select("price discountPrice priceMax");
 
   if (services.length === 0) {
     await Salon.updateOne(
@@ -610,12 +610,17 @@ export async function recalcPriceRange(salonId: string): Promise<void> {
     return;
   }
 
-  const prices = services.map((s) =>
+  const mins = services.map((s) =>
     s.discountPrice && s.discountPrice < s.price ? s.discountPrice : s.price
+  );
+  // The salon's displayed max considers each service's upper price-range
+  // bound (e.g. a haircut priced 1000-1500), not just its base price.
+  const maxes = services.map((s) =>
+    s.priceMax && s.priceMax > s.price ? s.priceMax : s.price
   );
   await Salon.updateOne(
     { _id: salonId },
-    { priceRange: { min: Math.min(...prices), max: Math.max(...prices) } }
+    { priceRange: { min: Math.min(...mins), max: Math.max(...maxes) } }
   );
 }
 

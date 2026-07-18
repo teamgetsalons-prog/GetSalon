@@ -10,6 +10,7 @@ export declare const serviceSchema: z.ZodObject<{
     isActive: z.ZodDefault<z.ZodBoolean>;
     isPopular: z.ZodDefault<z.ZodBoolean>;
     discountPrice: z.ZodOptional<z.ZodUnion<[z.ZodNull, z.ZodNumber]>>;
+    priceMax: z.ZodOptional<z.ZodUnion<[z.ZodNull, z.ZodNumber]>>;
 }, "strip", z.ZodTypeAny, {
     currency: string;
     name: string;
@@ -21,6 +22,7 @@ export declare const serviceSchema: z.ZodObject<{
     categoryId?: string | undefined;
     image?: string | undefined;
     discountPrice?: number | null | undefined;
+    priceMax?: number | null | undefined;
 }, {
     name: string;
     duration: number;
@@ -32,6 +34,7 @@ export declare const serviceSchema: z.ZodObject<{
     isActive?: boolean | undefined;
     isPopular?: boolean | undefined;
     discountPrice?: number | null | undefined;
+    priceMax?: number | null | undefined;
 }>;
 export type ServiceInput = z.infer<typeof serviceSchema>;
 export declare const staffSchema: z.ZodObject<{

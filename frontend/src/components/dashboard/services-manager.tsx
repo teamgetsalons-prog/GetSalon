@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
-import { formatPKR } from "@getsalons/shared/utils";
+import { formatPKR, formatPriceRange } from "@getsalons/shared/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
@@ -17,6 +17,8 @@ export interface ServiceRow {
   duration: number;
   price: number;
   discountPrice?: number;
+  /** Upper end of a price range (e.g. Rs 1,000 - 1,500 by hair length). */
+  priceMax?: number;
   isActive: boolean;
   isPopular: boolean;
   category?: { _id: string; name: string } | null;
@@ -31,6 +33,7 @@ const emptyDraft = {
   description: "",
   duration: "45",
   price: "1000",
+  priceMax: "",
   discountPrice: "",
   isPopular: false,
   isActive: true,
@@ -69,6 +72,7 @@ export function ServicesManager({
       description: row.description ?? "",
       duration: String(row.duration),
       price: String(row.price),
+      priceMax: row.priceMax ? String(row.priceMax) : "",
       discountPrice: row.discountPrice ? String(row.discountPrice) : "",
       isPopular: row.isPopular,
       isActive: row.isActive,
@@ -82,6 +86,7 @@ export function ServicesManager({
     // Friendly validation before the API sees anything.
     const duration = Number(draft.duration);
     const price = Number(draft.price);
+    const priceMax = draft.priceMax.trim() === "" ? undefined : Number(draft.priceMax);
     const discountPrice = draft.discountPrice.trim() === "" ? undefined : Number(draft.discountPrice);
     if (draft.name.trim().length < 2) {
       setError("Please enter a service name (at least 2 characters).");
@@ -93,6 +98,14 @@ export function ServicesManager({
     }
     if (!Number.isFinite(price) || price < 0) {
       setError("Please enter a valid price.");
+      return;
+    }
+    if (priceMax !== undefined && (!Number.isFinite(priceMax) || priceMax < 0)) {
+      setError("The upper price must be a valid amount (or leave it empty).");
+      return;
+    }
+    if (priceMax !== undefined && priceMax <= price) {
+      setError("The upper price must be higher than the starting price (e.g. 1000-1500).");
       return;
     }
     if (discountPrice !== undefined && (!Number.isFinite(discountPrice) || discountPrice < 0)) {
@@ -111,9 +124,10 @@ export function ServicesManager({
       description: draft.description.trim() || undefined,
       duration,
       price,
-      // `null` (not `undefined`) so a cleared sale price actually reaches
-      // the PATCH request - JSON.stringify drops `undefined` keys entirely,
-      // which would leave the old discountPrice untouched server-side.
+      // `null` (not `undefined`) so a cleared value actually reaches the
+      // PATCH request - JSON.stringify drops `undefined` keys entirely,
+      // which would leave the old value untouched server-side.
+      priceMax: priceMax ?? null,
       discountPrice: discountPrice ?? null,
       isPopular: draft.isPopular,
       isActive: draft.isActive,
@@ -180,7 +194,7 @@ export function ServicesManager({
                     </>
                   ) : (
                     <span className="font-semibold text-gold">
-                      {formatPKR(row.price)}
+                      {formatPriceRange(row.price, row.priceMax)}
                     </span>
                   )}
                 </p>
@@ -244,7 +258,7 @@ export function ServicesManager({
               Helps this service show up when customers browse or filter by category.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div>
               <Label required>Duration (min)</Label>
               <Input
@@ -267,6 +281,17 @@ export function ServicesManager({
               />
             </div>
             <div>
+              <Label>Price to</Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="e.g. 1500"
+                value={draft.priceMax}
+                onChange={(e) => setDraft({ ...draft, priceMax: e.target.value })}
+              />
+            </div>
+            <div>
               <Label>Sale price</Label>
               <Input
                 type="number"
@@ -278,6 +303,11 @@ export function ServicesManager({
               />
             </div>
           </div>
+          <p className="-mt-2.5 text-xs text-fg-muted">
+            Set &quot;Price to&quot; if this service&apos;s cost varies (e.g. Rs
+            1,000-1,500 depending on hair length) - leave it empty for a
+            single fixed price.
+          </p>
           <div className="flex gap-5">
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <input

@@ -19,6 +19,14 @@ export function formatPKR(amount) {
         maximumFractionDigits: 0,
     }).format(amount);
 }
+/** A service's price as a single amount, or "Rs 1,000 - Rs 1,500" when a
+ * higher end (priceMax) is set - e.g. a haircut priced by hair length. */
+export function formatPriceRange(price, priceMax) {
+    if (priceMax && priceMax > price) {
+        return `${formatPKR(price)} - ${formatPKR(priceMax)}`;
+    }
+    return formatPKR(price);
+}
 export function timeToMinutes(time) {
     const [hours, minutes] = time.split(":").map(Number);
     return hours * 60 + minutes;
