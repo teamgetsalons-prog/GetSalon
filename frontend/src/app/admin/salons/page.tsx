@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, ExternalLink, Star } from "lucide-react";
+import { BadgeCheck, ExternalLink, QrCode, Star } from "lucide-react";
+import { SalonQrModal } from "@/components/admin/salon-qr-modal";
 import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -47,6 +48,7 @@ export default function AdminSalonsPage() {
   const [rows, setRows] = useState<AdminSalonRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [qrSalon, setQrSalon] = useState<{ name: string; slug: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -195,6 +197,13 @@ export default function AdminSalonsPage() {
                     </Button>
                     <Button
                       size="sm"
+                      variant="outline"
+                      onClick={() => setQrSalon({ name: row.name, slug: row.slug })}
+                    >
+                      <QrCode className="h-3.5 w-3.5" /> QR code
+                    </Button>
+                    <Button
+                      size="sm"
                       variant="ghost"
                       className="text-red-500"
                       loading={busy === busyKey(row._id, "suspend")}
@@ -223,6 +232,8 @@ export default function AdminSalonsPage() {
           ))}
         </div>
       )}
+
+      <SalonQrModal salon={qrSalon} onClose={() => setQrSalon(null)} />
     </div>
   );
 }
