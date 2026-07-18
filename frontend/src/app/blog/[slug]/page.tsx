@@ -54,6 +54,7 @@ function escapeHtml(str: string): string {
 }
 
 function renderMarkdown(content: string): string {
+  const LI = 'class="ml-4 text-fg-muted"';
   let html = escapeHtml(content)
     // H2 headers
     .replace(/^## (.+)$/gm, '<h2 class="font-display mt-8 mb-4 text-xl font-bold text-fg">$1</h2>')
@@ -61,8 +62,17 @@ function renderMarkdown(content: string): string {
     .replace(/^### (.+)$/gm, '<h3 class="font-display mt-6 mb-3 text-lg font-semibold text-fg">$1</h3>')
     // Bold
     .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-fg">$1</strong>')
-    // Numbered lists
-    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 text-fg-muted">$2</li>')
+    // Links [text](url) — only relative (/...) or https:// hrefs are allowed;
+    // anything else (e.g. javascript:) renders as plain text, never a link.
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, text: string, href: string) => {
+      const safe = /^\/[^\s]*$/.test(href) || /^https:\/\/[^\s]*$/.test(href);
+      return safe
+        ? `<a href="${href}" class="font-medium text-gold underline underline-offset-2 hover:text-gold-600">${text}</a>`
+        : text;
+    })
+    // Numbered and bullet list items both become <li> so a run groups into one <ul>
+    .replace(/^\d+\. (.+)$/gm, `<li ${LI}>$1</li>`)
+    .replace(/^- (.+)$/gm, `<li ${LI}>$1</li>`)
     // Paragraphs
     .replace(/\n\n/g, '</p><p class="mb-4 text-fg-muted leading-relaxed">')
     // Line breaks
@@ -71,10 +81,11 @@ function renderMarkdown(content: string): string {
   // Wrap in paragraph
   html = `<p class="mb-4 text-fg-muted leading-relaxed">${html}</p>`;
 
-  // Wrap consecutive <li> in <ul>
+  // Group runs of consecutive <li> (separated by <br />) into a single <ul>.
+  // Tolerant of inline tags (bold, links) inside items, unlike a [^<]* match.
   html = html.replace(
-    /(<li class="ml-4 text-fg-muted">[^<]*(?:<\/li>\s*(?:<br\s*\/?>\s*)?){2,}<\/li>)/g,
-    (match) => `<ul class="mb-4 ml-4 list-disc space-y-1 text-fg-muted">${match.replace(/<br\s*\/?>/g, "")}</ul>`
+    /(?:<li class="ml-4 text-fg-muted">.*?<\/li>(?:<br \/>)?)+/g,
+    (match) => `<ul class="mb-4 ml-4 list-disc space-y-1 text-fg-muted">${match.replace(/<br \/>/g, "")}</ul>`
   );
 
   return html;
