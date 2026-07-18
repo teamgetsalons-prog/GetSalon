@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Scissors } from "lucide-react";
+import { Facebook, Instagram, Scissors } from "lucide-react";
 import { SITE } from "@getsalons/shared/constants";
 
 const columns = [
@@ -56,6 +56,26 @@ export function Footer() {
             {SITE.tagline}. Discover, compare and book beauty services across
             Pakistan — free for customers.
           </p>
+          <div className="mt-5 flex items-center gap-3">
+            <a
+              href={SITE.socials.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GetSalons on Facebook"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-fg-muted transition-colors hover:border-gold-500/50 hover:text-gold"
+            >
+              <Facebook className="h-4 w-4" />
+            </a>
+            <a
+              href={SITE.socials.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GetSalons on Instagram"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-fg-muted transition-colors hover:border-gold-500/50 hover:text-gold"
+            >
+              <Instagram className="h-4 w-4" />
+            </a>
+          </div>
         </div>
 
         {columns.map((col) => (

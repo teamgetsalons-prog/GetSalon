@@ -65,11 +65,7 @@ export function organizationJsonLd() {
     name: SITE.name,
     url: SITE.url,
     logo: absoluteUrl("/icon.svg"),
-    sameAs: [
-      "https://www.facebook.com/getsalonsPK",
-      "https://www.instagram.com/getsalonsPK",
-      "https://www.tiktok.com/@getsalonsPK",
-    ],
+    sameAs: [SITE.socials.facebook, SITE.socials.instagram],
     description: SITE.description,
   };
 }

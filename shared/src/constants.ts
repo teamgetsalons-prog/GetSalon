@@ -7,6 +7,10 @@ export const SITE = {
   url: process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://www.getsalons.com",
   locale: "en_PK",
   twitter: "@getsalonsPK",
+  socials: {
+    facebook: "https://www.facebook.com/share/1Liozhqjxp/",
+    instagram: "https://www.instagram.com/getsalons",
+  },
 } as const;
 
 export const ROLES = {

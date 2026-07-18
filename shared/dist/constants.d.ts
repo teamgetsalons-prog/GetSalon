@@ -6,6 +6,10 @@ export declare const SITE: {
     readonly url: string;
     readonly locale: "en_PK";
     readonly twitter: "@getsalonsPK";
+    readonly socials: {
+        readonly facebook: "https://www.facebook.com/share/1Liozhqjxp/";
+        readonly instagram: "https://www.instagram.com/getsalons";
+    };
 };
 export declare const ROLES: {
     readonly CUSTOMER: "customer";
