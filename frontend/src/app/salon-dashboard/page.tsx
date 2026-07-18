@@ -16,12 +16,10 @@ export default async function SalonOverviewPage() {
   const salon = await getManagedSalon();
   if (!salon) return <NoSalonYet />;
 
-  const [servicesRes, staffRes] = await Promise.all([
-    serverFetch<unknown[]>(`/services?salonId=${salon._id}&all=1`),
-    serverFetch<unknown[]>(`/staff?salonId=${salon._id}`),
-  ]);
+  const servicesRes = await serverFetch<unknown[]>(
+    `/services?salonId=${salon._id}&all=1`
+  );
   const serviceCount = servicesRes.data?.length ?? 0;
-  const staffCount = staffRes.data?.length ?? 0;
 
   const steps: CompletionStep[] = [
     {
@@ -35,12 +33,6 @@ export default async function SalonOverviewPage() {
       done: serviceCount > 0,
       href: "/salon-dashboard/services",
       hint: "customers book from your menu",
-    },
-    {
-      label: "Add your team",
-      done: staffCount > 0,
-      href: "/salon-dashboard/staff",
-      hint: "specialists customers can pick",
     },
     {
       label: "Set your working hours",

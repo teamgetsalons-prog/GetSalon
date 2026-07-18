@@ -13,7 +13,6 @@ import {
   MapPin,
   PartyPopper,
   Sparkles,
-  User,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import {
@@ -28,8 +27,7 @@ import type { TimeSlot } from "@getsalons/shared/types";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
-import { Spinner, Avatar } from "@/components/ui/misc";
-import { StarRating } from "@/components/ui/star-rating";
+import { Spinner } from "@/components/ui/misc";
 
 interface WizardSalon {
   _id: string;
@@ -50,15 +48,6 @@ interface WizardService {
   isPopular?: boolean;
 }
 
-interface WizardStaff {
-  _id: string;
-  name: string;
-  title?: string;
-  avatar?: string;
-  serviceIds: string[];
-  rating: { average: number; count: number };
-}
-
 interface WizardDeal {
   _id: string;
   title: string;
@@ -70,18 +59,16 @@ interface WizardDeal {
   terms?: string;
 }
 
-const STEPS = ["Service", "Specialist", "Date & Time", "Confirm"] as const;
+const STEPS = ["Service", "Date & Time", "Confirm"] as const;
 
 export function BookingWizard({
   salon,
   services,
-  staff,
   preselectedServiceId,
   deal,
 }: {
   salon: WizardSalon;
   services: WizardService[];
-  staff: WizardStaff[];
   preselectedServiceId?: string;
   deal?: WizardDeal | null;
 }) {
@@ -96,7 +83,6 @@ export function BookingWizard({
     }
     return null;
   });
-  const [staffId, setStaffId] = useState<string | null>(null); // null = any
   const [date, setDate] = useState<string>(toDateKey(new Date()));
   const [slot, setSlot] = useState<TimeSlot | null>(null);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
@@ -115,18 +101,6 @@ export function BookingWizard({
   const [done, setDone] = useState<{ bookingNumber: string } | null>(null);
 
   const service = services.find((s) => s._id === serviceId) ?? null;
-  const member = staff.find((m) => m._id === staffId) ?? null;
-
-  const eligibleStaff = useMemo(
-    () =>
-      staff.filter(
-        (m) =>
-          !serviceId ||
-          m.serviceIds.length === 0 ||
-          m.serviceIds.includes(serviceId)
-      ),
-    [staff, serviceId]
-  );
 
   // Next N days for the date strip
   const days = useMemo(() => {
@@ -149,14 +123,13 @@ export function BookingWizard({
       serviceId,
       date,
     });
-    if (staffId) params.set("staffId", staffId);
     const res = await api<TimeSlot[]>(`/api/bookings/availability?${params}`);
     setSlots(res.success && res.data ? res.data : []);
     setLoadingSlots(false);
-  }, [salon._id, serviceId, staffId, date]);
+  }, [salon._id, serviceId, date]);
 
   useEffect(() => {
-    if (step === 2) void loadSlots();
+    if (step === 1) void loadSlots();
   }, [step, loadSlots]);
 
   async function submit() {
@@ -182,7 +155,6 @@ export function BookingWizard({
       json: {
         salonId: salon._id,
         serviceId: service._id,
-        staffId: staffId ?? undefined,
         date,
         startTime: slot.time,
         contactName: contactName.trim(),
@@ -222,7 +194,7 @@ export function BookingWizard({
           {deal && service && deal.serviceId === service._id && (
             <SummaryRow label="Deal" value={deal.title} gold />
           )}
-          <SummaryRow label="Specialist" value={member?.name ?? "Any available"} />
+          <SummaryRow label="Specialist" value={slot?.staffName ?? "Any available"} />
           <SummaryRow label="Date" value={formatDateKey(date)} />
           <SummaryRow label="Time" value={slot ? formatTime12h(slot.time) : ""} />
           <SummaryRow
@@ -252,9 +224,8 @@ export function BookingWizard({
 
   const canNext =
     (step === 0 && !!service) ||
-    step === 1 ||
-    (step === 2 && !!slot) ||
-    step === 3;
+    (step === 1 && !!slot) ||
+    step === 2;
 
   return (
     <div>
@@ -352,55 +323,8 @@ export function BookingWizard({
           </div>
         )}
 
-        {/* Step 2: staff */}
+        {/* Step 2: date & time */}
         {step === 1 && (
-          <div className="grid gap-2.5 sm:grid-cols-2">
-            <button
-              onClick={() => setStaffId(null)}
-              className={cn(
-                "flex cursor-pointer items-center gap-3 rounded-2xl border p-4 text-left transition-all",
-                staffId === null
-                  ? "border-gold-500 bg-gold-500/8 ring-1 ring-gold-500/40"
-                  : "border-line bg-card hover:border-gold-500/40"
-              )}
-            >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gold-500/15 text-gold">
-                <User className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">Any specialist</p>
-                <p className="text-xs text-fg-faint">Maximum availability</p>
-              </div>
-            </button>
-
-            {eligibleStaff.map((m) => (
-              <button
-                key={m._id}
-                onClick={() => setStaffId(m._id)}
-                className={cn(
-                  "flex cursor-pointer items-center gap-3 rounded-2xl border p-4 text-left transition-all",
-                  staffId === m._id
-                    ? "border-gold-500 bg-gold-500/8 ring-1 ring-gold-500/40"
-                    : "border-line bg-card hover:border-gold-500/40"
-                )}
-              >
-                <Avatar src={m.avatar} name={m.name} size={44} />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{m.name}</p>
-                  {m.title && (
-                    <p className="truncate text-xs text-fg-faint">{m.title}</p>
-                  )}
-                  {m.rating.count > 0 && (
-                    <StarRating value={m.rating.average} size={11} />
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Step 3: date & time */}
-        {step === 2 && (
           <div>
             <p className="mb-2.5 flex items-center gap-1.5 text-sm font-semibold">
               <CalendarDays className="h-4 w-4 text-gold" /> Pick a date
@@ -438,8 +362,7 @@ export function BookingWizard({
               <Spinner className="py-8" />
             ) : slots.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-line py-8 text-center text-sm text-fg-muted">
-                No free slots on this day — try another date
-                {staffId ? " or choose “Any specialist”" : ""}.
+                No free slots on this day — try another date.
               </p>
             ) : (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -462,8 +385,8 @@ export function BookingWizard({
           </div>
         )}
 
-        {/* Step 4: confirm */}
-        {step === 3 && service && slot && (
+        {/* Step 3: confirm */}
+        {step === 2 && service && slot && (
           <div>
             <div className="space-y-2.5 rounded-2xl border border-line bg-card p-5 text-sm">
               <SummaryRow label="Service" value={service.name} />
@@ -473,7 +396,7 @@ export function BookingWizard({
               />
               <SummaryRow
                 label="Specialist"
-                value={member?.name ?? slot.staffName ?? "Any available"}
+                value={slot.staffName ?? "Any available"}
               />
               <SummaryRow label="Date" value={formatDateKey(date)} />
               <SummaryRow label="Time" value={formatTime12h(slot.time)} />
@@ -563,7 +486,7 @@ export function BookingWizard({
           </Link>
         )}
 
-        {step < 3 ? (
+        {step < 2 ? (
           <Button disabled={!canNext} onClick={() => setStep(step + 1)}>
             Continue <ArrowRight className="h-4 w-4" />
           </Button>

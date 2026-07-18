@@ -32,7 +32,7 @@ export default async function BookPage({ params, searchParams }: Props) {
   }
   if (!data) notFound();
 
-  const { salon, services, staff } = data;
+  const { salon, services } = data;
 
   // Fetch deal if provided
   let dealData = null;
@@ -82,14 +82,6 @@ export default async function BookPage({ params, searchParams }: Props) {
           price: s.price,
           discountPrice: s.discountPrice,
           isPopular: s.isPopular,
-        }))}
-        staff={staff.map((m) => ({
-          _id: m._id.toString(),
-          name: m.name,
-          title: m.title,
-          avatar: m.avatar,
-          serviceIds: m.services.map((id) => id.toString()),
-          rating: m.rating,
         }))}
         preselectedServiceId={preselectedService}
         deal={
