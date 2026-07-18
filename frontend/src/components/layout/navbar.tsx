@@ -229,7 +229,7 @@ export function Navbar() {
                   </button>
                   <div
                     className={cn(
-                      "absolute left-0 top-full z-50 mt-1 w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-xl border border-line bg-card shadow-xl shadow-black/5 transition-all duration-150 sm:w-96",
+                      "absolute left-0 top-full z-50 mt-1 w-64 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-line bg-card shadow-xl shadow-black/5 transition-all duration-150",
                       activeDropdown === "services"
                         ? "opacity-100 translate-y-0 scale-100"
                         : "opacity-0 translate-y-2 scale-96 pointer-events-none"
@@ -237,14 +237,14 @@ export function Navbar() {
                     onMouseEnter={() => handleDropdownEnter("services")}
                     onMouseLeave={handleDropdownLeave}
                   >
-                    <div className="grid grid-cols-2 gap-1 p-2">
-                      {serviceCategories.slice(0, 6).map((cat) => {
+                    <div className="p-2">
+                      {serviceCategories.slice(0, 5).map((cat) => {
                         const IconComp = cat.icon ? iconMap[cat.icon] : Sparkles;
                         return (
                           <Link
                             key={cat.slug}
                             href={`/services/${cat.slug}`}
-                            className="flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
+                            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-fg-muted transition-colors hover:bg-gold-500/10 hover:text-fg"
                           >
                             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gold-500/10 text-gold">
                               {IconComp ? <IconComp className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
@@ -254,7 +254,7 @@ export function Navbar() {
                         );
                       })}
                       {serviceCategories.length === 0 && (
-                        <p className="col-span-2 px-3 py-2 text-xs text-fg-faint">
+                        <p className="px-3 py-2 text-xs text-fg-faint">
                           No services available yet
                         </p>
                       )}
@@ -492,7 +492,7 @@ export function Navbar() {
               </button>
               {mobileExpanded === "services" && (
                 <div className="overflow-hidden pl-6 animate-fade-in">
-                  {serviceCategories.slice(0, 6).map((cat) => {
+                  {serviceCategories.slice(0, 5).map((cat) => {
                     const IconComp = cat.icon ? iconMap[cat.icon] : Sparkles;
                     return (
                       <Link
