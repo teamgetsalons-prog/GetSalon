@@ -64,6 +64,10 @@ export interface NavItem {
   label: string;
   icon: IconName;
   exact?: boolean;
+  /** Renders the item non-clickable and dimmed, with `disabledNote` shown
+   * as a hover tooltip and a "Soon" chip (for features not yet launched). */
+  disabled?: boolean;
+  disabledNote?: string;
 }
 
 /**
@@ -134,6 +138,20 @@ export function DashboardShell({
       <nav className="no-scrollbar mb-5 flex gap-2 overflow-x-auto lg:hidden" aria-label="Dashboard">
         {items.map((item) => {
           const Icon = ICONS[item.icon];
+          if (item.disabled) {
+            return (
+              <span
+                key={item.href}
+                title={item.disabledNote}
+                aria-disabled="true"
+                className="flex shrink-0 cursor-not-allowed items-center gap-1.5 rounded-full border border-line px-3.5 py-2 text-xs font-medium text-fg-faint opacity-70"
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {item.label}
+                <SoonChip />
+              </span>
+            );
+          }
           return (
             <Link
               key={item.href}
@@ -158,6 +176,22 @@ export function DashboardShell({
         <aside className="sticky top-20 hidden h-fit w-56 shrink-0 rounded-2xl border border-line bg-card p-3 lg:block">
           {items.map((item) => {
             const Icon = ICONS[item.icon];
+            if (item.disabled) {
+              return (
+                <span
+                  key={item.href}
+                  title={item.disabledNote}
+                  aria-disabled="true"
+                  className="flex cursor-not-allowed items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium text-fg-faint opacity-70"
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                  <span className="ml-auto">
+                    <SoonChip />
+                  </span>
+                </span>
+              );
+            }
             return (
               <Link
                 key={item.href}
@@ -184,6 +218,15 @@ export function DashboardShell({
         <div className="min-w-0 flex-1">{children}</div>
       </div>
     </div>
+  );
+}
+
+/** Tiny "Soon" chip for disabled/under-development nav items. */
+function SoonChip() {
+  return (
+    <span className="rounded-full border border-line bg-bg-soft px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-fg-faint">
+      Soon
+    </span>
   );
 }
 

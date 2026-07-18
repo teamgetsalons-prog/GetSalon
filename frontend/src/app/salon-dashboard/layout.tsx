@@ -38,12 +38,21 @@ export default async function SalonDashboardLayout({
 
   // Branch management is an owner-account concept - a single staff
   // member is fixed to the one branch they were added to.
+  // The whole branching system is temporarily gated off while it's being
+  // finished: the nav item stays visible (so owners know it's coming) but
+  // is non-clickable, and the pages + salon-creation API are blocked too.
   const items: NavItem[] =
     session.role === "staff"
       ? baseItems
       : [
           baseItems[0]!,
-          { href: "/salon-dashboard/branches", label: "Branches", icon: "store" },
+          {
+            href: "/salon-dashboard/branches",
+            label: "Branches",
+            icon: "store",
+            disabled: true,
+            disabledNote: "This feature is currently under development",
+          },
           ...baseItems.slice(1),
         ];
 

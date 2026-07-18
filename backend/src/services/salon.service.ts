@@ -421,6 +421,17 @@ const DEFAULT_HOURS = Array.from({ length: 7 }, (_, day) => ({
 export async function createSalon(ownerId: string, input: CreateSalonInput) {
   await connectDB();
 
+  // Branching (multiple salons per account) is temporarily gated off while
+  // the feature is finished - the owner UI is blocked too, but the API is
+  // the real line of defense. First-salon creation is unaffected.
+  const alreadyHasSalon = await Salon.exists({ owner: ownerId });
+  if (alreadyHasSalon) {
+    throw new ApiError(
+      "Adding more branches is currently under development. Each account can manage one salon for now.",
+      403
+    );
+  }
+
   const city = await City.findById(input.cityId);
   if (!city || !city.isActive) throw new ApiError("Please select a valid city.");
 
