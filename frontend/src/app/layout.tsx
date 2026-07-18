@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { Inter, Playfair_Display } from "next/font/google";
 import { Providers } from "@/components/layout/providers";
 import { Footer } from "@/components/layout/footer";
+import { Analytics } from "@/components/analytics";
 import { JsonLd } from "@/components/seo/json-ld";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
@@ -47,6 +48,12 @@ export const metadata: Metadata = {
     siteName: SITE.name,
     locale: SITE.locale,
     type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: SITE.name }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: SITE.twitter,
+    images: ["/og-image.png"],
   },
 };
 
@@ -70,6 +77,7 @@ export default function RootLayout({
         )}
       </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        <Analytics />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <Providers>
           <Navbar />

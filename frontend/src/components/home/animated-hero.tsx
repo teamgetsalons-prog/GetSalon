@@ -23,6 +23,11 @@ export function AnimatedHero({
       <h1 className="font-display mx-auto max-w-3xl animate-slide-up delay-100 text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
         Look your best.{" "}
         <span className="text-gold-gradient">Book in seconds.</span>
+        {/* Keyword context for search engines within the single page H1,
+            visually hidden so the hero design is unchanged. */}
+        <span className="sr-only">
+          {" "}Book salons, barbers and spas online across Pakistan on GetSalons.
+        </span>
       </h1>
 
       <p className="mx-auto mt-5 max-w-xl animate-fade-in delay-200 text-base text-white/70 sm:text-lg">

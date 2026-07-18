@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { SITE } from "@getsalons/shared/constants";
 import { absoluteUrl, truncate } from "./utils";
 
+/** Branded 1200x630 share card used as the default OG/Twitter image when a
+ * page doesn't supply its own. Ensures every page has an og:image. */
+export const DEFAULT_OG_IMAGE = absoluteUrl("/og-image.png");
+
 /**
  * SEO helpers: metadata builder + Schema.org JSON-LD generators.
  * Used by server components only.
@@ -24,7 +28,9 @@ export function buildMetadata(opts: {
 }): Metadata {
   const url = absoluteUrl(opts.path);
   const description = truncate(opts.description, 160);
-  const images = opts.image ? [{ url: opts.image }] : undefined;
+  // Fall back to the branded default share card so every page has an og:image.
+  const image = opts.image ?? DEFAULT_OG_IMAGE;
+  const images = [{ url: image, width: 1200, height: 630, alt: opts.title }];
 
   const robots = opts.noIndex
     ? { index: false, follow: false }
@@ -47,11 +53,11 @@ export function buildMetadata(opts: {
       images,
     },
     twitter: {
-      card: opts.image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       site: SITE.twitter,
       title: opts.title,
       description,
-      images: opts.image ? [opts.image] : undefined,
+      images: [image],
     },
   };
 }
@@ -65,8 +71,34 @@ export function organizationJsonLd() {
     name: SITE.name,
     url: SITE.url,
     logo: absoluteUrl("/icon.svg"),
+    image: DEFAULT_OG_IMAGE,
     sameAs: [SITE.socials.facebook, SITE.socials.instagram],
     description: SITE.description,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Lahore",
+      addressRegion: "Punjab",
+      addressCountry: "PK",
+    },
+    areaServed: { "@type": "Country", name: "Pakistan" },
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      telephone: "+92-309-8899061",
+      email: "team.getsalons@gmail.com",
+      areaServed: "PK",
+      availableLanguage: ["English", "Urdu"],
+    },
+    knowsAbout: [
+      "salon booking",
+      "hair salons",
+      "barbers",
+      "beauty parlours",
+      "bridal makeup",
+      "skincare",
+      "nail salons",
+      "spa and massage",
+    ],
   };
 }
 

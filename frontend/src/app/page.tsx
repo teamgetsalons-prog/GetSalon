@@ -36,6 +36,14 @@ export async function generateMetadata() {
       siteName: "GetSalons",
       locale: "en_PK",
       type: "website",
+      images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "GetSalons — Book Salons, Barbers & Spas Online in Pakistan" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "GetSalons — Book Salons, Barbers & Spas Online in Pakistan",
+      description:
+        "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan.",
+      images: ["/og-image.png"],
     },
   };
 }
@@ -79,9 +87,6 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-black/50" />
         </div>
 
-        <h1 className="sr-only">
-          GetSalons — Book Salons, Barbers & Spas Online in Pakistan
-        </h1>
         <AnimatedHero cities={data.cities} stats={data.stats} />
       </section>
 
@@ -264,6 +269,61 @@ export default async function HomePage() {
           >
             Become a Partner <ArrowRight className="h-4 w-4" />
           </Link>
+        </div>
+      </section>
+
+      {/* ── About / SEO + GEO content ────────────────────── */}
+      <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
+        <h2 className="font-display text-2xl font-bold sm:text-3xl">
+          Pakistan&apos;s salon booking platform
+        </h2>
+        <div className="mt-4 space-y-4 text-sm leading-relaxed text-fg-muted sm:text-base">
+          <p>
+            GetSalons is an online salon discovery and booking platform built
+            for Pakistan. Instead of calling around or relying on word of mouth,
+            you can{" "}
+            <Link href="/salons" className="font-medium text-gold hover:underline">
+              search salons, barbers and spas
+            </Link>{" "}
+            in your city, compare their prices side by side, read reviews from
+            customers who actually visited, and book an appointment online in a
+            few taps. Browsing and booking are completely free.
+          </p>
+          <p>
+            We cover salons across major cities including Lahore, Karachi and
+            Islamabad, with more being added every week. Whatever you&apos;re
+            looking for — a men&apos;s haircut or fade, hair colour, keratin or
+            rebonding, bridal and party makeup, facials and skincare, manicures,
+            pedicures and nail art, waxing and threading, or a relaxing massage
+            and spa treatment — you can find a specialist near you and see
+            exactly what it costs before you book.
+          </p>
+          <p>
+            Every review on GetSalons comes from a real customer, so the ratings
+            you see are ones you can trust. Not sure where to start? Explore our{" "}
+            <Link href="/top-salons" className="font-medium text-gold hover:underline">
+              top-rated salons
+            </Link>
+            , browse the latest{" "}
+            <Link href="/offers" className="font-medium text-gold hover:underline">
+              deals and offers
+            </Link>
+            , or read practical guides on our{" "}
+            <Link href="/blog" className="font-medium text-gold hover:underline">
+              beauty blog
+            </Link>{" "}
+            — from choosing the right salon and understanding prices to hair
+            care, skincare and bridal preparation.
+          </p>
+          <p>
+            Run a salon yourself? Thousands of customers search GetSalons every
+            month.{" "}
+            <Link href="/partner" className="font-medium text-gold hover:underline">
+              List your salon
+            </Link>{" "}
+            to get discovered, take bookings around the clock and grow your
+            business — free to start.
+          </p>
         </div>
       </section>
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Facebook, Instagram, Scissors } from "lucide-react";
+import { Facebook, Instagram, MapPin, MessageCircle, Scissors } from "lucide-react";
 import { SITE } from "@getsalons/shared/constants";
 
 const columns = [
@@ -56,6 +56,21 @@ export function Footer() {
             {SITE.tagline}. Discover, compare and book beauty services across
             Pakistan — free for customers.
           </p>
+          <div className="mt-4 space-y-1.5 text-sm text-fg-muted">
+            <a
+              href="https://wa.me/923098899061"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 transition-colors hover:text-gold"
+            >
+              <MessageCircle className="h-4 w-4 text-gold" />
+              +92 309 8899061
+            </a>
+            <p className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-gold" />
+              Lahore, Pakistan
+            </p>
+          </div>
           <div className="mt-5 flex items-center gap-3">
             <a
               href={SITE.socials.facebook}
