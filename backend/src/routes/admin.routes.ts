@@ -1,10 +1,11 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
+import { z } from "zod";
 import { authenticate, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
 import { User, Salon, Appointment, Review, AuditLog, Service, Staff, Comment, SalonSubscription, City, SupportMessage, Deal } from "../models/index.js";
 import { notify } from "../services/notification.service.js";
-import { getBranchSalonIds } from "../services/salon.service.js";
+import { getBranchSalonIds, createBranchAsAdmin } from "../services/salon.service.js";
 function toDateKey(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -121,6 +122,72 @@ router.get("/salons", async (req: Request, res: Response) => {
   return ok(res, data, {
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
   });
+});
+
+// Every salon in one flat list for admin dropdowns (the appointments
+// filter, branch source pickers) - the paginated /salons list caps at 50
+// per page, which a select can't work with. Minimal fields only.
+router.get("/salons/options", async (_req: Request, res: Response) => {
+  const salons = await Salon.find({})
+    .select("name cityName status owner phone")
+    .populate("owner", "name")
+    .sort({ name: 1 })
+    .lean();
+
+  return ok(
+    res,
+    salons.map((s) => ({
+      _id: String(s._id),
+      name: s.name,
+      cityName: s.cityName,
+      status: s.status,
+      phone: s.phone,
+      ownerId: s.owner ? String((s.owner as unknown as { _id: unknown })._id) : "",
+      ownerName: (s.owner as unknown as { name?: string } | null)?.name ?? "",
+    }))
+  );
+});
+
+const createBranchSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  cityId: z.string().min(1),
+  areaId: z.string().optional(),
+  address: z.string().trim().min(5).max(300),
+  phone: z.string().trim().min(7).max(20),
+  whatsapp: z.string().trim().max(20).optional(),
+  email: z.union([z.literal(""), z.string().trim().email()]).optional(),
+});
+
+// Opens an additional location for the :id salon's owner. Self-serve
+// branching is gated off for owners, so this is currently the only way a
+// branch gets created. Profile + full service menu are copied from the
+// source salon; the branch goes live immediately (admin is the moderator).
+router.post("/salons/:id/branches", async (req: Request, res: Response) => {
+  const input = createBranchSchema.parse(req.body);
+  const branch = await createBranchAsAdmin(req.params.id as string, {
+    ...input,
+    email: input.email || undefined,
+  });
+
+  await AuditLog.create({
+    actor: req.user!.id,
+    actorRole: "admin",
+    action: "salon.branch-create",
+    entity: "Salon",
+    entityId: branch._id.toString(),
+  });
+
+  return ok(
+    res,
+    {
+      id: branch._id.toString(),
+      slug: branch.slug,
+      name: branch.name,
+      status: branch.status,
+    },
+    undefined,
+    201
+  );
 });
 
 // One consolidated view - every owner with their full salon roster (primary

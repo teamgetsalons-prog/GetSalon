@@ -2,13 +2,16 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { authenticate, optionalAuth, requireRole } from "../middleware/auth.js";
 import { ok, fail } from "../middleware/error-handler.js";
-import { Service } from "../models/index.js";
+import { Salon, Service } from "../models/index.js";
 import { serviceSchema } from "../../../shared/dist/validations/service.js";
 import { getActorSalon, recalcPriceRange } from "../services/salon.service.js";
 
 const router = Router();
 
-router.get("/", async (req: Request, res: Response) => {
+// optionalAuth (not authenticate): the list stays public for booking pages,
+// but a logged-in owner/admin with ?all=1 also gets hidden services - the
+// role check below always ran, it just never saw req.user without this.
+router.get("/", optionalAuth, async (req: Request, res: Response) => {
   const salonId = req.query.salonId as string;
   if (!salonId) return fail(res, "salonId is required.");
 
@@ -31,7 +34,12 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.post("/", authenticate, requireRole("owner", "staff", "admin"), async (req: Request, res: Response) => {
-  const salon = await getActorSalon(req.user!);
+  // Admins manage services across every salon, so they name the target
+  // explicitly; owners/staff always operate on their own salon as before.
+  const salon =
+    req.user!.role === "admin" && req.body.salonId
+      ? await Salon.findById(String(req.body.salonId))
+      : await getActorSalon(req.user!);
   if (!salon) return fail(res, "Create your salon profile first.", 404);
 
   const input = serviceSchema.parse(req.body);
@@ -60,10 +68,17 @@ router.post("/", authenticate, requireRole("owner", "staff", "admin"), async (re
 
 router.patch("/:id", authenticate, requireRole("owner", "staff", "admin"), async (req: Request, res: Response) => {
   const { id } = req.params;
-  const salon = await getActorSalon(req.user!);
-  if (!salon) return fail(res, "Salon not found.", 404);
 
-  const service = await Service.findOne({ _id: id, salon: salon._id });
+  // Admin edits any salon's service by id; owner/staff stay scoped to
+  // their own salon exactly as before.
+  let service;
+  if (req.user!.role === "admin") {
+    service = await Service.findById(id);
+  } else {
+    const salon = await getActorSalon(req.user!);
+    if (!salon) return fail(res, "Salon not found.", 404);
+    service = await Service.findOne({ _id: id, salon: salon._id });
+  }
   if (!service) return fail(res, "Service not found.", 404);
 
   const input = serviceSchema.partial().parse(req.body);
@@ -97,22 +112,27 @@ router.patch("/:id", authenticate, requireRole("owner", "staff", "admin"), async
   if (input.isPopular !== undefined) service.isPopular = input.isPopular;
 
   await service.save();
-  await recalcPriceRange(salon._id.toString());
+  await recalcPriceRange(service.salon.toString());
 
   return ok(res, service.toJSON());
 });
 
 router.delete("/:id", authenticate, requireRole("owner", "admin"), async (req: Request, res: Response) => {
   const { id } = req.params;
-  const salon = await getActorSalon(req.user!);
-  if (!salon) return fail(res, "Salon not found.", 404);
 
-  const service = await Service.findOne({ _id: id, salon: salon._id });
+  let service;
+  if (req.user!.role === "admin") {
+    service = await Service.findById(id);
+  } else {
+    const salon = await getActorSalon(req.user!);
+    if (!salon) return fail(res, "Salon not found.", 404);
+    service = await Service.findOne({ _id: id, salon: salon._id });
+  }
   if (!service) return fail(res, "Service not found.", 404);
 
   service.isActive = false;
   await service.save();
-  await recalcPriceRange(salon._id.toString());
+  await recalcPriceRange(service.salon.toString());
 
   return ok(res, { id });
 });

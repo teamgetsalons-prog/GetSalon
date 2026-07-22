@@ -482,6 +482,124 @@ export async function createSalon(ownerId: string, input: CreateSalonInput) {
   return salon;
 }
 
+export interface CreateBranchInput {
+  name: string;
+  cityId: string;
+  areaId?: string;
+  address: string;
+  phone: string;
+  whatsapp?: string;
+  email?: string;
+}
+
+/**
+ * Admin-only: opens an additional location (branch) for an existing salon's
+ * owner. Self-serve branching is gated off in createSalon while that flow is
+ * finished, so the admin console is currently the only way to add one.
+ *
+ * The branch inherits the source salon's profile (description, categories,
+ * hours, branding, socials) and a full copy of its service menu, and goes
+ * live immediately - the admin creating it IS the moderator, so a pending
+ * step would be pure friction. The owner's active-salon pointer is left
+ * alone: their dashboard keeps managing the salon they had selected.
+ *
+ * Deliberately NOT copied: the gallery. Gallery images carry Cloudinary
+ * publicIds, and deleting an image destroys the underlying asset - shared
+ * publicIds across branches would let one branch's delete blank the other.
+ * coverImage/logo are plain URLs (no delete path), so sharing those is safe.
+ */
+export async function createBranchAsAdmin(
+  sourceSalonId: string,
+  input: CreateBranchInput
+) {
+  await connectDB();
+
+  const source = await Salon.findById(sourceSalonId);
+  if (!source) throw new ApiError("Salon not found.", 404);
+
+  const city = await City.findById(input.cityId);
+  if (!city || !city.isActive) throw new ApiError("Please select a valid city.");
+  const area = input.areaId ? await Area.findById(input.areaId) : null;
+
+  const branch = await Salon.create({
+    name: input.name,
+    slug: await uniqueSlug(input.name, city.name),
+    owner: source.owner,
+    description: source.description,
+    about: source.about,
+    categories: source.categories,
+    city: city._id,
+    cityName: city.name,
+    area: area?._id,
+    areaName: area?.name,
+    address: input.address,
+    phone: input.phone,
+    whatsapp: input.whatsapp || source.whatsapp,
+    email: input.email || source.email,
+    website: source.website,
+    socials: source.socials,
+    genderServed: source.genderServed,
+    homeService: source.homeService,
+    amenities: source.amenities,
+    coverImage: source.coverImage,
+    logo: source.logo,
+    openingHours: source.openingHours?.length
+      ? source.openingHours.map((h) => ({
+          day: h.day,
+          open: h.open,
+          close: h.close,
+          isClosed: h.isClosed,
+        }))
+      : DEFAULT_HOURS,
+    faqs: (source.faqs ?? []).map((f) => ({ question: f.question, answer: f.answer })),
+    policies: source.policies,
+    tags: source.tags,
+    status: "approved",
+    isVerified: true,
+  });
+
+  // Born approved, so the same bookkeeping moderateSalon's approve does:
+  // the city counter only reflects currently-approved salons, and without
+  // a subscription the branch is visible but unbookable (createBooking
+  // enforces an active one).
+  await City.updateOne({ _id: city._id }, { $inc: { salonCount: 1 } });
+  const existing = await getSalonSubscription(branch._id.toString());
+  if (!existing) await startFreeTrial(branch._id.toString());
+
+  // Branches of one salon share the same menu - copy it wholesale
+  // (including hidden services, so the owner's full setup carries over).
+  const services = await Service.find({ salon: source._id }).lean();
+  if (services.length > 0) {
+    await Service.insertMany(
+      services.map((s) => ({
+        salon: branch._id,
+        name: s.name,
+        description: s.description,
+        category: s.category,
+        duration: s.duration,
+        price: s.price,
+        discountPrice: s.discountPrice,
+        priceMax: s.priceMax,
+        image: s.image,
+        isActive: s.isActive,
+        isPopular: s.isPopular,
+        isFeatured: s.isFeatured,
+      }))
+    );
+    await recalcPriceRange(branch._id.toString());
+  }
+
+  await notify({
+    userId: branch.owner.toString(),
+    type: "salon_approved",
+    title: "A new branch was added to your account",
+    message: `${branch.name} (${branch.cityName}) is now live on GetSalons.`,
+    link: "/salon-dashboard",
+  }).catch((err) => console.error("[notify:branch-created] failed:", err));
+
+  return branch;
+}
+
 /** Fire-and-forget: never blocks or fails salon creation if the email
  * fails or ADMIN_EMAIL isn't configured. */
 async function notifyAdminOfNewSalon(

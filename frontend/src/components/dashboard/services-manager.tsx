@@ -135,7 +135,9 @@ export function ServicesManager({
     };
     const res =
       editing === "new"
-        ? await api("/api/services", { method: "POST", json: payload })
+        ? // salonId names the target salon explicitly - required for admins
+          // (who manage many salons), ignored by the API for owners/staff.
+          await api("/api/services", { method: "POST", json: { ...payload, salonId } })
         : await api(`/api/services/${(editing as ServiceRow)._id}`, {
             method: "PATCH",
             json: payload,

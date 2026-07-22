@@ -43,6 +43,10 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
     const salon = await getActorSalon(user);
     if (!salon) return ok(res, [], { pagination: { page: 1, limit, total: 0, totalPages: 0 } });
     filter.salon = salon._id;
+  } else if (user.role === "admin" && req.query.salonId) {
+    // Admin sees everything by default; salonId narrows to one salon/branch
+    // (the admin appointments view treats each branch separately).
+    filter.salon = String(req.query.salonId);
   }
 
   if (status) filter.status = status;

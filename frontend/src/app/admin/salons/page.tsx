@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { BadgeCheck, ExternalLink, QrCode, Star } from "lucide-react";
+import { BadgeCheck, ExternalLink, QrCode, Settings, Star } from "lucide-react";
 import { SalonQrModal } from "@/components/admin/salon-qr-modal";
 import { api } from "@/lib/api";
 import { cn } from "@getsalons/shared/utils";
@@ -218,6 +218,12 @@ export default function AdminSalonsPage() {
                     Re-approve
                   </Button>
                 )}
+                <Link
+                  href={`/admin/salons/${row._id}/manage`}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-line px-3 py-1.5 text-xs font-medium text-fg-muted transition-colors hover:border-gold-500/50 hover:text-gold"
+                >
+                  <Settings className="h-3.5 w-3.5" /> Manage
+                </Link>
                 <Button
                   size="sm"
                   variant="ghost"
