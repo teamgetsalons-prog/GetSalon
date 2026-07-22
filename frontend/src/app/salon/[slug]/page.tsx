@@ -157,7 +157,7 @@ export default async function SalonPage({ params }: Params) {
       </nav>
 
       {/* Hero */}
-      <div className="relative h-64 overflow-hidden rounded-3xl sm:h-80 md:h-96 animate-fade-in">
+      <div className="relative min-h-[16rem] overflow-hidden rounded-3xl sm:h-80 md:h-96 animate-fade-in">
         <Image
           src={salon.coverImage}
           alt={salon.name}
@@ -167,8 +167,8 @@ export default async function SalonPage({ params }: Params) {
           sizes="(max-width: 1280px) 100vw, 1280px"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-4 p-5 sm:p-7">
-          <div className="flex items-end gap-4">
+        <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-3 p-4 sm:p-7">
+          <div className="flex items-end gap-3 sm:gap-4">
             {salon.logo && (
               <div className="block shrink-0">
                 <Image
@@ -176,13 +176,13 @@ export default async function SalonPage({ params }: Params) {
                   alt={`${salon.name} logo`}
                   width={80}
                   height={80}
-                  className="h-12 w-12 rounded-xl border-2 border-white/20 bg-white object-cover shadow-lg sm:h-20 sm:w-20 sm:rounded-2xl"
+                  className="h-10 w-10 rounded-lg border-2 border-white/20 bg-white object-cover shadow-lg sm:h-20 sm:w-20 sm:rounded-2xl"
                   priority
                 />
               </div>
             )}
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               {salon.isVerified && (
                 <Badge variant="gold">
                   <BadgeCheck className="h-3 w-3" /> Verified
@@ -197,15 +197,17 @@ export default async function SalonPage({ params }: Params) {
                 </Badge>
               )}
             </div>
-            <h1 className="font-display mt-2 text-3xl font-bold text-white sm:text-4xl">
+            <h1 className="font-display mt-1.5 line-clamp-2 text-xl font-bold text-white sm:mt-2 sm:text-4xl">
               {salon.name}
             </h1>
-            <p className="mt-1.5 flex items-center gap-1.5 text-sm text-white/80">
-              <MapPin className="h-4 w-4" />
-              {salon.address}, {salon.areaName ? `${salon.areaName}, ` : ""}
-              {salon.cityName}
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-white/80 sm:text-sm">
+              <MapPin className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+              <span className="line-clamp-2">
+                {salon.address}, {salon.areaName ? `${salon.areaName}, ` : ""}
+                {salon.cityName}
+              </span>
             </p>
-            <div className="mt-2">
+            <div className="mt-1.5 sm:mt-2">
               {salon.rating.count > 0 ? (
                 <StarRating
                   value={salon.rating.average}
