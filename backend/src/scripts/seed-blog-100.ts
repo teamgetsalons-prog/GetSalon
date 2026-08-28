@@ -8,6 +8,7 @@
  * Requires MONGODB_URI env var (or defaults to localhost:27017/getsalons).
  */
 
+import "dotenv/config";
 import { connectDB } from "../db.js";
 import { BlogPost } from "../models/index.js";
 
