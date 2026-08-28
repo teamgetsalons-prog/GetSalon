@@ -68,6 +68,7 @@ export default function RootLayout({
         {/* Preconnect to external image CDN */}
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://res.cloudinary.com" />
+        <meta name="google-site-verification" content="1nI22epoy5iX741Zlh2Z5kDJIzDsiEYOe3IaXNFXpWY" />
         {/* Google Identity Services — client ID exposed via public env */}
         {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
           <meta
