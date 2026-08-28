@@ -17,38 +17,46 @@ const TOP_CITIES = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad"
 
 type Params = { params: Promise<{ service: string }> };
 
-const serviceDescriptions: Record<string, { title: string; description: string }> = {
+const serviceDescriptions: Record<string, { title: string; description: string; keywords: string[] }> = {
   hair: {
     title: "Hair Services",
     description: "Haircuts, styling, coloring, treatments and more from top-rated salons",
+    keywords: ["hair salon near me", "hair cut price Pakistan", "hair color price", "keratin treatment", "hair styling salon", "barber shop near me", "men haircut", "ladies hair salon"],
   },
   makeup: {
     title: "Makeup Services",
     description: "Professional makeup for parties, events, photoshoots and everyday glam",
+    keywords: ["makeup salon near me", "party makeup price", "bridal makeup packages", "makeup artist near me", "beauty salon for makeup"],
   },
   facial: {
     title: "Facial Services",
     description: "Deep cleansing, whitening, anti-aging and hydrating facials",
+    keywords: ["facial near me", "facial treatment price", "hydrafacial Pakistan", "skin care salon", "whitening facial", "acne treatment facial"],
   },
   nails: {
     title: "Nail Services",
     description: "Manicure, pedicure, nail art, gel nails and extensions",
+    keywords: ["nail salon near me", "manicure pedicure near me", "nail art salon", "gel nails price", "nail extension near me", "nail parlour near me"],
   },
   bridal: {
     title: "Bridal Services",
     description: "Complete bridal packages including makeup, hair, mehndi and more",
+    keywords: ["bridal makeup salon", "bridal makeup packages Pakistan", "wedding makeup price", "mehndi artist", "bridal hair styling", "walima makeup"],
   },
   massage: {
     title: "Massage Services",
     description: "Relaxing massage, deep tissue, hot stone and aromatherapy",
+    keywords: ["massage near me", "spa near me", "body massage price", "relaxing massage", "deep tissue massage", "aromatherapy massage"],
   },
   "skin-care": {
     title: "Skin Care Services",
     description: "Chemical peels, microdermabrasion, acne treatment and skin brightening",
+    keywords: ["skin care salon", "acne treatment near me", "skin brightening treatment", "chemical peel price", "dermatologist salon"],
   },
   waxing: {
     title: "Waxing Services",
     description: "Full body waxing, eyebrow shaping and hair removal services",
+    keywords: ["waxing near me", "waxing service near me", "eyebrow threading", "hair removal salon", "full body wax price"],
   },
 };
 
@@ -67,6 +75,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const description =
     serviceDescriptions[service]?.description ||
     `Find and book the best ${serviceName} salons on GetSalons`;
+  const keywords = serviceDescriptions[service]?.keywords || [];
   const result = await loadServicePage(service, serviceName);
 
   return buildMetadata({

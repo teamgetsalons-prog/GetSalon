@@ -171,13 +171,21 @@ export default async function CitySalonsPage({ params }: Params) {
         </h2>
         <div className="mt-4 space-y-3 text-sm leading-relaxed text-fg-muted">
           <p>
-            Looking for the best salons in {cityName}? GetSalons makes it easy to discover top-rated beauty parlours, hair salons and spas across {cityName}. Whether you need a haircut, bridal makeup, facial treatment or a relaxing massage, you can compare prices, read verified customer reviews and book your appointment online — all in one place.
+            Looking for the best{" "}
+            <Link href={`/salons/${city}?category=hair`} className="font-medium text-gold hover:underline">
+              hair salon in {cityName}
+            </Link>
+            ? Or searching for a{" "}
+            <Link href={`/salons/${city}?category=bridal`} className="font-medium text-gold hover:underline">
+              bridal makeup salon in {cityName}
+            </Link>
+            ? GetSalons makes it easy to discover top-rated beauty parlours, hair salons and spas across {cityName}. Whether you need a haircut, bridal makeup, facial treatment, manicure pedicure, or a relaxing massage, you can compare prices, read verified customer reviews and book your appointment online — all in one place.
           </p>
           <p>
-            Every review on GetSalons comes from a real customer who completed a booking, so you can trust the ratings and feedback. Use our filters to find salons by service, price range, rating or gender preference. Many salons in {cityName} also offer home service for your convenience.
+            Every review on GetSalons comes from a real customer who completed a booking, so you can trust the ratings and feedback. Use our filters to find salons by service, price range, rating, gender preference or home service availability. Many salons in {cityName} also offer home service for your convenience.
           </p>
           <p>
-            {cityName} is home to some of Pakistan&apos;s finest beauty professionals. From budget-friendly options to premium luxury salons, you&apos;ll find the perfect match for your needs. Book online 24/7 and skip the waiting queue.
+            {cityName} is home to some of Pakistan&apos;s finest beauty professionals. From budget-friendly options to premium luxury salons, you&apos;ll find the perfect match for your needs. Whether you&apos;re looking for ladies parlour, gents salon, unisex salon, nail salon, facial salon, or waxing service — we have them all listed with prices and reviews. Book online 24/7 and skip the waiting queue.
           </p>
         </div>
       </div>

@@ -3,7 +3,7 @@ export const SITE = {
   shortName: "GetSalons",
   tagline: "Pakistan's #1 Salon Discovery & Booking Platform",
   description:
-    "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan. Compare prices, read verified reviews and book appointments online — free.",
+    "Find and book the best beauty salons, hair salons, barbers, spas and beauty parlours near you in Lahore, Karachi, Islamabad, Rawalpindi, Faisalabad and Multan. Compare prices, read verified reviews and book appointments online — free for customers.",
   url: process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://www.getsalons.com",
   locale: "en_PK",
   twitter: "@getsalonsPK",

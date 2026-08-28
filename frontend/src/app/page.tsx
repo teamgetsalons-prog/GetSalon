@@ -24,25 +24,25 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
   return {
-    title: "GetSalons — Book Salons, Barbers & Spas Online in Pakistan",
+    title: "GetSalons — Find & Book Best Salons, Hair Salons & Spas Near You in Pakistan",
     description:
-      "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan. Compare prices, read verified reviews and book appointments online — free.",
+      "Find the best beauty salons, hair salons, barbers, spas and beauty parlours near you. Compare prices, read verified reviews and book appointments online in Lahore, Karachi, Islamabad and across Pakistan — free.",
     alternates: { canonical: "https://www.getsalons.com" },
     openGraph: {
-      title: "GetSalons — Book Salons, Barbers & Spas Online in Pakistan",
+      title: "GetSalons — Find & Book Best Salons Near You in Pakistan",
       description:
-        "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan. Compare prices, read verified reviews and book appointments online — free.",
+        "Find the best beauty salons, hair salons, barbers, spas and beauty parlours near you. Compare prices, read verified reviews and book appointments online — free.",
       url: "https://www.getsalons.com",
       siteName: "GetSalons",
       locale: "en_PK",
       type: "website",
-      images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "GetSalons — Book Salons, Barbers & Spas Online in Pakistan" }],
+      images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "GetSalons — Find & Book Best Salons Near You in Pakistan" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "GetSalons — Book Salons, Barbers & Spas Online in Pakistan",
+      title: "GetSalons — Find & Book Best Salons Near You in Pakistan",
       description:
-        "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan.",
+        "Find the best beauty salons, hair salons, barbers, spas and beauty parlours near you in Pakistan.",
       images: ["/og-image.png"],
     },
   };
@@ -279,28 +279,66 @@ export default async function HomePage() {
         </h2>
         <div className="mt-4 space-y-4 text-sm leading-relaxed text-fg-muted sm:text-base">
           <p>
-            GetSalons is an online salon discovery and booking platform built
-            for Pakistan. Instead of calling around or relying on word of mouth,
-            you can{" "}
+            GetSalons is Pakistan&apos;s leading online salon discovery and booking platform.
+            Find the best{" "}
             <Link href="/salons" className="font-medium text-gold hover:underline">
-              search salons, barbers and spas
+              beauty salons, barbers and spas
             </Link>{" "}
-            in your city, compare their prices side by side, read reviews from
-            customers who actually visited, and book an appointment online in a
-            few taps. Browsing and booking are completely free.
+            near you. Whether you&apos;re looking for a{" "}
+            <Link href="/services/hair" className="font-medium text-gold hover:underline">
+              hair salon
+            </Link>
+            ,{" "}
+            <Link href="/services/bridal" className="font-medium text-gold hover:underline">
+              bridal makeup salon
+            </Link>
+            ,{" "}
+            <Link href="/services/facial" className="font-medium text-gold hover:underline">
+              facial and skincare
+            </Link>
+            , or{" "}
+            <Link href="/services/nails" className="font-medium text-gold hover:underline">
+              nail salon
+            </Link>
+            , you can compare prices, read verified reviews and book appointments online — all for free.
           </p>
           <p>
-            We cover salons across major cities including Lahore, Karachi and
-            Islamabad, with more being added every week. Whatever you&apos;re
-            looking for — a men&apos;s haircut or fade, hair colour, keratin or
+            We cover salons across all major cities in Pakistan including{" "}
+            <Link href="/salons/lahore" className="font-medium text-gold hover:underline">
+              Lahore
+            </Link>
+            ,{" "}
+            <Link href="/salons/karachi" className="font-medium text-gold hover:underline">
+              Karachi
+            </Link>
+            ,{" "}
+            <Link href="/salons/islamabad" className="font-medium text-gold hover:underline">
+              Islamabad
+            </Link>
+            ,{" "}
+            <Link href="/salons/rawalpindi" className="font-medium text-gold hover:underline">
+              Rawalpindi
+            </Link>
+            ,{" "}
+            <Link href="/salons/faisalabad" className="font-medium text-gold hover:underline">
+              Faisalabad
+            </Link>
+            , and{" "}
+            <Link href="/salons/multan" className="font-medium text-gold hover:underline">
+              Multan
+            </Link>
+            . Whatever you&apos;re looking for — a men&apos;s haircut or fade, hair colour, keratin or
             rebonding, bridal and party makeup, facials and skincare, manicures,
             pedicures and nail art, waxing and threading, or a relaxing massage
             and spa treatment — you can find a specialist near you and see
             exactly what it costs before you book.
           </p>
           <p>
-            Every review on GetSalons comes from a real customer, so the ratings
-            you see are ones you can trust. Not sure where to start? Explore our{" "}
+            Every review on GetSalons comes from a real customer who completed a booking,
+            so the ratings you see are ones you can trust. Many of our partner salons also
+            offer home service for your convenience. Use our filters to find salons by
+            price range, rating, gender preference or home service availability.
+            Not sure where to start? Explore our{" "}
             <Link href="/top-salons" className="font-medium text-gold hover:underline">
               top-rated salons
             </Link>
