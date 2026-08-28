@@ -49,10 +49,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     const data = await getSalonPageData(slug);
     if (!data) return { title: "Salon not found" };
     const { salon } = data;
+    const areaText = salon.areaName ? `${salon.areaName}, ` : "";
     return buildMetadata({
       title: `${salon.name} — ${salon.cityName} | Prices, Reviews & Online Booking`,
       description: truncate(
-        `${salon.name} in ${salon.areaName ? `${salon.areaName}, ` : ""}${salon.cityName}. ${salon.description}`,
+        `${salon.name} — ${salon.genderServed === "women" ? "ladies parlour" : salon.genderServed === "men" ? "gents salon" : "beauty salon"} in ${areaText}${salon.cityName}. ${salon.description} Book online, see prices and read verified reviews.`,
         160
       ),
       path: `/salon/${salon.slug}`,

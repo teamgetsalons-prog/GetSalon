@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   return buildMetadata({
     title: `Best Salons in ${cityName} — Book Online | ${SITE.shortName}`,
-    description: `Discover and book the best salons, beauty parlours and spas in ${cityName}. Compare prices, read verified reviews and book appointments online for free.`,
+    description: `Find and book the best beauty salons, hair salons, ladies parlours and spas in ${cityName}. Compare prices, read verified reviews and book appointments online for free.`,
     path: `/salons/${city}`,
     // No salons yet for a real city is a temporary state, not a dead page -
     // keep it out of the index until it has something to show, but let
@@ -186,6 +186,9 @@ export default async function CitySalonsPage({ params }: Params) {
           </p>
           <p>
             {cityName} is home to some of Pakistan&apos;s finest beauty professionals. From budget-friendly options to premium luxury salons, you&apos;ll find the perfect match for your needs. Whether you&apos;re looking for ladies parlour, gents salon, unisex salon, nail salon, facial salon, or waxing service — we have them all listed with prices and reviews. Book online 24/7 and skip the waiting queue.
+          </p>
+          <p>
+            Popular services in {cityName} include hair cutting and styling, hair colour and highlights, bridal makeup, party makeup, facials and skin care, manicure and pedicure, waxing and threading, mehndi application, and massage therapy. Compare prices from multiple salons and book the best deal.
           </p>
         </div>
       </div>

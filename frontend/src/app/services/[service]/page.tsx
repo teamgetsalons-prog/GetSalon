@@ -80,7 +80,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   return buildMetadata({
     title: `Best ${serviceName} Salons — Book Online | ${SITE.shortName}`,
-    description: `${description}. Compare prices, read verified reviews and book appointments online for free.`,
+    description: `Find the best ${serviceName.toLowerCase()} salons near you. ${description}. Compare prices, read verified reviews and book appointments online for free.`,
     path: `/services/${service}`,
     index: result.salons.length > 0,
   });
@@ -197,6 +197,9 @@ export default async function ServiceSalonsPage({ params }: Params) {
           </p>
           <p>
             Every review on GetSalons is from a verified customer who completed a booking through our platform. No fake reviews, no incentivized ratings — just honest feedback from real people. Use our filters to narrow down by city, price range, gender preference or home service availability.
+          </p>
+          <p>
+            Popular {serviceName.toLowerCase()} options include budget-friendly salons, mid-range beauty parlours, and premium luxury salons. Compare prices, check availability and book the best {serviceName.toLowerCase()} service near you.
           </p>
         </div>
       </div>

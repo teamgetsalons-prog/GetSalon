@@ -13,7 +13,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 export const metadata: Metadata = buildMetadata({
   title: "List Your Salon — Grow Your Beauty Business | GetSalons",
   description:
-    "Join GetSalons Pakistan as a partner salon. Get discovered by thousands of customers, accept online bookings 24/7, manage staff and build your reputation — completely free.",
+    "Join GetSalons Pakistan as a partner salon. Get discovered by thousands of customers, accept online bookings 24/7, manage staff and build your reputation — completely free. List your beauty salon, hair salon or parlour today.",
   path: "/partner",
 });
 
