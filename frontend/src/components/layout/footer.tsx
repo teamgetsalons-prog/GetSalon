@@ -115,7 +115,15 @@ export function Footer() {
       </div>
 
       <div className="border-t border-line py-5 text-center text-xs text-fg-faint">
-        © {new Date().getFullYear()} {SITE.name}. Made with ♥ in Pakistan.
+        © {new Date().getFullYear()} {SITE.name}. Developed by{" "}
+        <a
+          href="https://orbitrixsolutions.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors hover:text-gold"
+        >
+          Orbitrix Solutions
+        </a>
       </div>
     </footer>
   );
