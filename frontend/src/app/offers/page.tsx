@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Tag, Clock, Sparkles, Percent, ArrowRight, MapPin, Star } from "lucide-react";
 import { getDealsApi, type DealPublic } from "@/lib/server-api";
-import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
+import { buildMetadata, breadcrumbJsonLd, offerJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 import { JsonLd } from "@/components/seo/json-ld";
 import { formatPKR } from "@getsalons/shared/utils";
@@ -32,10 +32,27 @@ export default async function OffersPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <JsonLd
-        data={breadcrumbJsonLd([
-          { name: "Home", path: "/" },
-          { name: "Offers", path: "/offers" },
-        ])}
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Offers", path: "/offers" },
+          ]),
+          ...(deals.length > 0
+            ? [
+                offerJsonLd(
+                  deals.map((deal) => ({
+                    name: deal.title,
+                    description: deal.description,
+                    price: deal.dealPrice,
+                    originalPrice: deal.originalPrice,
+                    url: `${SITE.url}/salon/${deal.salon?.slug ?? ""}`,
+                    image: deal.image ?? deal.salon?.coverImage ?? undefined,
+                    validThrough: deal.endDate ?? undefined,
+                  }))
+                ),
+              ]
+            : []),
+        ]}
       />
 
       {/* Hero */}

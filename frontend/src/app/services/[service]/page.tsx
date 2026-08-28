@@ -5,7 +5,7 @@ import { Scissors, Star, Clock, CheckCircle } from "lucide-react";
 import { searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd, itemListJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 
 // See salons/[city]/page.tsx for why this replaces force-dynamic.
@@ -121,6 +121,17 @@ export default async function ServiceSalonsPage({ params }: Params) {
             url: `${SITE.url}/services/${service}`,
           },
           faqJsonLd(faqs),
+          ...(result.salons.length > 0
+            ? [
+                itemListJsonLd(
+                  result.salons.slice(0, 20).map((s) => ({
+                    name: s.name,
+                    url: `${SITE.url}/salon/${s.slug}`,
+                    description: `${s.name} — ${serviceName} salon in ${s.areaName ? `${s.areaName}, ` : ""}${s.cityName}.`,
+                  }))
+                ),
+              ]
+            : []),
         ]}
       />
 
@@ -163,7 +174,23 @@ export default async function ServiceSalonsPage({ params }: Params) {
         </div>
       </div>
 
-      {/* Salon Grid */}
+      {/* SEO Content Block */}
+      <div className="mb-10 rounded-2xl border border-line bg-card p-6 sm:p-8">
+        <h2 className="font-display text-xl font-bold">
+          {serviceName} — Find the Best Salons for {serviceName}
+        </h2>
+        <div className="mt-4 space-y-3 text-sm leading-relaxed text-fg-muted">
+          <p>
+            {serviceDescriptions[service]?.description || `Find the best ${serviceName.toLowerCase()} services from verified salons across Pakistan.`} On GetSalons, you can compare prices from multiple salons, read genuine customer reviews and book your appointment online — all for free.
+          </p>
+          <p>
+            {serviceName} services are available at salons across Lahore, Karachi, Islamabad, Rawalpindi, Faisalabad and Multan. Whether you&apos;re looking for a quick touch-up or a full treatment, our verified salons deliver quality service at competitive prices.
+          </p>
+          <p>
+            Every review on GetSalons is from a verified customer who completed a booking through our platform. No fake reviews, no incentivized ratings — just honest feedback from real people. Use our filters to narrow down by city, price range, gender preference or home service availability.
+          </p>
+        </div>
+      </div>
       {result.salons.length === 0 ? (
         <div className="rounded-2xl border border-line bg-card p-12 text-center">
           <Scissors className="mx-auto h-12 w-12 text-fg-faint" />

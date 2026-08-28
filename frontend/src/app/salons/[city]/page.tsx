@@ -6,7 +6,7 @@ import { MapPin, Star, Clock, CheckCircle } from "lucide-react";
 import { getCategoriesApi, getCitiesApi, getCityBySlug, searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd, itemListJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 
 // Data-cache revalidation replaces force-dynamic (see serverFetch's `revalidate`
@@ -93,6 +93,17 @@ export default async function CitySalonsPage({ params }: Params) {
             url: `${SITE.url}/salons/${city}`,
           },
           faqJsonLd(faqs),
+          ...(result.salons.length > 0
+            ? [
+                itemListJsonLd(
+                  result.salons.slice(0, 20).map((s) => ({
+                    name: s.name,
+                    url: `${SITE.url}/salon/${s.slug}`,
+                    description: `${s.name} in ${s.areaName ? `${s.areaName}, ` : ""}${s.cityName}. ${s.rating.count > 0 ? `Rated ${s.rating.average.toFixed(1)} stars.` : "New listing."}`,
+                  }))
+                ),
+              ]
+            : []),
         ]}
       />
 
@@ -152,6 +163,24 @@ export default async function CitySalonsPage({ params }: Params) {
           </div>
         </div>
       )}
+
+      {/* SEO Content Block */}
+      <div className="mb-10 rounded-2xl border border-line bg-card p-6 sm:p-8">
+        <h2 className="font-display text-xl font-bold">
+          Book Salons in {cityName} — Best Beauty Services
+        </h2>
+        <div className="mt-4 space-y-3 text-sm leading-relaxed text-fg-muted">
+          <p>
+            Looking for the best salons in {cityName}? GetSalons makes it easy to discover top-rated beauty parlours, hair salons and spas across {cityName}. Whether you need a haircut, bridal makeup, facial treatment or a relaxing massage, you can compare prices, read verified customer reviews and book your appointment online — all in one place.
+          </p>
+          <p>
+            Every review on GetSalons comes from a real customer who completed a booking, so you can trust the ratings and feedback. Use our filters to find salons by service, price range, rating or gender preference. Many salons in {cityName} also offer home service for your convenience.
+          </p>
+          <p>
+            {cityName} is home to some of Pakistan&apos;s finest beauty professionals. From budget-friendly options to premium luxury salons, you&apos;ll find the perfect match for your needs. Book online 24/7 and skip the waiting queue.
+          </p>
+        </div>
+      </div>
 
       {/* Salon Grid */}
       {result.salons.length === 0 ? (

@@ -6,7 +6,7 @@ import { MapPin, Star, Clock, CheckCircle, Scissors } from "lucide-react";
 import { getCityBySlug, searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd, itemListJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 
 // See salons/[city]/page.tsx for why this stays outside the `(list)` route
@@ -115,6 +115,17 @@ export default async function CityServiceSalonsPage({ params }: Params) {
             url: `${SITE.url}/salons/${city}/${service}`,
           },
           faqJsonLd(faqs),
+          ...(result.salons.length > 0
+            ? [
+                itemListJsonLd(
+                  result.salons.slice(0, 20).map((s) => ({
+                    name: s.name,
+                    url: `${SITE.url}/salon/${s.slug}`,
+                    description: `${s.name} — ${serviceName} in ${s.areaName ? `${s.areaName}, ` : ""}${s.cityName}.`,
+                  }))
+                ),
+              ]
+            : []),
         ]}
       />
 
@@ -164,6 +175,21 @@ export default async function CityServiceSalonsPage({ params }: Params) {
             <CheckCircle className="h-4 w-4 text-gold" />
             <span className="text-sm font-medium text-fg">Free Booking</span>
           </div>
+        </div>
+      </div>
+
+      {/* SEO Content Block */}
+      <div className="mb-10 rounded-2xl border border-line bg-card p-6 sm:p-8">
+        <h2 className="font-display text-xl font-bold">
+          {serviceName} in {cityName} — Best Salons & Prices
+        </h2>
+        <div className="mt-4 space-y-3 text-sm leading-relaxed text-fg-muted">
+          <p>
+            Find the best {serviceName.toLowerCase()} salons in {cityName} on GetSalons. Compare prices, read verified customer reviews and book your appointment online. Whether you&apos;re looking for a budget-friendly option or a premium salon experience, we have options for every need and budget.
+          </p>
+          <p>
+            All salons listed on GetSalons are verified and customer reviews come from real bookings — no fake reviews or incentivized ratings. Use our filters to narrow down by price range, rating, gender preference or home service availability.
+          </p>
         </div>
       </div>
 

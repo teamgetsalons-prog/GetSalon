@@ -5,7 +5,7 @@ import { Trophy, Star, MapPin, TrendingUp, Award } from "lucide-react";
 import { getCitiesApi, searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, itemListJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 import type { SalonCardData } from "@getsalons/shared/types";
 
@@ -84,6 +84,17 @@ export default async function TopSalonsPage({
             description: "Discover the highest-rated salons across Pakistan based on genuine customer reviews",
             url: `${SITE.url}/top-salons`,
           },
+          ...(salonsData.length > 0
+            ? [
+                itemListJsonLd(
+                  salonsData.slice(0, 20).map((s) => ({
+                    name: s.name,
+                    url: `${SITE.url}/salon/${s.slug}`,
+                    description: `Top rated salon in ${s.areaName ? `${s.areaName}, ` : ""}${s.cityName}. Rated ${s.rating.average.toFixed(1)} stars.`,
+                  }))
+                ),
+              ]
+            : []),
         ]}
       />
 

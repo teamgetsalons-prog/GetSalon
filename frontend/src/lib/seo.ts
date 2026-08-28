@@ -216,3 +216,49 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
     })),
   };
 }
+
+export function itemListJsonLd(items: { name: string; url: string; description?: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      url: item.url,
+      ...(item.description ? { description: item.description } : {}),
+    })),
+  };
+}
+
+export function offerJsonLd(offers: {
+  name: string;
+  description: string;
+  price: number;
+  originalPrice: number;
+  url: string;
+  image?: string;
+  validThrough?: string;
+}[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Salon Deals & Offers",
+    itemListElement: offers.map((offer) => ({
+      "@type": "Offer",
+      name: offer.name,
+      description: offer.description,
+      price: offer.price,
+      priceCurrency: "PKR",
+      availability: "https://schema.org/InStock",
+      url: offer.url,
+      ...(offer.image ? { image: offer.image } : {}),
+      ...(offer.validThrough ? { validThrough: offer.validThrough } : {}),
+      discount: {
+        "@type": "QuantitativeValue",
+        value: offer.originalPrice - offer.price,
+        priceCurrency: "PKR",
+      },
+    })),
+  };
+}
