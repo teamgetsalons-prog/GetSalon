@@ -45,11 +45,22 @@ export default async function BlogPage({
 }) {
   const sp = await searchParams;
   const category = firstValue(sp.category);
+  const page = Math.max(1, parseInt(firstValue(sp.page) || "1"));
+  const limit = 24;
 
-  const { posts, total } = await getBlogPosts({
-    limit: 24,
+  const { posts, total, totalPages } = await getBlogPosts({
+    page,
+    limit,
     category,
   });
+
+  const pageUrl = (p: number) => {
+    const params = new URLSearchParams();
+    if (category) params.set("category", category);
+    if (p > 1) params.set("page", String(p));
+    const qs = params.toString();
+    return `/blog${qs ? `?${qs}` : ""}`;
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -70,16 +81,68 @@ export default async function BlogPage({
           Hair care, skin care, bridal trends and the best salons in every
           city — written by people obsessed with beauty.
         </p>
+        {total > 0 && (
+          <p className="mt-2 text-xs text-fg-faint">
+            {total} article{total !== 1 ? "s" : ""} published
+          </p>
+        )}
       </div>
 
       {posts.length > 0 ? (
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post, i) => (
-            <div key={post._id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i * 80, 400)}ms` }}>
-              <BlogCard post={post} />
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post, i) => (
+              <div key={post._id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i * 80, 400)}ms` }}>
+                <BlogCard post={post} />
+              </div>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <nav className="mt-12 flex items-center justify-center gap-2" aria-label="Blog pagination">
+              {page > 1 && (
+                <Link
+                  href={pageUrl(page - 1)}
+                  className="rounded-xl border border-line px-4 py-2 text-sm text-fg-muted hover:border-gold-500/50 hover:text-fg"
+                >
+                  ← Previous
+                </Link>
+              )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+                .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                  if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, idx) =>
+                  p === "..." ? (
+                    <span key={`ellipsis-${idx}`} className="px-2 text-sm text-fg-faint">…</span>
+                  ) : (
+                    <Link
+                      key={p}
+                      href={pageUrl(p as number)}
+                      className={`rounded-xl px-4 py-2 text-sm transition-colors ${
+                        p === page
+                          ? "bg-gold-500 font-semibold text-gold-950"
+                          : "border border-line text-fg-muted hover:border-gold-500/50 hover:text-fg"
+                      }`}
+                    >
+                      {p}
+                    </Link>
+                  )
+                )}
+              {page < totalPages && (
+                <Link
+                  href={pageUrl(page + 1)}
+                  className="rounded-xl border border-line px-4 py-2 text-sm text-fg-muted hover:border-gold-500/50 hover:text-fg"
+                >
+                  Next →
+                </Link>
+              )}
+            </nav>
+          )}
+        </>
       ) : (
         <div className="mx-auto mt-12 flex max-w-lg flex-col items-center gap-4 rounded-2xl border border-dashed border-line py-16 text-center">
           <BookOpen className="h-10 w-10 text-gold" aria-hidden />
