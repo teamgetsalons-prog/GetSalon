@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cache } from "react";
+import { notFound } from "next/navigation";
 import { Scissors, Star, Clock, CheckCircle } from "lucide-react";
 import { searchSalonsApi } from "@/lib/server-api";
 import { SalonCard } from "@/components/salons/salon-card";
@@ -71,6 +72,9 @@ const loadServicePage = cache(async (service: string, serviceName: string) => {
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { service } = await params;
+  if (!serviceDescriptions[service]) {
+    return { title: "Service not found", robots: { index: false, follow: true } };
+  }
   const serviceName = serviceDescriptions[service]?.title || service.replace(/-/g, " ");
   const description =
     serviceDescriptions[service]?.description ||
@@ -82,12 +86,14 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     title: `Best ${serviceName} Salons — Book Online | ${SITE.shortName}`,
     description: `Find the best ${serviceName.toLowerCase()} salons near you. ${description}. Compare prices, read verified reviews and book appointments online for free.`,
     path: `/services/${service}`,
+    keywords,
     index: result.salons.length > 0,
   });
 }
 
 export default async function ServiceSalonsPage({ params }: Params) {
   const { service } = await params;
+  if (!serviceDescriptions[service]) notFound();
   const serviceName =
     serviceDescriptions[service]?.title ||
     service.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -119,7 +125,7 @@ export default async function ServiceSalonsPage({ params }: Params) {
         data={[
           breadcrumbJsonLd([
             { name: "Home", path: "/" },
-            { name: "Services", path: "/salons" },
+            { name: "Services", path: "/salon-services" },
             { name: serviceName, path: `/services/${service}` },
           ]),
           {
@@ -149,7 +155,7 @@ export default async function ServiceSalonsPage({ params }: Params) {
         <nav aria-label="Breadcrumb" className="mb-4 text-xs text-fg-faint">
           <Link href="/" className="hover:text-gold">Home</Link>
           <span className="mx-1.5">/</span>
-          <Link href="/salons" className="hover:text-gold">Services</Link>
+          <Link href="/salon-services" className="hover:text-gold">Services</Link>
           <span className="mx-1.5">/</span>
           <span className="text-fg-muted">{serviceName}</span>
         </nav>

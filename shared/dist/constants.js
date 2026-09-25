@@ -2,8 +2,8 @@ export const SITE = {
     name: "GetSalons",
     shortName: "GetSalons",
     tagline: "Pakistan's #1 Salon Discovery & Booking Platform",
-    description: "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan. Compare prices, read verified reviews and book appointments online — free.",
-    url: process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://www.getsalons.com",
+    description: "Find and book the best beauty salons, hair salons, barbers, spas and beauty parlours near you in Lahore, Karachi, Islamabad, Rawalpindi, Faisalabad and Multan. Compare prices, read verified reviews and book appointments online — free for customers.",
+    url: (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://www.getsalons.com").replace(/\/$/, ""),
     locale: "en_PK",
     twitter: "@getsalonsPK",
     socials: {
@@ -91,6 +91,30 @@ export const SITE_FAQS = [
     {
         question: "Do salons offer home service?",
         answer: "Many of our partner salons offer home service. Use the 'Home Service' filter while searching to find beauticians who come to you.",
+    },
+    {
+        question: "How much does a haircut cost in Pakistan?",
+        answer: "Haircut prices in Pakistan range from Rs 200 for a basic cut to Rs 2,000+ at premium salons. You can compare exact prices from different salons on GetSalons before booking.",
+    },
+    {
+        question: "How much does bridal makeup cost in Pakistan?",
+        answer: "Bridal makeup in Pakistan typically ranges from Rs 15,000 to Rs 80,000 depending on the salon, makeup artist experience, and products used. Browse salon profiles on GetSalons to see exact bridal packages.",
+    },
+    {
+        question: "What is the best salon near me?",
+        answer: "GetSalons helps you find the best salons near you based on verified reviews, ratings and proximity. Simply search for salons in your city and use filters to narrow down by service, price and rating.",
+    },
+    {
+        question: "Can I compare salon prices before booking?",
+        answer: "Yes! Every salon on GetSalons displays their service prices. You can compare prices from multiple salons side by side to find the best option for your budget.",
+    },
+    {
+        question: "Do I need to create an account to book?",
+        answer: "Yes, you need a free customer account to book appointments. This helps us send you booking confirmations, reminders and keeps your booking history organized.",
+    },
+    {
+        question: "How do I find ladies parlours near me?",
+        answer: "Search for salons in your city on GetSalons and use the 'Women Only' filter to find ladies-only parlours. You can also filter by specific services like bridal makeup, facials or hair styling.",
     },
 ];
 export const TESTIMONIALS = [

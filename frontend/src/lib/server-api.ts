@@ -26,24 +26,29 @@ export async function serverFetch<T = unknown>(
      * behavior exactly as-is.
      */
     revalidate?: number;
+    /** Public cached reads should not vary by the visitor's auth cookie. */
+    forwardCookies?: boolean;
   }
 ): Promise<{
   success: boolean;
+  status?: number;
   data?: T;
   message?: string;
   pagination?: { page: number; limit: number; total: number; totalPages: number };
 }> {
   try {
+    const { revalidate, forwardCookies, ...init } = options ?? {};
     // Forward the visitor's cookies so authenticated endpoints work in RSC
     let cookieHeader = "";
-    try {
-      cookieHeader = (await cookies()).toString();
-    } catch {
-      // called outside a request scope (e.g. sitemap) — fine, stay anonymous
+    if (forwardCookies ?? revalidate === undefined) {
+      try {
+        cookieHeader = (await cookies()).toString();
+      } catch {
+        // called outside a request scope (e.g. sitemap) — fine, stay anonymous
+      }
     }
 
     const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
-    const { revalidate, ...init } = options ?? {};
     const res = await fetch(url, {
       ...(revalidate !== undefined ? { next: { revalidate } } : { cache: "no-store" as const }),
       ...init,
@@ -54,8 +59,10 @@ export async function serverFetch<T = unknown>(
       },
     });
     const body = await res.json().catch(() => null);
-    if (!body) return { success: false, message: `Request failed (${res.status})` };
-    return body;
+    if (!body) {
+      return { success: false, status: res.status, message: `Request failed (${res.status})` };
+    }
+    return { ...body, status: res.status };
   } catch {
     return { success: false, message: "Network error." };
   }
@@ -122,6 +129,9 @@ export async function getSalonPageData(
   opts?: { revalidate?: number }
 ): Promise<SalonPageData | null> {
   const res = await serverFetch<SalonPageData>(`/salons/public/${slug}`, opts);
+  if (!res.success && res.status !== 404) {
+    throw new Error(res.message ?? "Salon data unavailable.");
+  }
   if (!res.success || !res.data) return null;
   return res.data;
 }
@@ -151,8 +161,10 @@ export interface HomePageData {
   stats: { salons: number; customers: number; bookings: number; cities: number };
 }
 
-export async function getHomePageData(): Promise<HomePageData | null> {
-  const res = await serverFetch<HomePageData>("/salons/homepage");
+export async function getHomePageData(
+  opts?: { revalidate?: number }
+): Promise<HomePageData | null> {
+  const res = await serverFetch<HomePageData>("/salons/homepage", opts);
   if (!res.success || !res.data) return null;
   return res.data;
 }
@@ -317,6 +329,7 @@ export async function getBlogPosts(opts: {
   page?: number;
   limit?: number;
   category?: string;
+  revalidate?: number;
 } = {}): Promise<{
   posts: BlogPostPublic[];
   total: number;
@@ -328,7 +341,9 @@ export async function getBlogPosts(opts: {
   if (opts.limit) qs.set("limit", String(opts.limit));
   if (opts.category) qs.set("category", opts.category);
 
-  const res = await serverFetch<BlogPostPublic[]>(`/blog?${qs.toString()}`);
+  const res = await serverFetch<BlogPostPublic[]>(`/blog?${qs.toString()}`, {
+    revalidate: opts.revalidate,
+  });
   if (!res.success || !res.data) {
     return { posts: [], total: 0, page: 1, totalPages: 0 };
   }
@@ -341,18 +356,24 @@ export async function getBlogPosts(opts: {
 }
 
 export async function getBlogPost(
-  slug: string
+  slug: string,
+  opts?: { revalidate?: number }
 ): Promise<BlogPostPublic | null> {
-  const res = await serverFetch<BlogPostPublic>(`/blog/${slug}`);
+  const res = await serverFetch<BlogPostPublic>(`/blog/${slug}`, opts);
+  if (!res.success && res.status !== 404) {
+    throw new Error(res.message ?? "Blog data unavailable.");
+  }
   if (!res.success || !res.data) return null;
   return res.data;
 }
 
 export async function getAuthorBySlug(
-  slug: string
+  slug: string,
+  opts?: { revalidate?: number }
 ): Promise<{ author: AuthorPublic; posts: BlogPostPublic[] } | null> {
   const res = await serverFetch<{ author: AuthorPublic; posts: BlogPostPublic[] }>(
-    `/blog/authors/${slug}`
+    `/blog/authors/${slug}`,
+    opts
   );
   if (!res.success || !res.data) return null;
   return res.data;
@@ -400,14 +421,16 @@ export interface DealsResult {
 }
 
 export async function getDealsApi(
-  params: Record<string, string | number | boolean> = {}
+  params: Record<string, string | number | boolean> = {},
+  opts?: { revalidate?: number }
 ): Promise<DealsResult> {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") q.set(k, String(v));
   }
   const res = await serverFetch<{ data: DealPublic[]; pagination?: { page: number; total: number; totalPages: number } }>(
-    `/deals?${q}`
+    `/deals?${q}`,
+    opts
   );
   const data = res.data;
   return {

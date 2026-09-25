@@ -8,7 +8,7 @@ import { SITE } from "@getsalons/shared/constants";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -26,6 +26,7 @@ export async function generateMetadata({
   const categoryName = category
     ? category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, " ")
     : undefined;
+  const page = Math.max(1, parseInt(firstValue(sp.page) || "1"));
 
   return buildMetadata({
     title: categoryName
@@ -35,6 +36,7 @@ export async function generateMetadata({
       ? `Read the latest ${categoryName.toLowerCase()} articles, tips and guides from the GetSalons beauty experts.`
       : "Expert beauty tips, hair care guides, skin care routines, bridal trends and salon guides for every city in Pakistan — from the GetSalons team.",
     path: "/blog",
+    index: !category && page === 1,
   });
 }
 
@@ -52,6 +54,7 @@ export default async function BlogPage({
     page,
     limit,
     category,
+    revalidate: 300,
   });
 
   const pageUrl = (p: number) => {

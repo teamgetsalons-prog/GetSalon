@@ -47,6 +47,10 @@ export async function generateMetadata({
     title: `${title} — Compare Prices & Book Online`,
     description: `Find and book the best ${catName ? `${catName.toLowerCase()} ` : ""}salons${cityName ? ` in ${cityName}` : " across Pakistan"}. Compare prices, read verified reviews and book appointments online for free.`,
     path: "/salons",
+    // Clean city/service landing pages are indexable; ad-hoc search, filter,
+    // sort and pagination URLs are navigation states and should not compete
+    // with those canonical pages in search results.
+    index: Object.keys(sp).length === 0,
   });
 }
 
@@ -70,9 +74,9 @@ export default async function SalonsPage({
     Awaited<ReturnType<typeof getCitiesApi>>,
     Awaited<ReturnType<typeof getCategoriesApi>>,
   ] = await Promise.all([
-    searchSalonsApi(input),
-    getCitiesApi(false, true),
-    getCategoriesApi(),
+    searchSalonsApi(input, { revalidate: 300 }),
+    getCitiesApi(false, true, { revalidate: 300 }),
+    getCategoriesApi(false, { revalidate: 300 }),
   ]);
 
   const cities = cityDocs.map((c) => ({ name: c.name, slug: c.slug }));

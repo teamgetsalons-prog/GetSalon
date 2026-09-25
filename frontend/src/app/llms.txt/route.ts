@@ -27,8 +27,16 @@ Services covered include haircuts and hair colour, keratin and rebonding, bridal
 ## Key pages
 
 - [Find salons](${SITE.url}/salons): Search and filter salons by city, service and price.
+- [Salons near me](${SITE.url}/salons-near-me): Find nearby salons and book appointments.
+- [Salon services](${SITE.url}/salon-services): Browse hair, makeup, nails, skincare, bridal and spa services.
+- [Salon prices](${SITE.url}/salon-prices): Compare service price information before booking.
+- [Salon reviews](${SITE.url}/salon-reviews): Read verified feedback and find top-rated salons.
 - [Top salons](${SITE.url}/top-salons): The highest-rated salons on GetSalons.
 - [Offers](${SITE.url}/offers): Current salon deals and discounts.
+- [Salon offers and packages](${SITE.url}/salon-offers-packages): Explore discounts and bundled beauty treatments.
+- [Free salon booking app](${SITE.url}/free-salon-booking-app): Book beauty appointments online at no customer booking fee.
+- [Best free salon booking system](${SITE.url}/best-free-salon-booking-system): Free-to-start discovery and booking tools for salon owners.
+- [Hair salon search alternative](${SITE.url}/fresha-hair-salon-near-me): Compare local hair salons independently from Fresha.
 - [Beauty blog](${SITE.url}/blog): Guides on choosing salons, pricing, hair and skin care, bridal prep and more.
 - [List your salon](${SITE.url}/partner): For salon owners who want to join GetSalons.
 - [Contact](${SITE.url}/contact): Get in touch with the GetSalons team.

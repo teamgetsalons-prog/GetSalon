@@ -8,7 +8,7 @@ import { buildMetadata, breadcrumbJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 import { JsonLd } from "@/components/seo/json-ld";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -29,7 +29,7 @@ function estimateReadTime(content: string): number {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const post = await getBlogPost(slug);
+    const post = await getBlogPost(slug, { revalidate: 300 });
     if (!post) return { title: "Article not found" };
     return buildMetadata({
       title: post.seo?.title || `${post.title} | ${SITE.shortName}`,
@@ -93,7 +93,7 @@ function renderMarkdown(content: string): string {
 
 export default async function BlogPostPage({ params }: Params) {
   const { slug } = await params;
-  const post = await getBlogPost(slug);
+  const post = await getBlogPost(slug, { revalidate: 300 });
   if (!post) notFound();
 
   const readTime = estimateReadTime(post.content);
@@ -102,6 +102,7 @@ export default async function BlogPostPage({ params }: Params) {
   const { posts: relatedPosts } = await getBlogPosts({
     limit: 3,
     category: post.category,
+    revalidate: 300,
   });
   const related = relatedPosts.filter((p) => p._id !== post._id).slice(0, 3);
 

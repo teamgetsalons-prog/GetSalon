@@ -9,7 +9,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { formatPKR } from "@getsalons/shared/utils";
 import { Badge } from "@/components/ui/badge";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function OffersPage() {
   let deals: DealPublic[] = [];
   try {
-    const result = await getDealsApi({ limit: 50 });
+    const result = await getDealsApi({ limit: 50 }, { revalidate: 300 });
     deals = result.deals ?? [];
   } catch {
     // Backend may be unreachable — show empty state

@@ -2,7 +2,7 @@ export declare const SITE: {
     readonly name: "GetSalons";
     readonly shortName: "GetSalons";
     readonly tagline: "Pakistan's #1 Salon Discovery & Booking Platform";
-    readonly description: "Discover and book the best salons, barbers, spas and beauty parlours across Pakistan. Compare prices, read verified reviews and book appointments online — free.";
+    readonly description: "Find and book the best beauty salons, hair salons, barbers, spas and beauty parlours near you in Lahore, Karachi, Islamabad, Rawalpindi, Faisalabad and Multan. Compare prices, read verified reviews and book appointments online — free for customers.";
     readonly url: string;
     readonly locale: "en_PK";
     readonly twitter: "@getsalonsPK";

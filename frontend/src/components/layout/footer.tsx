@@ -7,17 +7,22 @@ const columns = [
     title: "Discover",
     links: [
       { label: "Find Salons", href: "/salons" },
+      { label: "Salons Near Me", href: "/salons-near-me" },
+      { label: "Salon Services", href: "/salon-services" },
+      { label: "Salon Prices", href: "/salon-prices" },
+      { label: "Salon Reviews", href: "/salon-reviews" },
       { label: "Top Salons", href: "/top-salons" },
       { label: "Salons in Lahore", href: "/salons/lahore" },
       { label: "Salons in Karachi", href: "/salons/karachi" },
       { label: "Salons in Islamabad", href: "/salons/islamabad" },
-      { label: "Offers", href: "/offers" },
+      { label: "Offers & Packages", href: "/salon-offers-packages" },
     ],
   },
   {
     title: "For Business",
     links: [
       { label: "List Your Salon", href: "/partner" },
+      { label: "Free Booking System", href: "/best-free-salon-booking-system" },
       { label: "Partner Login", href: "/login" },
       { label: "Why GetSalons", href: "/partner" },
     ],

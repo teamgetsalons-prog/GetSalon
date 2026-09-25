@@ -95,7 +95,7 @@ const nextConfig: NextConfig = {
       },
       // Static-ish pages: ISR with stale-while-revalidate
       {
-        source: "/(salons|salon|top-salons|blog|partner|services|offers)",
+        source: "/(salons|salon|top-salons|blog|partner|services|offers|salons-near-me|salon-services|salon-prices|salon-reviews|salon-offers-packages|free-salon-booking-app|fresha-hair-salon-near-me|best-free-salon-booking-system)",
         headers: [
           { key: "Cache-Control", value: "public, s-maxage=300, stale-while-revalidate=600" },
         ],

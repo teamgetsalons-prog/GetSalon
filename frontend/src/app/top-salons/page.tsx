@@ -9,7 +9,7 @@ import { breadcrumbJsonLd, buildMetadata, itemListJsonLd } from "@/lib/seo";
 import { SITE } from "@getsalons/shared/constants";
 import type { SalonCardData } from "@getsalons/shared/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -36,6 +36,7 @@ export async function generateMetadata({
       ? `Discover the highest-rated salons in ${cityName}. Based on genuine customer reviews and ratings. Find the best beauty services near you.`
       : `Discover the highest-rated salons across Pakistan. Based on genuine customer reviews and ratings. Find the best beauty services near you.`,
     path: "/top-salons",
+    index: !city,
   });
 }
 
@@ -49,19 +50,22 @@ export default async function TopSalonsPage({
 
   // Top-rated salons (rating ≥ 1 ⇒ at least one review) + city filter list
   const [result, cities] = await Promise.all([
-    searchSalonsApi({ sort: "rating", rating: 1, limit: 50, city }),
-    getCitiesApi(false, true),
+    searchSalonsApi({ sort: "rating", rating: 1, limit: 50, city }, { revalidate: 300 }),
+    getCitiesApi(false, true, { revalidate: 300 }),
   ]);
   const salonsData: SalonCardData[] = result.salons;
 
   // If no rated salons, fetch suggested salons (newest/featured) so page isn't empty
   let suggestedSalons: SalonCardData[] = [];
   if (salonsData.length === 0) {
-    const suggested = await searchSalonsApi({
-      sort: city ? "newest" : "featured",
-      limit: 12,
-      city,
-    });
+    const suggested = await searchSalonsApi(
+      {
+        sort: city ? "newest" : "featured",
+        limit: 12,
+        city,
+      },
+      { revalidate: 300 }
+    );
     suggestedSalons = suggested.salons;
   }
 

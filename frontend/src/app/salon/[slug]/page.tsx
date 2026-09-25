@@ -46,7 +46,7 @@ type Params = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const data = await getSalonPageData(slug);
+    const data = await getSalonPageData(slug, { revalidate: 300 });
     if (!data) return { title: "Salon not found" };
     const { salon } = data;
     const areaText = salon.areaName ? `${salon.areaName}, ` : "";
@@ -80,7 +80,7 @@ function safeHttpUrl(url: string | undefined): string | null {
 export default async function SalonPage({ params }: Params) {
   const { slug } = await params;
 
-  const data = await getSalonPageData(slug);
+  const data = await getSalonPageData(slug, { revalidate: 300 });
   if (!data) notFound();
 
   const { salon, services, staff, reviews, branches } = data;

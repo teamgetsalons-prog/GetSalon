@@ -10,7 +10,7 @@ type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const data = await getSalonBranchesApi(slug);
+  const data = await getSalonBranchesApi(slug, { revalidate: 300 });
   if (!data) return { title: "Salon not found" };
   return buildMetadata({
     title: `All Branches of ${data.salonName}`,
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function SalonBranchesPage({ params }: Params) {
   const { slug } = await params;
-  const data = await getSalonBranchesApi(slug);
+  const data = await getSalonBranchesApi(slug, { revalidate: 300 });
   if (!data) notFound();
   const { salonName, branches } = data;
 

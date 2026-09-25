@@ -31,6 +31,25 @@ const NATIONAL_SERVICE_SLUGS = [
   "waxing",
 ];
 
+// Keep the free-text route useful for real service intent without allowing
+// arbitrary URL strings to create thousands of thin doorway pages.
+const CITY_SERVICE_SLUGS = new Set([
+  ...NATIONAL_SERVICE_SLUGS,
+  "hair-cut",
+  "hair-color",
+  "facial",
+  "manicure",
+  "pedicure",
+  "bridal-makeup",
+  "party-makeup",
+  "shaving",
+  "beard-trim",
+  "keratin",
+  "threading",
+  "mehndi",
+  "spa",
+]);
+
 function formatService(slug: string): string {
   return slug
     .split("-")
@@ -44,7 +63,9 @@ function formatService(slug: string): string {
  * so there's no fixed "valid services" list to check it against. */
 const loadCityServicePage = cache(async (city: string, service: string) => {
   const cityRecord = await getCityBySlug(city, { revalidate: 300 });
-  if (!cityRecord) return { cityRecord: null, result: { salons: [], total: 0, page: 1, totalPages: 0 } };
+  if (!cityRecord || !CITY_SERVICE_SLUGS.has(service)) {
+    return { cityRecord: null, result: { salons: [], total: 0, page: 1, totalPages: 0 } };
+  }
 
   let result = await searchSalonsApi({ city, category: service, limit: 50 }, { revalidate: 300 });
   if (result.salons.length === 0) {

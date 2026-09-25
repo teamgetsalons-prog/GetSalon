@@ -24,7 +24,7 @@ function formatDate(date: Date | string | undefined): string {
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const result = await getAuthorBySlug(slug);
+  const result = await getAuthorBySlug(slug, { revalidate: 300 });
   if (!result) return { title: "Author not found" };
   return buildMetadata({
     title: `${result.author.name} — Author at ${SITE.shortName}`,
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function AuthorPage({ params }: Params) {
   const { slug } = await params;
-  const result = await getAuthorBySlug(slug);
+  const result = await getAuthorBySlug(slug, { revalidate: 300 });
   if (!result) notFound();
   const { author, posts } = result;
 

@@ -41,6 +41,21 @@ async function fetchAllApprovedSalonSlugs(): Promise<string[]> {
   return slugs;
 }
 
+/** Blog pagination is capped at 50 by the API, so walk every published page
+ * instead of silently omitting posts after the first batch. */
+async function fetchAllBlogPosts() {
+  const PAGE_LIMIT = 50;
+  const first = await getBlogPosts({ limit: PAGE_LIMIT, revalidate: 3600 });
+  const posts = [...first.posts];
+
+  for (let page = 2; page <= first.totalPages; page++) {
+    const result = await getBlogPosts({ page, limit: PAGE_LIMIT, revalidate: 3600 });
+    posts.push(...result.posts);
+  }
+
+  return posts;
+}
+
 /**
  * Dynamic sitemap: static pages + approved salons, city landing pages,
  * category listings and service landing pages (all fetched from the API).
@@ -51,6 +66,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE.url}/salons`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE.url}/top-salons`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE.url}/offers`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${SITE.url}/salons-near-me`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${SITE.url}/salon-services`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${SITE.url}/salon-prices`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${SITE.url}/salon-reviews`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${SITE.url}/salon-offers-packages`, changeFrequency: "daily", priority: 0.7 },
+    { url: `${SITE.url}/free-salon-booking-app`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${SITE.url}/fresha-hair-salon-near-me`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${SITE.url}/best-free-salon-booking-system`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${SITE.url}/partner`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE.url}/blog`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE.url}/about`, changeFrequency: "monthly", priority: 0.5 },
@@ -71,10 +94,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [salonSlugs, cities, blogResult] = await Promise.all([
+    const [salonSlugs, cities, blogPosts] = await Promise.all([
       fetchAllApprovedSalonSlugs(),
-      getCitiesApi(false, false, SALON_FETCH_OPTS),
-      getBlogPosts({ limit: 100 }),
+      // Keep no-salon city pages out of the sitemap. They intentionally send
+      // noindex,follow until real inventory exists.
+      getCitiesApi(false, true, SALON_FETCH_OPTS),
+      fetchAllBlogPosts(),
     ]);
 
     // Only advertise a city+service combo URL if it actually has a matching
@@ -82,7 +107,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // own noindex logic (salons/[city]/[service]/page.tsx) would immediately
     // deindex anyway, so there's no point pointing crawlers at it.
     const comboCandidates = cities.flatMap((c) =>
-      serviceSlugs.slice(0, 4).map((s) => ({ city: c.slug, service: s }))
+      serviceSlugs.map((s) => ({ city: c.slug, service: s }))
     );
     const comboChecks = await Promise.all(
       comboCandidates.map(async ({ city, service }) => {
@@ -123,7 +148,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // City + service combo pages - only the ones with real listings
       ...comboPages,
       // Blog posts
-      ...blogResult.posts.map((p) => ({
+      ...blogPosts.map((p) => ({
         url: `${SITE.url}/blog/${p.slug}`,
         changeFrequency: "weekly" as const,
         priority: 0.7,

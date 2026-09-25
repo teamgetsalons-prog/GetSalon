@@ -29,8 +29,12 @@ export function SalonSearchBar() {
 
   return (
     <form onSubmit={handleSubmit} className="relative">
+      <label htmlFor="salon-catalog-search" className="sr-only">
+        Search salons by name or service
+      </label>
       <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-faint" />
       <input
+        id="salon-catalog-search"
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}

@@ -33,6 +33,36 @@ const loadCityPage = cache(async (city: string) => {
   return { cityRecord, result, categories: catDocs, otherCities };
 });
 
+// Short, useful local context keeps city pages from becoming identical
+// "city swapped into a template" pages. These are search areas customers
+// commonly use; the live catalog remains the source of truth for inventory.
+const CITY_GUIDES: Record<string, { areas: string[]; focus: string }> = {
+  lahore: {
+    areas: ["Gulberg", "DHA Lahore", "Johar Town", "Model Town", "Bahria Town"],
+    focus: "bridal makeup, hair colour, keratin treatments, facials and nail services",
+  },
+  karachi: {
+    areas: ["DHA Karachi", "Clifton", "PECHS", "Bahadurabad", "Gulshan-e-Iqbal"],
+    focus: "hair styling, bridal makeup, facials, waxing and spa services",
+  },
+  islamabad: {
+    areas: ["F-6", "F-7", "F-8", "F-10", "G-11"],
+    focus: "ladies salon services, bridal makeup, hair treatments and skincare",
+  },
+  rawalpindi: {
+    areas: ["Saddar", "Chaklala", "Satellite Town", "Bahria Town", "Commercial Market"],
+    focus: "haircuts, beauty parlour services, makeup and grooming",
+  },
+  faisalabad: {
+    areas: ["D Ground", "People's Colony", "Susan Road", "Kohinoor City"],
+    focus: "hair salons, bridal beauty, facials and manicure-pedicure services",
+  },
+  multan: {
+    areas: ["Gulgasht Colony", "Cantt", "Bosan Road", "Mumtazabad"],
+    focus: "bridal makeup, ladies parlours, hair styling and skincare treatments",
+  },
+};
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { city } = await params;
   const { cityRecord, result } = await loadCityPage(city);
@@ -56,6 +86,7 @@ export default async function CitySalonsPage({ params }: Params) {
   if (!cityRecord) notFound();
   const cityName = cityRecord.name;
   const categories = catDocs.map((c) => ({ name: c.name, slug: c.slug }));
+  const cityGuide = CITY_GUIDES[city];
 
   const faqs = [
     {
@@ -162,6 +193,28 @@ export default async function CitySalonsPage({ params }: Params) {
             ))}
           </div>
         </div>
+      )}
+
+      {cityGuide && (
+        <section className="mb-8 rounded-2xl border border-gold-500/20 bg-gold-500/5 p-6 sm:p-8" aria-labelledby="city-areas-heading">
+          <h2 id="city-areas-heading" className="font-display text-xl font-bold">
+            Salon areas in {cityName}
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-fg-muted">
+            Customers searching for a salon in {cityName} often compare options by area as well as service. Explore listings near {cityGuide.areas.join(", ")}. Popular searches include {cityGuide.focus}.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {cityGuide.areas.map((area) => (
+              <Link
+                key={area}
+                href={`/salons/${city}?q=${encodeURIComponent(area)}`}
+                className="rounded-full border border-line bg-card px-3 py-1.5 text-xs text-fg-muted transition-colors hover:border-gold-500/50 hover:text-gold"
+              >
+                Salons in {area}
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* SEO Content Block */}

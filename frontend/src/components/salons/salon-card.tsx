@@ -19,6 +19,9 @@ export function SalonCard({
   salon: SalonCardData;
   priority?: boolean;
 }) {
+  const image = salon.coverImage ||
+    "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80";
+
   return (
     <Link
       href={`/salon/${salon.slug}`}
@@ -26,8 +29,8 @@ export function SalonCard({
     >
       <div className="relative aspect-[16/10] overflow-hidden">
         <Image
-          src={salon.coverImage ?? ""}
-          alt={salon.name}
+          src={image}
+          alt={`${salon.name} salon in ${salon.cityName}`}
           fill
           loading={priority ? "eager" : "lazy"}
           sizes="(max-width: 1024px) 50vw, 25vw"

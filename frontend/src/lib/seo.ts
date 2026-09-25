@@ -15,6 +15,7 @@ export function buildMetadata(opts: {
   title: string;
   description: string;
   path: string;
+  keywords?: string[];
   image?: string;
   /** Fully blocks indexing AND link-following - for pages that should never surface anywhere. */
   noIndex?: boolean;
@@ -28,9 +29,15 @@ export function buildMetadata(opts: {
 }): Metadata {
   const url = absoluteUrl(opts.path);
   const description = truncate(opts.description, 160);
+  // Child routes sometimes include the brand in their title already. Using an
+  // absolute title prevents the root layout template from producing
+  // "GetSalons | GetSalons" while still branding titles that omit it.
+  const pageTitle = opts.title.includes(SITE.shortName)
+    ? opts.title
+    : `${opts.title} | ${SITE.shortName}`;
   // Fall back to the branded default share card so every page has an og:image.
   const image = opts.image ?? DEFAULT_OG_IMAGE;
-  const images = [{ url: image, width: 1200, height: 630, alt: opts.title }];
+  const images = [{ url: image, width: 1200, height: 630, alt: pageTitle }];
 
   const robots = opts.noIndex
     ? { index: false, follow: false }
@@ -39,12 +46,13 @@ export function buildMetadata(opts: {
       : undefined;
 
   return {
-    title: opts.title,
+    title: { absolute: pageTitle },
     description,
+    ...(opts.keywords?.length ? { keywords: opts.keywords } : {}),
     alternates: { canonical: url },
     robots,
     openGraph: {
-      title: opts.title,
+      title: pageTitle,
       description,
       url,
       siteName: SITE.name,
@@ -55,7 +63,7 @@ export function buildMetadata(opts: {
     twitter: {
       card: "summary_large_image",
       site: SITE.twitter,
-      title: opts.title,
+      title: pageTitle,
       description,
       images: [image],
     },
@@ -244,20 +252,24 @@ export function offerJsonLd(offers: {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Salon Deals & Offers",
-    itemListElement: offers.map((offer) => ({
-      "@type": "Offer",
-      name: offer.name,
-      description: offer.description,
-      price: offer.price,
-      priceCurrency: "PKR",
-      availability: "https://schema.org/InStock",
-      url: offer.url,
-      ...(offer.image ? { image: offer.image } : {}),
-      ...(offer.validThrough ? { validThrough: offer.validThrough } : {}),
-      discount: {
-        "@type": "QuantitativeValue",
-        value: offer.originalPrice - offer.price,
+    itemListElement: offers.map((offer, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Offer",
+        name: offer.name,
+        description: offer.description,
+        price: offer.price,
         priceCurrency: "PKR",
+        availability: "https://schema.org/InStock",
+        url: offer.url,
+        ...(offer.image ? { image: offer.image } : {}),
+        ...(offer.validThrough ? { validThrough: offer.validThrough } : {}),
+        discount: {
+          "@type": "QuantitativeValue",
+          value: offer.originalPrice - offer.price,
+          priceCurrency: "PKR",
+        },
       },
     })),
   };

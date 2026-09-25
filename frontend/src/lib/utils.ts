@@ -92,6 +92,8 @@ export function roundRating(value: number): number {
 
 export function absoluteUrl(path: string): string {
   const base =
-    process.env.NEXT_PUBLIC_APP_URL || "https://www.getsalons.com";
+    process.env.APP_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://www.getsalons.com";
   return `${base.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
 }

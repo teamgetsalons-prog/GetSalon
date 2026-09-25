@@ -20,19 +20,21 @@ import { SITE, SITE_FAQS, TESTIMONIALS } from "@getsalons/shared/constants";
 import { CategoryIcon } from "@/components/home/category-icon";
 import type { SalonCardData } from "@getsalons/shared/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function generateMetadata() {
   return {
-    title: "GetSalons — Find & Book Best Salons, Hair Salons & Spas Near You in Pakistan",
+    title: {
+      absolute: "GetSalons — Find & Book Best Salons, Hair Salons & Spas Near You in Pakistan",
+    },
     description:
       "Find the best beauty salons, hair salons, barbers, spas and beauty parlours near you. Compare prices, read verified reviews and book appointments online in Lahore, Karachi, Islamabad and across Pakistan — free.",
-    alternates: { canonical: "https://www.getsalons.com" },
+    alternates: { canonical: SITE.url },
     openGraph: {
       title: "GetSalons — Find & Book Best Salons Near You in Pakistan",
       description:
         "Find the best beauty salons, hair salons, barbers, spas and beauty parlours near you. Compare prices, read verified reviews and book appointments online — free.",
-      url: "https://www.getsalons.com",
+      url: SITE.url,
       siteName: "GetSalons",
       locale: "en_PK",
       type: "website",
@@ -50,8 +52,8 @@ export async function generateMetadata() {
 
 async function loadData(): Promise<HomePageData & { popular: SalonCardData[] }> {
   const [home, popularResult] = await Promise.all([
-    getHomePageData(),
-    searchSalonsApi({ sort: "rating", limit: 8 }),
+    getHomePageData({ revalidate: 300 }),
+    searchSalonsApi({ sort: "rating", limit: 8 }, { revalidate: 300 }),
   ]);
   const base = home ?? {
     featured: [],
@@ -281,10 +283,10 @@ export default async function HomePage() {
           <p>
             GetSalons is Pakistan&apos;s leading online salon discovery and booking platform.
             Find the best{" "}
-            <Link href="/salons" className="font-medium text-gold hover:underline">
-              beauty salons, barbers and spas
+            <Link href="/salons-near-me" className="font-medium text-gold hover:underline">
+              salons near you
             </Link>{" "}
-            near you. Whether you&apos;re looking for a{" "}
+            including barbers and spas. Whether you&apos;re looking for a{" "}
             <Link href="/services/hair" className="font-medium text-gold hover:underline">
               hair salon
             </Link>
@@ -342,7 +344,15 @@ export default async function HomePage() {
             <Link href="/top-salons" className="font-medium text-gold hover:underline">
               top-rated salons
             </Link>
-            , browse the latest{" "}
+            , find{" "}
+            <Link href="/salon-prices" className="font-medium text-gold hover:underline">
+              salon prices
+            </Link>
+            , read{" "}
+            <Link href="/salon-reviews" className="font-medium text-gold hover:underline">
+              salon reviews
+            </Link>
+            , or browse the latest{" "}
             <Link href="/offers" className="font-medium text-gold hover:underline">
               deals and offers
             </Link>
